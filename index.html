@@ -5,9 +5,29 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>make watch application</title>
+  <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-  <h1>テスト</h1>
-  <canvas></canvas>
+  <h1>This application is for making your original watch</h1>
+  <div class="container">
+    <canvas id="my-canvas" width="500" height="500"></canvas>
+    <fieldset>
+      <legend>各パーツのサイズ</legend>
+      <label>
+        ケースの大きさ
+        <input type="text" id="case-size">
+        mm
+      </label>
+      <label>
+        見切りの大きさ
+        <input type="text" id="opening-size">
+        mm
+      </label>
+      <button id="fire-btn">生成</button>
+      <button id="dl-btn">ダウンロード(SVG)</button>
+    </fieldset>
+  </div>
+  <script src="./node_modules/fabric/dist/fabric.min.js"></script>
+  <script src="./js/index.js"></script>
 </body>
 </html>
