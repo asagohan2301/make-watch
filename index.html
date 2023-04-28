@@ -8,7 +8,39 @@
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-  <h1>This application is for making your original watch</h1>
+  <header>
+    <h1>Make Your Original Watch</h1>
+  </header>
+    <main>
+      <canvas id="my-canvas" width="416" height="640"></canvas>
+      <!-- <div class="workspace">
+        <ul class="tabs">
+          <li class="tab" id="tab-case">ケース</li>
+          <li class="tab" id="tab-strap">ベルト</li>
+          <li class="tab" id="tab-dial">文字盤</li>
+        </ul>
+        <div class="parts">
+          <div class="part" id="part-case" style="background:green">ケースのデザイン</div>
+          <div class="part" id="part-strap" style="background:lightgreen">ベルトのデザイン</div>
+          <div class="part" id="part-dial" style="background:lightblue">文字盤のデザイン</div>
+        </div>
+      </div> -->
+      <ul class="component-list">
+        <li class="component" id="case">
+          <h2 class="tab">ケース</h2>
+          <div class="workspace">ケースのデザイン</div>
+        </li>
+        <li class="component" id="strap">
+          <h2 class="tab">ベルト</h2>
+          <div class="workspace">ベルトのデザイン</div>
+        </li>
+        <li class="component" id="dial">
+          <h2 class="tab">文字盤</h2>
+          <div class="workspace">文字盤のデザイン</div>
+        </li>
+      </ul>
+    </main>
+  <!-- <h1>This application is for making your original watch</h1>
   <div class="container">
     <canvas id="my-canvas" width="500" height="500"></canvas>
     <fieldset>
@@ -26,7 +58,7 @@
       <button id="fire-btn">生成</button>
       <button id="dl-btn">ダウンロード(SVG)</button>
     </fieldset>
-  </div>
+  </div> -->
   <script src="./node_modules/fabric/dist/fabric.min.js"></script>
   <script src="./js/index.js"></script>
 </body>

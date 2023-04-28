@@ -1,8 +1,91 @@
+/* ----- style ----- */
+/* ----- whole ----- */
 body {
+  margin: 0;
+  color: #333;
+  font-size: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1,
+h2 {
   margin: 0;
 }
 
-fieldset {
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ----- header ----- */
+header {
+  min-width: 1120px;
+  background: #ECECEC;
+  border-bottom: 1px solid #333;
+}
+header h1 {
+  width: 1120px;
+  margin: 0 auto;
+  padding: 16px 0 16px 16px;
+  font-size: 20px;
+}
+
+/* ----- main ----- */
+main {
+  width: 1120px;
+  height: 640px;
+  margin: 0 auto;
+  display: flex;
+}
+main #my-canvas {
+  background: coral;
+}
+main .component-list {
+  background: green;
+  width: 704px;
+  position: relative;
+}
+main .component-list .component {
+  position: absolute;
+  width: 100%;
+  pointer-events: none;
+}
+main .component-list .component .tab {
+  width: 160px;
+  height: 48px;
+  position: relative;
+  background: ivory;
+  font-size: 16px;
+  text-align: center;
+  line-height: 48px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+main .component-list .component:nth-child(2) .tab {
+  left: 160px;
+}
+main .component-list .component:nth-child(3) .tab {
+  left: 320px;
+}
+main .component-list .component .workspace {
+  width: 704px;
+  height: 592px;
+  background: lavender;
+  pointer-events: auto;
+  display: none;
+}
+main .component-list .component .workspace.appear {
+  display: block;
+}
+main .component-list .component:first-child .workspace {
+  display: block;
+}
+
+/* fieldset {
   all: unset;
 }
 
@@ -23,4 +106,6 @@ fieldset {
 
 #my-canvas {
   border: 1px solid black;
-}
+} */
+
+/*# sourceMappingURL=style.css.map */
