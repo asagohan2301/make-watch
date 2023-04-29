@@ -6,37 +6,15 @@
 
 
 // タブを切り替える ------------------------------------------------------------------------
-// ?冗長だ。もっと良い書き方にしたい...forで書けないかな？querySelectorAll('.tab')で...
-
-const workspaces = document.querySelectorAll('.workspace');
-
-function removeAppear() {
-  workspaces.forEach(workspace => {
-    workspace.classList.remove('appear');
+const tabs = document.querySelectorAll('.tab');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const workspaces = document.querySelectorAll('.workspace');
+    workspaces.forEach(workspace => {
+      workspace.classList.remove('appear');
+    });
+    tab.nextElementSibling.classList.add('appear');
   });
-}
-
-// document.getElementById('tab-case').addEventListener('click', () => {
-//   removeAppear();
-//   document.getElementById('part-case').classList.add('appear');
-// });
-
-// document.getElementById('tab-strap').addEventListener('click', () => {
-//   removeAppear();
-//   document.getElementById('part-strap').classList.add('appear');
-// });
-
-document.querySelector('#case .tab').addEventListener('click', () => {
-  removeAppear();
-  document.querySelector('#case .workspace').classList.add('appear');
-});
-document.querySelector('#strap .tab').addEventListener('click', () => {
-  removeAppear();
-  document.querySelector('#strap .workspace').classList.add('appear');
-});
-document.querySelector('#dial .tab').addEventListener('click', () => {
-  removeAppear();
-  document.querySelector('#dial .workspace').classList.add('appear');
 });
 
 // canvas -------------------------------------------------------------------------------
