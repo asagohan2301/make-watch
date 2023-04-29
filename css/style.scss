@@ -2,6 +2,7 @@
 
 /* ----- style ----- */
 $text-color: #333;
+$hover-color: #ccc;
 $border: 1px solid $text-color;
 
 /* ----- whole ----- */
@@ -16,7 +17,8 @@ body {
 }
 
 h1,
-h2 {
+h2,
+h3 {
   margin: 0;
 }
 
@@ -34,64 +36,92 @@ header {
   h1 {
     width: 1120px;
     margin: 0 auto;
-    padding: 16px 0 16px 16px;
+    padding: 16px;
     font-size: 20px;
   }
 }
 
 /* ----- main ----- */
 main {
-    width: 1120px;
-    height: 640px;
-    margin: 0 auto;
-    display: flex;
-    #my-canvas {
-      background: coral;
-    }
-    .component-list {
-      background: green;
-      width: 704px;
-      position: relative;
-      .component {
-        position: absolute;
-        width: 100%;
-        pointer-events: none;
-        .tab {
-          width: 160px;
-          height: 48px;
-          position: relative;
-          background: ivory;
-          font-size: 16px;
-          text-align: center;
-          line-height: 48px;
-          cursor: pointer;
-          pointer-events: auto;
+  width: 1120px;
+  height: 640px;
+  margin: 0 auto;
+  display: flex;
+  #my-canvas {
+    border: $border;
+    border-top: none;
+  }
+  .component-list {
+    width: 704px;
+    position: relative;
+    .component {
+      position: absolute;
+      width: 100%;
+      pointer-events: none;
+      h2.tab {
+        width: 160px;
+        height: 48px;
+        border-right: $border;
+        position: relative;
+        font-size: 14px;
+        text-align: center;
+        line-height: 48px;
+        cursor: pointer;
+        pointer-events: auto;
+        &:hover {
+          background: $hover-color;
         }
-        &:nth-child(2) .tab {
-          left: 160px;
-        }
-        &:nth-child(3) .tab {
-          left: 320px;
-        }
-        .workspace {
-          width: 704px;
-          height: 592px;
-          background: lavender;
-          pointer-events: auto;
-          display: none;
-          &.appear {
-            display: block;
-          }
-        }
-        &:first-child .workspace {
+      }
+      &:nth-child(2) .tab {
+        left: 160px;
+      }
+      &:nth-child(3) .tab {
+        left: 320px;
+      }
+      .workspace {
+        width: 704px;
+        height: 592px;
+        padding: 36px;
+        border: $border;
+        border-left: none;
+        pointer-events: auto;
+        display: none;
+        &.appear {
           display: block;
+        }
+        label {
+          display: block;
+        }
+        label + label {
+          margin-top: 24px;
+        }
+        .shape-list {
+          height: 80px;
+          margin-top: 24px;
+          line-height: 80px;
+          display: flex;
+          h3 {
+            font-size: 14px;
+            flex: 1;
+          }
+          ul {
+            flex: 3;
+            display: flex;
+            gap: 16px;
+            li {
+              width: 144px;
+              border: $border;
+              cursor: pointer;
+            }
+          }
+          &:nth-of-type(1) {
+            margin-top: 36px;
+          }
         }
       }
     }
   }
-
-
-
+}
 
 
 

@@ -6,6 +6,9 @@
 
 
 // タブを切り替える ------------------------------------------------------------------------
+// 一つめのワークスペースを表示させておく
+document.querySelector('.component:first-child .workspace').classList.add('appear');
+// タブ切り替え
 const tabs = document.querySelectorAll('.tab');
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
@@ -21,8 +24,8 @@ tabs.forEach(tab => {
 // const canvas = new fabric.StaticCanvas('my-canvas');
 const canvas = new fabric.Canvas('my-canvas');
 
-const canvasSize = 500;
-const canvasSizeHalf = 250;
+const canvasSize = 416;
+const canvasSizeHalf = 208;
 
 // var path = new fabric.Path('M 0 0 L 100 50 L 170 200 z');
 // path.set({ left: 0, top: 0 });

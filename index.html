@@ -16,7 +16,38 @@
       <ul class="component-list">
         <li class="component" id="case">
           <h2 class="tab">ケース</h2>
-          <div class="workspace">ケースのデザイン</div>
+          <div class="workspace">
+            <label>
+              ケース直径(mm)
+              <input type="text" id="case-size">
+            </label>
+            <label>
+              見切り直径(mm)
+              <input type="text" id="opening-size">
+            </label>
+            <div class="shape-list">
+              <h3>ラグ形状</h3>
+              <ul>
+                <li>とんがった形状</li>
+                <li>丸みのある形状</li>
+              </ul>
+            </div>
+            <div class="shape-list">
+              <h3>りゅうず形状</h3>
+              <ul>
+                <li>とんがった形状</li>
+                <li>丸みのある形状</li>
+              </ul>
+            </div>
+            <div class="shape-list">
+              <h3>ケース色</h3>
+              <ul>
+                <li>ゴールド</li>
+                <li>シルバー</li>
+                <li>ピンクゴールド</li>
+              </ul>
+            </div>
+          </div>
         </li>
         <li class="component" id="strap">
           <h2 class="tab">ベルト</h2>
@@ -28,6 +59,10 @@
         </li>
       </ul>
     </main>
+    <div>
+      <button id="fire-btn">生成</button>
+      <button id="dl-btn">ダウンロード(SVG)</button>
+    </div>
   <!-- <h1>This application is for making your original watch</h1>
   <div class="container">
     <canvas id="my-canvas" width="500" height="500"></canvas>

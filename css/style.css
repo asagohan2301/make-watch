@@ -11,7 +11,8 @@ body {
 }
 
 h1,
-h2 {
+h2,
+h3 {
   margin: 0;
 }
 
@@ -30,7 +31,7 @@ header {
 header h1 {
   width: 1120px;
   margin: 0 auto;
-  padding: 16px 0 16px 16px;
+  padding: 16px;
   font-size: 20px;
 }
 
@@ -42,10 +43,10 @@ main {
   display: flex;
 }
 main #my-canvas {
-  background: coral;
+  border: 1px solid #333;
+  border-top: none;
 }
 main .component-list {
-  background: green;
   width: 704px;
   position: relative;
 }
@@ -54,16 +55,19 @@ main .component-list .component {
   width: 100%;
   pointer-events: none;
 }
-main .component-list .component .tab {
+main .component-list .component h2.tab {
   width: 160px;
   height: 48px;
+  border-right: 1px solid #333;
   position: relative;
-  background: ivory;
-  font-size: 16px;
+  font-size: 14px;
   text-align: center;
   line-height: 48px;
   cursor: pointer;
   pointer-events: auto;
+}
+main .component-list .component h2.tab:hover {
+  background: #ccc;
 }
 main .component-list .component:nth-child(2) .tab {
   left: 160px;
@@ -74,15 +78,43 @@ main .component-list .component:nth-child(3) .tab {
 main .component-list .component .workspace {
   width: 704px;
   height: 592px;
-  background: lavender;
+  padding: 36px;
+  border: 1px solid #333;
+  border-left: none;
   pointer-events: auto;
   display: none;
 }
 main .component-list .component .workspace.appear {
   display: block;
 }
-main .component-list .component:first-child .workspace {
+main .component-list .component .workspace label {
   display: block;
+}
+main .component-list .component .workspace label + label {
+  margin-top: 24px;
+}
+main .component-list .component .workspace .shape-list {
+  height: 80px;
+  margin-top: 24px;
+  line-height: 80px;
+  display: flex;
+}
+main .component-list .component .workspace .shape-list h3 {
+  font-size: 14px;
+  flex: 1;
+}
+main .component-list .component .workspace .shape-list ul {
+  flex: 3;
+  display: flex;
+  gap: 16px;
+}
+main .component-list .component .workspace .shape-list ul li {
+  width: 144px;
+  border: 1px solid #333;
+  cursor: pointer;
+}
+main .component-list .component .workspace .shape-list:nth-of-type(1) {
+  margin-top: 36px;
 }
 
 /* fieldset {
