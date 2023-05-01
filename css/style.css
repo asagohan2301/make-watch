@@ -22,6 +22,14 @@ ul {
   list-style: none;
 }
 
+fieldset {
+  all: unset;
+}
+
+legend {
+  all: unset;
+}
+
 /* ----- header ----- */
 header {
   min-width: 1120px;
@@ -90,8 +98,12 @@ main .component-list .component .workspace.appear {
 main .component-list .component .workspace label {
   display: block;
 }
-main .component-list .component .workspace label + label {
+main .component-list .component .workspace .text-label + .text-label {
   margin-top: 24px;
+}
+main .component-list .component .workspace fieldset {
+  background: green;
+  height: 80px;
 }
 main .component-list .component .workspace .shape-list {
   height: 80px;
@@ -102,6 +114,15 @@ main .component-list .component .workspace .shape-list {
 main .component-list .component .workspace .shape-list h3 {
   font-size: 14px;
   flex: 1;
+}
+main .component-list .component .workspace .shape-list .radio-label-container {
+  display: flex;
+}
+main .component-list .component .workspace .shape-list .radio-label-container .radio-label {
+  width: 144px;
+  background: pink;
+  border: 1px solid #333;
+  cursor: pointer;
 }
 main .component-list .component .workspace .shape-list ul {
   flex: 3;

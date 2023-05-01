@@ -28,6 +28,14 @@ ul {
   list-style: none;
 }
 
+fieldset {
+  all: unset;
+}
+
+legend {
+  all: unset;
+}
+
 /* ----- header ----- */
 header {
   min-width: 1120px;
@@ -92,8 +100,12 @@ main {
         label {
           display: block;
         }
-        label + label {
+        .text-label + .text-label {
           margin-top: 24px;
+        }
+        fieldset {
+          background: green;
+          height: 80px;
         }
         .shape-list {
           height: 80px;
@@ -103,6 +115,15 @@ main {
           h3 {
             font-size: 14px;
             flex: 1;
+          }
+          .radio-label-container {
+            display: flex;
+            .radio-label {
+              width: 144px;
+              background: pink;
+              border: $border;
+              cursor: pointer;
+            }
           }
           ul {
             flex: 3;

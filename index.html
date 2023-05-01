@@ -17,11 +17,11 @@
         <li class="component" id="case">
           <h2 class="tab">ケース</h2>
           <div class="workspace">
-            <label>
+            <label class="text-label">
               ケース直径(mm)
               <input type="text" id="case-size">
             </label>
-            <label>
+            <label class="text-label">
               見切り直径(mm)
               <input type="text" id="opening-size">
             </label>
@@ -32,26 +32,49 @@
                 <li>丸みのある形状</li>
               </ul>
             </div>
-            <div class="shape-list">
+            <div class="shape-list" id="crown-list">
               <h3>りゅうず形状</h3>
               <ul>
-                <li>とんがった形状</li>
-                <li>丸みのある形状</li>
+                <li id="crown-square"><img src="./images/crown-square.svg" alt="四角い形状のりゅうず" width="30"></li>
+                <li id="crown-round"><img src="./images/crown-round.svg" alt="丸い形状のりゅうず" width="30"></li>
               </ul>
             </div>
-            <div class="shape-list">
-              <h3>ケース色</h3>
-              <ul>
-                <li>ゴールド</li>
-                <li>シルバー</li>
-                <li>ピンクゴールド</li>
-              </ul>
-            </div>
+            <fieldset>
+              <legend>ケース色</legend>
+              <div class="radio-label-container">
+                <div>
+                <label class="radio-label">
+                  ゴールド
+                  <input type="radio" name="case-color" id="case-color-gold">
+                </label>
+                </div>
+                <label class="radio-label">
+                  シルバー
+                  <input type="radio" name="case-color" id="case-color-silver">
+                </label>
+                <label class="radio-label">
+                  ピンクゴールド
+                  <input type="radio" name="case-color" id="case-color-pinkgold">
+                </label>
+              </div>
+            </fieldset>
           </div>
         </li>
         <li class="component" id="strap">
           <h2 class="tab">ベルト</h2>
-          <div class="workspace">ベルトのデザイン</div>
+          <div class="workspace">
+            <label>
+              ベルト幅(mm)
+              <input type="text" id="strap-width">
+            </label>
+            <div class="shape-list">
+              <h3>バックル形状</h3>
+              <ul>
+                <li>スクエア</li>
+                <li>ラウンド</li>
+              </ul>
+            </div>
+          </div>
         </li>
         <li class="component" id="dial">
           <h2 class="tab">文字盤</h2>
@@ -63,25 +86,6 @@
       <button id="fire-btn">生成</button>
       <button id="dl-btn">ダウンロード(SVG)</button>
     </div>
-  <!-- <h1>This application is for making your original watch</h1>
-  <div class="container">
-    <canvas id="my-canvas" width="500" height="500"></canvas>
-    <fieldset>
-      <legend>各パーツのサイズ</legend>
-      <label>
-        ケースの大きさ
-        <input type="text" id="case-size">
-        mm
-      </label>
-      <label>
-        見切りの大きさ
-        <input type="text" id="opening-size">
-        mm
-      </label>
-      <button id="fire-btn">生成</button>
-      <button id="dl-btn">ダウンロード(SVG)</button>
-    </fieldset>
-  </div> -->
   <script src="./node_modules/fabric/dist/fabric.min.js"></script>
   <script src="./js/index.js"></script>
 </body>
