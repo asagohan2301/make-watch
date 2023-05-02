@@ -1,26 +1,164 @@
+/* ----- style ----- */
+/* ----- common ----- */
 body {
   margin: 0;
+  color: #333;
+  font-size: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 fieldset {
   all: unset;
 }
 
-h1 {
-  margin: 0;
-  font-size: 24px;
+legend {
+  all: unset;
 }
 
-.container {
+/* ----- header ----- */
+header {
+  min-width: 1120px;
+  background: #ECECEC;
+  border-bottom: 1px solid #333;
+}
+header h1 {
+  width: 1120px;
+  margin: 0 auto;
+  padding: 16px;
+  font-size: 20px;
+}
+
+/* ----- main common ----- */
+main {
+  width: 1120px;
+  height: 640px;
+  margin: 0 auto;
+  display: flex;
+}
+main #my-canvas {
+  border: 1px solid #333;
+  border-top: none;
+}
+main .component-list {
+  width: 704px;
+  position: relative;
+}
+main .component-list .component {
+  position: absolute;
+  width: 100%;
+  pointer-events: none;
+  /* ----- work space ----- */
+}
+main .component-list .component h2.tab {
+  width: 160px;
+  height: 48px;
+  border-right: 1px solid #333;
+  position: relative;
+  font-size: 14px;
+  text-align: center;
+  line-height: 48px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+main .component-list .component h2.tab:hover {
+  background: #e2e2e2;
+}
+main .component-list .component:nth-child(2) .tab {
+  left: 160px;
+}
+main .component-list .component:nth-child(3) .tab {
+  left: 320px;
+}
+main .component-list .component .workspace {
+  width: 704px;
+  height: 592px;
+  padding: 36px;
+  border: 1px solid #333;
+  border-left: none;
+  pointer-events: auto;
+  display: none;
+  /* ----- label ----- */
+  /* ----- text label ----- */
+  /* ----- radio label ----- */
+}
+main .component-list .component .workspace.appear {
+  display: block;
+}
+main .component-list .component .workspace label {
+  display: block;
+}
+main .component-list .component .workspace .text-label + .text-label {
+  margin-top: 24px;
+}
+main .component-list .component .workspace .shape-list {
+  height: 80px;
+  margin-top: 24px;
+  display: flex;
+}
+main .component-list .component .workspace .shape-list h3 {
+  flex: 1;
+  font-size: 14px;
+  line-height: 80px;
+}
+main .component-list .component .workspace .shape-list ul {
+  flex: 3;
   display: flex;
   gap: 16px;
 }
-
-fieldset {
-  display: flex;
-  flex-direction: column;
+main .component-list .component .workspace .shape-list ul li {
+  position: relative;
+}
+main .component-list .component .workspace .shape-list ul li label.radio-label {
+  width: 144px;
+  height: 80px;
+  border: 1px solid #333;
+  text-align: center;
+  cursor: pointer;
+}
+main .component-list .component .workspace .shape-list ul li label.radio-label input[type=radio] {
+  display: none;
+}
+main .component-list .component .workspace .shape-list:nth-of-type(1) {
+  margin-top: 36px;
 }
 
-#my-canvas {
-  border: 1px solid black;
+/* ----- main case ----- */
+.case-metal-color {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
+.case-metal-color.gold {
+  background: linear-gradient(rgb(238, 215, 71), rgb(255, 252, 245));
+}
+.case-metal-color.silver {
+  background: linear-gradient(rgb(211, 211, 211), rgb(247, 247, 247));
+}
+.case-metal-color.pink-gold {
+  background: linear-gradient(rgb(220, 170, 119), rgb(255, 239, 230));
+}
+
+.active {
+  background: #e2e2e2;
+}
+
+/*# sourceMappingURL=style.css.map */
