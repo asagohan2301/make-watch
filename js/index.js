@@ -4,6 +4,17 @@
 //* SVGへの変換だけをfabric.js機能を使って、描画は純粋なcanvasでできないかな？
 //* できないなーcanvasで書いたものはfabric.jsでdlできない。空になっちゃってる
 
+// ラジオボタン 選択されたボタンに色をつける
+const radios = document.querySelectorAll('.radio-label input');
+radios.forEach(radio => {
+  radio.addEventListener('click', () => {
+    radios.forEach(radio => {
+      radio.parentNode.classList.remove('active');
+    });
+    console.log(radio.value);
+    radio.parentNode.classList.add('active');
+  });
+});
 
 // タブを切り替える ------------------------------------------------------------------------
 // 一つめのworkspaceを表示させておく
@@ -92,12 +103,12 @@ function drawRoundCrown() {
 // svgを読み込む関数分けられるかな？
 
 
-document.getElementById('crown-square').addEventListener('click', () => {
-  drawSquareCrown();
-});
-document.getElementById('crown-round').addEventListener('click', () => {
-  drawRoundCrown();
-});
+// document.getElementById('crown-square').addEventListener('click', () => {
+//   drawSquareCrown();
+// });
+// document.getElementById('crown-round').addEventListener('click', () => {
+//   drawRoundCrown();
+// });
 
 // ケースを描く関数 ---------------
 // ?見切りを描く関数とほとんど同じなので、同じ関数にしたいが...

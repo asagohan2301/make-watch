@@ -1,5 +1,5 @@
 /* ----- style ----- */
-/* ----- whole ----- */
+/* ----- common ----- */
 body {
   margin: 0;
   color: #333;
@@ -43,7 +43,7 @@ header h1 {
   font-size: 20px;
 }
 
-/* ----- main ----- */
+/* ----- main common ----- */
 main {
   width: 1120px;
   height: 640px;
@@ -62,6 +62,7 @@ main .component-list .component {
   position: absolute;
   width: 100%;
   pointer-events: none;
+  /* ----- work space ----- */
 }
 main .component-list .component h2.tab {
   width: 160px;
@@ -75,7 +76,7 @@ main .component-list .component h2.tab {
   pointer-events: auto;
 }
 main .component-list .component h2.tab:hover {
-  background: #ccc;
+  background: #e2e2e2;
 }
 main .component-list .component:nth-child(2) .tab {
   left: 160px;
@@ -91,6 +92,9 @@ main .component-list .component .workspace {
   border-left: none;
   pointer-events: auto;
   display: none;
+  /* ----- label ----- */
+  /* ----- text label ----- */
+  /* ----- radio label ----- */
 }
 main .component-list .component .workspace.appear {
   display: block;
@@ -101,28 +105,15 @@ main .component-list .component .workspace label {
 main .component-list .component .workspace .text-label + .text-label {
   margin-top: 24px;
 }
-main .component-list .component .workspace fieldset {
-  background: green;
-  height: 80px;
-}
 main .component-list .component .workspace .shape-list {
   height: 80px;
   margin-top: 24px;
-  line-height: 80px;
   display: flex;
 }
 main .component-list .component .workspace .shape-list h3 {
-  font-size: 14px;
   flex: 1;
-}
-main .component-list .component .workspace .shape-list .radio-label-container {
-  display: flex;
-}
-main .component-list .component .workspace .shape-list .radio-label-container .radio-label {
-  width: 144px;
-  background: pink;
-  border: 1px solid #333;
-  cursor: pointer;
+  font-size: 14px;
+  line-height: 80px;
 }
 main .component-list .component .workspace .shape-list ul {
   flex: 3;
@@ -130,35 +121,44 @@ main .component-list .component .workspace .shape-list ul {
   gap: 16px;
 }
 main .component-list .component .workspace .shape-list ul li {
+  position: relative;
+}
+main .component-list .component .workspace .shape-list ul li label.radio-label {
   width: 144px;
+  height: 80px;
   border: 1px solid #333;
+  text-align: center;
   cursor: pointer;
+}
+main .component-list .component .workspace .shape-list ul li label.radio-label input[type=radio] {
+  display: none;
 }
 main .component-list .component .workspace .shape-list:nth-of-type(1) {
   margin-top: 36px;
 }
 
-/* fieldset {
-  all: unset;
+/* ----- main case ----- */
+.case-metal-color {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.case-metal-color.gold {
+  background: linear-gradient(rgb(238, 215, 71), rgb(255, 252, 245));
+}
+.case-metal-color.silver {
+  background: linear-gradient(rgb(211, 211, 211), rgb(247, 247, 247));
+}
+.case-metal-color.pink-gold {
+  background: linear-gradient(rgb(220, 170, 119), rgb(255, 239, 230));
 }
 
-h1 {
-  margin: 0;
-  font-size: 24px;
+.active {
+  background: #e2e2e2;
 }
-
-.container {
-  display: flex;
-  gap: 16px;
-}
-
-fieldset {
-  display: flex;
-  flex-direction: column;
-}
-
-#my-canvas {
-  border: 1px solid black;
-} */
 
 /*# sourceMappingURL=style.css.map */

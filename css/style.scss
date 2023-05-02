@@ -2,10 +2,10 @@
 
 /* ----- style ----- */
 $text-color: #333;
-$hover-color: #ccc;
+$active-color: #e2e2e2;
 $border: 1px solid $text-color;
 
-/* ----- whole ----- */
+/* ----- common ----- */
 body {
   margin: 0;
   color: $text-color;
@@ -49,7 +49,7 @@ header {
   }
 }
 
-/* ----- main ----- */
+/* ----- main common ----- */
 main {
   width: 1120px;
   height: 640px;
@@ -77,7 +77,7 @@ main {
         cursor: pointer;
         pointer-events: auto;
         &:hover {
-          background: $hover-color;
+          background: $active-color;
         }
       }
       &:nth-child(2) .tab {
@@ -86,6 +86,7 @@ main {
       &:nth-child(3) .tab {
         left: 320px;
       }
+      /* ----- work space ----- */
       .workspace {
         width: 704px;
         height: 592px;
@@ -97,42 +98,40 @@ main {
         &.appear {
           display: block;
         }
+        /* ----- label ----- */
         label {
           display: block;
         }
+        /* ----- text label ----- */
         .text-label + .text-label {
           margin-top: 24px;
         }
-        fieldset {
-          background: green;
-          height: 80px;
-        }
+        /* ----- radio label ----- */
         .shape-list {
           height: 80px;
           margin-top: 24px;
-          line-height: 80px;
           display: flex;
           h3 {
-            font-size: 14px;
             flex: 1;
-          }
-          .radio-label-container {
-            display: flex;
-            .radio-label {
-              width: 144px;
-              background: pink;
-              border: $border;
-              cursor: pointer;
-            }
+            font-size: 14px;
+            line-height: 80px;
           }
           ul {
             flex: 3;
             display: flex;
             gap: 16px;
             li {
-              width: 144px;
-              border: $border;
-              cursor: pointer;
+              position: relative;
+              label.radio-label {
+                width: 144px;
+                height: 80px;
+                border: $border;
+                text-align: center;
+                cursor: pointer;
+                input[type="radio"] {
+                  display: none;
+                }
+              }
             }
           }
           &:nth-of-type(1) {
@@ -144,29 +143,27 @@ main {
   }
 }
 
+/* ----- main case ----- */
 
-
-
-
-/* fieldset {
-  all: unset;
+.case-metal-color {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  &.gold {
+    background: linear-gradient(rgb(238 215 71), rgb(255 252 245));
+  }
+  &.silver {
+    background: linear-gradient(rgb(211 211 211), rgb(247 247 247));
+  }
+  &.pink-gold {
+    background: linear-gradient(rgb(220 170 119), rgb(255 239 230));
+  }
 }
 
-h1 {
-  margin: 0;
-  font-size: 24px;
+.active {
+  background: $active-color;
 }
-
-.container {
-  display: flex;
-  gap: 16px;
-}
-
-fieldset {
-  display: flex;
-  flex-direction: column;
-}
-
-#my-canvas {
-  border: 1px solid black;
-} */
