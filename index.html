@@ -17,52 +17,81 @@
         <li class="component">
           <h2 class="tab">ケース</h2>
           <div class="workspace">
-            <label class="text-label">
-              ケース直径(mm)
-              <input type="text" id="case-size">
-            </label>
-            <label class="text-label">
-              見切り直径(mm)
-              <input type="text" id="opening-size">
-            </label>
-            <!-- <div class="shape-list">
-              <h3>ラグ形状</h3>
-              <ul>
-                <li>とんがった形状</li>
-                <li>丸みのある形状</li>
-              </ul>
-            </div> -->
-            <!-- <div class="shape-list" id="crown-list">
-              <h3>りゅうず形状</h3>
-              <ul>
-                <li id="crown-square"><img src="./images/crown-square.svg" alt="四角い形状のりゅうず" width="30"></li>
-                <li id="crown-round"><img src="./images/crown-round.svg" alt="丸い形状のりゅうず" width="30"></li>
-              </ul>
-            </div> -->
-            <div class="shape-list">
-              <h3>ケース色</h3>
+            <div class="text-label-container">
+              <label for="case-size">ケース直径</label>
+              <input type="text" id="case-size" size="4">
+              <span>mm</span>
+            </div>
+            <div class="text-label-container">
+              <label for="opening-size">見切り直径</label>
+              <input type="text" id="opening-size" size="4">
+              <span>mm</span>
+            </div>
+            <div class="text-label-container">
+              <label for="lug-width">ラグ幅</label>
+              <input type="text" id="lug-width" size="4">
+              <span>mm</span>
+            </div>
+            <div>
+              <div class="shape-list">
+                <h3>ラグ形状</h3>
+                <ul>
+                  <li>
+                    <label class="radio-label">
+                      <input type="radio" name="lug-shape" value="round">
+                    </label>
+                    <img src="./images/lug-round.svg" alt="丸い形状のラグ" width="80" height="32">
+                  </li>
+                  <li>
+                    <label class="radio-label">
+                      <input type="radio" name="lug-shape" value="square">
+                    </label>
+                    <img src="./images/lug-square.svg" alt="四角い形状のラグ" width="80" height="32">
+                  </li>
+                </ul>
+              </div>
+              <div class="shape-list">
+                <h3>リュウズ形状</h3>
+                <ul>
+                  <li>
+                    <label class="radio-label">
+                      <input type="radio" name="crown-shape" value="round">
+                    </label>
+                    <img src="./images/crown-round.svg" alt="丸い形状のリュウズ" width="15" height="18">
+                  </li>
+                  <li>
+                    <label class="radio-label">
+                      <input type="radio" name="crown-shape" value="square">
+                    </label>
+                    <img src="./images/crown-square.svg" alt="四角い形状のリュウズ" width="12" height="18">
+                  </li>
+                </ul>
+              </div>
+              <div class="shape-list">
+              <h3>金属色</h3>
               <ul>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="case-color" value="gold">
+                    <input type="radio" name="metal-color" value="gold">
                   </label>
-                  <div class="case-metal-color gold"></div>
+                  <div class="gold-color"></div>
                 </li>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="case-color" value="silver">
+                    <input type="radio" name="metal-color" value="silver">
                   </label>
-                  <div class="case-metal-color silver"></div>
+                  <div class="silver-color"></div>
                 </li>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="case-color" value="pink-gold">
+                    <input type="radio" name="metal-color" value="pink-gold">
                   </label>
-                  <div class="case-metal-color pink-gold"></div>
+                  <div class="pink-gold-color"></div>
                 </li>
               </ul>
             </div>
           </div>
+        </div>
         </li>
         <li class="component">
           <h2 class="tab">ベルト</h2>

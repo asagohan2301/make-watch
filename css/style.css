@@ -13,6 +13,7 @@ body {
 h1,
 h2,
 h3 {
+  font-weight: normal;
   margin: 0;
 }
 
@@ -102,7 +103,16 @@ main .component-list .component .workspace.appear {
 main .component-list .component .workspace label {
   display: block;
 }
-main .component-list .component .workspace .text-label + .text-label {
+main .component-list .component .workspace .text-label-container {
+  display: flex;
+}
+main .component-list .component .workspace .text-label-container label {
+  width: 120px;
+}
+main .component-list .component .workspace .text-label-container span {
+  margin-left: 8px;
+}
+main .component-list .component .workspace .text-label-container + .text-label-container {
   margin-top: 24px;
 }
 main .component-list .component .workspace .shape-list {
@@ -133,30 +143,36 @@ main .component-list .component .workspace .shape-list ul li label.radio-label {
 main .component-list .component .workspace .shape-list ul li label.radio-label input[type=radio] {
   display: none;
 }
-main .component-list .component .workspace .shape-list:nth-of-type(1) {
-  margin-top: 36px;
-}
-
-/* ----- main case ----- */
-.case-metal-color {
-  width: 30px;
-  height: 30px;
+main .component-list .component .workspace .shape-list ul li img,
+main .component-list .component .workspace .shape-list ul li div {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
-.case-metal-color.gold {
+main .component-list .component .workspace .shape-list ul li div {
+  width: 30px;
+  height: 30px;
+}
+main .component-list .component .workspace .shape-list:nth-of-type(1) {
+  margin-top: 48px;
+}
+
+/* ----- main case ----- */
+.gold-color {
   background: linear-gradient(rgb(238, 215, 71), rgb(255, 252, 245));
 }
-.case-metal-color.silver {
+
+.silver-color {
   background: linear-gradient(rgb(211, 211, 211), rgb(247, 247, 247));
 }
-.case-metal-color.pink-gold {
+
+.pink-gold-color {
   background: linear-gradient(rgb(220, 170, 119), rgb(255, 239, 230));
 }
 
+/* ----- action ----- */
 .active {
   background: #e2e2e2;
 }
