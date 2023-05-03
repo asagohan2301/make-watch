@@ -32,6 +32,7 @@ tabs.forEach(tab => {
 
 // fabricインスタンス生成 ------------------------------------------------------------------
 const canvas = new fabric.Canvas('my-canvas');
+// const canvas = new fabric.StaticCanvas('my-canvas');
 const canvasSize = 416;
 const canvasHalfWidth = 208;
 const canvasHalfHeight = 320;
@@ -72,6 +73,19 @@ document.getElementById('fire-btn').addEventListener('click', () => {
 });
 
 // リュウズを描く関数 -----------------------------------------------------------------------
+const crowns = document.querySelectorAll('input[name="crown-shape"]');
+crowns.forEach(crown => {
+  crown.addEventListener('click', () => {
+    switch(crown.value) {
+      case 'round':
+        drawRoundCrown();
+        break;
+      case 'square':
+        drawSquareCrown();
+        break;
+    }
+  });
+});
 function drawSquareCrown() {
   canvas.remove(crownObject);
   fabric.loadSVGFromURL('./images/crown-square.svg', (objects, options) => {
@@ -152,7 +166,7 @@ const pinkGoldGradation = new Gradation({
 });
 
 // ボタンクリックでケースに色をつける
-const caseColors = document.querySelectorAll('input[name="case-color"]');
+const caseColors = document.querySelectorAll('input[name="metal-color"]');
 caseColors.forEach(caseColor => {
   caseColor.addEventListener('click', () => {
     switch(caseColor.value) {
@@ -175,6 +189,7 @@ caseColors.forEach(caseColor => {
     canvas.renderAll();
   });
 });
+// りゅうずとラグにも同時に色をつけたい
 
 
 // 見切りを描く関数 ---------------

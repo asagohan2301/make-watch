@@ -19,6 +19,7 @@ body {
 h1,
 h2,
 h3 {
+  font-weight: normal;
   margin: 0;
 }
 
@@ -103,7 +104,16 @@ main {
           display: block;
         }
         /* ----- text label ----- */
-        .text-label + .text-label {
+        .text-label-container {
+          display: flex;
+          label {
+            width: 120px;
+          }
+          span {
+            margin-left: 8px;
+          }
+        }
+        .text-label-container + .text-label-container {
           margin-top: 24px;
         }
         /* ----- radio label ----- */
@@ -132,10 +142,22 @@ main {
                   display: none;
                 }
               }
+              img,
+              div {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+              }
+              div {
+                width: 30px;
+                height: 30px;
+              }
             }
           }
           &:nth-of-type(1) {
-            margin-top: 36px;
+            margin-top: 48px;
           }
         }
       }
@@ -144,26 +166,17 @@ main {
 }
 
 /* ----- main case ----- */
-
-.case-metal-color {
-  width: 30px;
-  height: 30px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  &.gold {
-    background: linear-gradient(rgb(238 215 71), rgb(255 252 245));
-  }
-  &.silver {
-    background: linear-gradient(rgb(211 211 211), rgb(247 247 247));
-  }
-  &.pink-gold {
-    background: linear-gradient(rgb(220 170 119), rgb(255 239 230));
-  }
+.gold-color {
+  background: linear-gradient(rgb(238,215,71), rgb(255,252,245));
+}
+.silver-color {
+  background: linear-gradient(rgb(211,211,211), rgb(247,247,247));
+}
+.pink-gold-color {
+  background: linear-gradient(rgb(220,170,119), rgb(255,239,230));
 }
 
+/* ----- action ----- */
 .active {
   background: $active-color;
 }

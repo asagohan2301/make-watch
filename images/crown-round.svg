@@ -5,10 +5,10 @@
 ]>
 <svg version="1.1"
 	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:a="http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/"
-	 x="0px" y="0px" width="7px" height="9px" viewBox="0.5 0.5 7 9" enable-background="new 0.5 0.5 7 9" xml:space="preserve">
+	 x="0px" y="0px" width="8px" height="10px" viewBox="0.001 0 8 10" enable-background="new 0.001 0 8 10" xml:space="preserve">
 <defs>
 </defs>
-<ellipse fill="none" stroke="#000000" stroke-miterlimit="10" cx="6.429" cy="4.752" rx="1.417" ry="4.252"/>
+<ellipse fill="none" stroke="#000000" stroke-miterlimit="10" cx="6.17" cy="4.752" rx="1.418" ry="4.252"/>
 <rect x="0.5" y="0.5" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="5.67" height="8.504"/>
 <line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="0.5" y1="4.752" x2="6.168" y2="4.752"/>
 <line fill="none" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" x1="0.5" y1="6.169" x2="6.168" y2="6.169"/>
