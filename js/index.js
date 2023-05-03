@@ -4,6 +4,24 @@
 //* SVGへの変換だけをfabric.js機能を使って、描画は純粋なcanvasでできないかな？
 //* できないなーcanvasで書いたものはfabric.jsでdlできない。空になっちゃってる
 
+// mmからpixelに変換する関数 --------------------------------------------
+// ?dpiが72で良いのかどうかわからない
+function mmToPixel(mm) {
+  const dpi = 72;
+  // mmをインチに
+  const inch = mm / 25.4;
+  // インチをpixelに(72dpiとして)
+  const pixel = inch * dpi;
+  return pixel;
+}
+
+// inputの入力値を数値にしてpixelにして返す関数 ------------------------------------------------
+function inputValueToPixel(id) { //引数にinput要素のid名を受け取る
+  const inputValue = document.getElementById(id).value;
+  const pixel = mmToPixel(parseInt(inputValue));
+  return pixel;
+}
+
 // ラジオボタン 選択されたボタンに色をつける
 const radios = document.querySelectorAll('.radio-label input');
 radios.forEach(radio => {
@@ -41,6 +59,88 @@ const canvasHalfHeight = 320;
 let caseObject;
 let openingObject;
 let crownObject; //2種類のクラウンで同じ名前共有できるか？できたみたい
+let lugObject;
+const lugThickness = mmToPixel(2);
+
+
+
+
+// ラグを描く関数 ------------------------------------------
+
+let lugWidth;
+
+const lugs = document.querySelectorAll('input[name="lug-shape"]');
+lugs.forEach(lug => {
+  lug.addEventListener('click', () => {
+    // ラグ幅の入力を受ける
+    lugWidth = inputValueToPixel('lug-width');
+    switch(lug.value) {
+      case 'round':
+        drawRoundLug();
+        break;
+      case 'square':
+        drawSquareLug();
+        break;
+    }
+  });
+});
+
+// lugを普通に描く関数
+// function drawRoundLug() {
+//   canvas.remove(lugObject);
+//   fabric.loadSVGFromURL('./images/lug-round.svg', (objects, options) => {
+//     lugObject = fabric.util.groupSVGElements(objects, options);
+//     lugObject.set({
+//       originX: 'center',
+//       left: canvasHalfWidth,
+//       top: canvasHalfHeight - caseObject.height / 2 - lugObject.height / 2
+//     });
+//     canvas.add(lugObject);
+//     lugObject.sendToBack();
+//   });
+// }
+
+// lugを2個描く --------------------------------------------------------------------
+const lugArray = [];
+let lugPosition = 0;
+function drawRoundLug() {
+  lugArray.forEach(lug => {
+    canvas.remove(lug);
+  });
+  for(let i = 0; i < 2; i++) {
+    fabric.loadSVGFromURL('./images/lug-round.svg', (objects, options) => {
+      lugArray[i] = fabric.util.groupSVGElements(objects, options);
+      lugArray[i].set({
+        originX: 'center',
+        left: canvasHalfWidth - lugWidth / 2 - lugThickness / 2 + lugPosition,
+        top: canvasHalfHeight - caseObject.height / 1.7,
+      });
+      canvas.add(lugArray[i]);
+      lugArray[i].sendToBack();
+      lugPosition += lugWidth + lugThickness;
+    });
+  }
+  lugPosition = 0;
+}
+function drawSquareLug() {
+  lugArray.forEach(lug => {
+    canvas.remove(lug);
+  });
+  for(let i = 0; i < 2; i++) {
+    fabric.loadSVGFromURL('./images/lug-square.svg', (objects, options) => {
+      lugArray[i] = fabric.util.groupSVGElements(objects, options);
+      lugArray[i].set({
+        originX: 'center',
+        left: canvasHalfWidth - lugWidth / 2 - lugThickness / 2 + lugPosition,
+        top: canvasHalfHeight - caseObject.height / 1.7,
+      });
+      canvas.add(lugArray[i]);
+      lugArray[i].sendToBack();
+      lugPosition += lugWidth + lugThickness;
+    });
+  }
+  lugPosition = 0;
+}
 
 // strapを描く関数 作成しておいたSVGファイルをcanvasに読み込む --------------------------
 function drawStrap() {
@@ -71,6 +171,7 @@ document.getElementById('opening-size').addEventListener('input', () => {
 document.getElementById('fire-btn').addEventListener('click', () => {
   drawStrap();
 });
+
 
 // リュウズを描く関数 -----------------------------------------------------------------------
 const crowns = document.querySelectorAll('input[name="crown-shape"]');
@@ -117,9 +218,7 @@ function drawRoundCrown() {
 // ?インスタンス名がちがうから？うまくremoveできない
 // ?for文とかで繰り返して2つ作る？
 function drawCase(){
-  const inputCaseSize = document.getElementById('case-size').value;
-  const mmCaseSize = parseInt(inputCaseSize);
-  const caseSize = mmToPixel(mmCaseSize);
+  const caseSize = inputValueToPixel('case-size');
   caseObject = new fabric.Circle({ 
     originX: 'center',
     originY: 'center',
@@ -194,9 +293,7 @@ caseColors.forEach(caseColor => {
 
 // 見切りを描く関数 ---------------
 function drawOpening() {
-  const inputOpeningSize = document.getElementById('opening-size').value;
-  const mmOpeningSize = parseInt(inputOpeningSize);
-  const openingSize = mmToPixel(mmOpeningSize);
+  const openingSize = inputValueToPixel('opening-size');
   openingObject = new fabric.Circle({
     originX: 'center',
     originY: 'center',
@@ -210,16 +307,7 @@ function drawOpening() {
   canvas.add(openingObject);
 }
 
-// mmからpixelに変換する関数 --------------------------------------------
-// ?dpiが72で良いのかどうかわからない
-const dpi = 72;
-function mmToPixel(mm) {
-  // mmをインチに
-  const inch = mm / 25.4;
-  // インチをpixelに(72dpiとして)
-  const pixel = inch * dpi;
-  return pixel;
-}
+
 
 // canvasの内容をSVGに変換してダウンロードする ----------------------------------------------
 document.getElementById('dl-btn').addEventListener('click', () => {
