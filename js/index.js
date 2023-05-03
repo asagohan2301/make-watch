@@ -11,7 +11,6 @@ radios.forEach(radio => {
     radios.forEach(radio => {
       radio.parentNode.classList.remove('active');
     });
-    console.log(radio.value);
     radio.parentNode.classList.add('active');
   });
 });
@@ -37,7 +36,7 @@ const canvasSize = 416;
 const canvasHalfWidth = 208;
 const canvasHalfHeight = 320;
 
-// 変数を事前に定義しておく
+// 変数を事前に定義しておく -----------------------------------------------------------------
 let caseObject;
 let openingObject;
 let crownObject; //2種類のクラウンで同じ名前共有できるか？できたみたい
@@ -57,7 +56,7 @@ function drawStrap() {
   });
 }
 
-// inputに入力するとcanvasに描かれる
+// ケースと見切り inputに入力するとcanvasに描かれる
 document.getElementById('case-size').addEventListener('input', () => {
   canvas.remove(caseObject);
   drawCase();
@@ -69,13 +68,10 @@ document.getElementById('opening-size').addEventListener('input', () => {
 
 // fireボタンクリックイベント ----------------------------------------------------------------
 document.getElementById('fire-btn').addEventListener('click', () => {
-  
-  // drawCase();
-  // drawOpening();
   drawStrap();
 });
 
-// リュウズを描く関数 -------------
+// リュウズを描く関数 -----------------------------------------------------------------------
 function drawSquareCrown() {
   canvas.remove(crownObject);
   fabric.loadSVGFromURL('./images/crown-square.svg', (objects, options) => {
@@ -100,15 +96,7 @@ function drawRoundCrown() {
     canvas.add(crownObject);
   });
 }
-// svgを読み込む関数分けられるかな？
-
-
-// document.getElementById('crown-square').addEventListener('click', () => {
-//   drawSquareCrown();
-// });
-// document.getElementById('crown-round').addEventListener('click', () => {
-//   drawRoundCrown();
-// });
+// ?svgを読み込む関数分けられるかな？
 
 // ケースを描く関数 ---------------
 // ?見切りを描く関数とほとんど同じなので、同じ関数にしたいが...
@@ -130,6 +118,64 @@ function drawCase(){
   });
   canvas.add(caseObject);
 }
+
+// ケースにグラデーションを適応
+// クラスを使ってみる！！
+class Gradation extends fabric.Gradient {
+  constructor(options) {
+    super(options);
+    this.type = 'linear';
+    this.gradientUnits = 'percentage';
+    this.coords = { x1: 0, y1: 0, x2: 1, y2: 0 };
+  }
+}
+const goldGradation = new Gradation({
+  colorStops:[
+    { offset: 0, color: 'rgb(238,215,71)'},
+    { offset: .5, color: '#fff'},
+    { offset: 1, color: 'rgb(238,215,71)'},
+  ]
+});
+const silverGradation = new Gradation({
+  colorStops:[
+    { offset: 0, color: 'rgb(211,211,211)'},
+    { offset: .5, color: 'rgb(247,247,247)'},
+    { offset: 1, color: 'rgb(211,211,211)'},
+  ]
+});
+const pinkGoldGradation = new Gradation({
+  colorStops:[
+    { offset: 0, color: 'rgb(220,170,119)'},
+    { offset: .5, color: 'rgb(255,239,230)'},
+    { offset: 1, color: 'rgb(220,170,119)'},
+  ]
+});
+
+// ボタンクリックでケースに色をつける
+const caseColors = document.querySelectorAll('input[name="case-color"]');
+caseColors.forEach(caseColor => {
+  caseColor.addEventListener('click', () => {
+    switch(caseColor.value) {
+      case 'gold':
+        caseObject.set({
+          fill: goldGradation,
+        });
+        break;
+      case 'silver':
+        caseObject.set({
+          fill: silverGradation,
+        });
+        break;
+      case 'pink-gold':
+        caseObject.set({
+          fill: pinkGoldGradation,
+        });
+        break;
+    }
+    canvas.renderAll();
+  });
+});
+
 
 // 見切りを描く関数 ---------------
 function drawOpening() {
