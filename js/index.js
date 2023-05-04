@@ -193,7 +193,7 @@ crowns.forEach(crown => {
 });
 function drawSquareCrown() {
   canvas.remove(crownObject);
-  fabric.loadSVGFromURL('./images/crown-square.svg', (objects, options) => {
+  fabric.loadSVGFromURL('./images/crown-square_re.svg', (objects, options) => {
     crownObject = fabric.util.groupSVGElements(objects, options);
     crownObject.set({
       originY: 'center',
@@ -205,7 +205,7 @@ function drawSquareCrown() {
 }
 function drawRoundCrown() {
   canvas.remove(crownObject);
-  fabric.loadSVGFromURL('./images/crown-round.svg', (objects, options) => {
+  fabric.loadSVGFromURL('./images/crown-round_re.svg', (objects, options) => {
     crownObject = fabric.util.groupSVGElements(objects, options);
     crownObject.set({
       originY: 'center',
@@ -277,15 +277,39 @@ caseColors.forEach(caseColor => {
         caseObject.set({
           fill: goldGradation,
         });
+        crownObject.set({
+          fill: goldGradation,
+        });
+        lugArray.forEach(lug => {
+          lug.set({
+            fill: goldGradation,
+          });
+        });
         break;
       case 'silver':
         caseObject.set({
           fill: silverGradation,
         });
+        crownObject.set({
+          fill: silverGradation,
+        });
+        lugArray.forEach(lug => {
+          lug.set({
+            fill: silverGradation,
+          });
+        });
         break;
       case 'pink-gold':
         caseObject.set({
           fill: pinkGoldGradation,
+        });
+        crownObject.set({
+          fill: pinkGoldGradation,
+        });
+        lugArray.forEach(lug => {
+          lug.set({
+            fill: pinkGoldGradation,
+          });
         });
         break;
     }
