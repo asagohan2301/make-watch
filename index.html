@@ -96,20 +96,20 @@
         <li class="component">
           <h2 class="tab">ベルト</h2>
           <div class="workspace">
-            <label class="text-label">
-              ベルト幅(mm)
-              <input type="text" id="strap-width">
-            </label>
+            <div class="text-label-container">
+              <label for="strap-width">ベルト幅</label>
+              <input type="text" id="strap-width" size="4">
+              <span>mm</span>
+            </div>
           </div>
         </li>
-        <li class="component">
+        <!-- <li class="component">
           <h2 class="tab">文字盤</h2>
           <div class="workspace">文字盤のデザイン</div>
-        </li>
+        </li> -->
       </ul>
     </main>
-    <div>
-      <button id="fire-btn">生成</button>
+    <div class="btn-container">
       <button id="dl-btn">ダウンロード(SVG)</button>
     </div>
   <script src="./node_modules/fabric/dist/fabric.min.js"></script>
