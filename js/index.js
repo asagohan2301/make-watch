@@ -40,11 +40,17 @@ document.querySelector('.component:first-child .workspace').classList.add('appea
 const tabs = document.querySelectorAll('.tab');
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
+    // ワークスペースの表示
     const workspaces = document.querySelectorAll('.workspace');
     workspaces.forEach(workspace => {
       workspace.classList.remove('appear');
     });
     tab.nextElementSibling.classList.add('appear');
+    // 今いるタブに色をつける
+    tabs.forEach(tab => {
+      tab.classList.remove('active');
+    });
+    tab.classList.add('active');
   });
 });
 
@@ -145,21 +151,50 @@ function drawSquareLug() {
   canvas.renderAll();
 }
 
+// strapの値を変更するたびに生成
+let strapWidth;
+let upperStrapObject;
+let lowerStrapObject;
+const defaultStrapWidth = mmToPixel(16);
+
+document.getElementById('strap-width').addEventListener('input', () => {
+  canvas.remove(upperStrapObject);
+  canvas.remove(lowerStrapObject);
+  drawUpperStrap();
+  drawLowerStrap();
+});
 
 // strapを描く関数 作成しておいたSVGファイルをcanvasに読み込む --------------------------
-function drawStrap() {
-  fabric.loadSVGFromURL('./images/strap.svg', (objects, options) =>{
-    const strap = fabric.util.groupSVGElements(objects, options);
-    strap.set({
+function drawLowerStrap() {
+  fabric.loadSVGFromURL('./images/lower-strap.svg', (objects, options) =>{
+    lowerStrapObject = fabric.util.groupSVGElements(objects, options);
+    strapWidth = inputValueToPixel('strap-width');
+    lowerStrapObject.set({
       originX: 'center',
       left: canvasHalfWidth,
       // strapを描く位置(高さ)を、ケースの位置から取得する
       top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
-      fill: 'green',
+      scaleX: strapWidth / defaultStrapWidth,
     });
-    canvas.add(strap);
+    canvas.add(lowerStrapObject);
   });
 }
+function drawUpperStrap() {
+  fabric.loadSVGFromURL('./images/upper-strap.svg', (objects, options) =>{
+    lowerStrapObject = fabric.util.groupSVGElements(objects, options);
+    strapWidth = inputValueToPixel('strap-width');
+    lowerStrapObject.set({
+      originX: 'center',
+      originY: 'bottom',
+      left: canvasHalfWidth,
+      // strapを描く位置(高さ)を、ケースの位置から取得する
+      top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
+      scaleX: strapWidth / defaultStrapWidth,
+    });
+    canvas.add(lowerStrapObject);
+  });
+}
+
 
 // ケースと見切り inputに入力するとcanvasに描かれる
 document.getElementById('case-size').addEventListener('input', () => {
@@ -170,12 +205,6 @@ document.getElementById('opening-size').addEventListener('input', () => {
   canvas.remove(openingObject);
   drawOpening();
 });
-
-// fireボタンクリックイベント ----------------------------------------------------------------
-document.getElementById('fire-btn').addEventListener('click', () => {
-  drawStrap();
-});
-
 
 // リュウズを描く関数 -----------------------------------------------------------------------
 const crowns = document.querySelectorAll('input[name="crown-shape"]');

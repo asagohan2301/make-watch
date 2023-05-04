@@ -176,6 +176,23 @@ main {
   background: linear-gradient(rgb(220,170,119), rgb(255,239,230));
 }
 
+/* ----- button ----- */
+.btn-container {
+  width: 1120px;
+  margin: 16px auto 0;
+  #dl-btn {
+    all: unset;
+    display: block;
+    padding: 8px 16px;
+    margin-left: auto;
+    border: $border;
+    cursor: pointer;
+    &:hover {
+      background: $active-color;
+    }
+  }
+}
+
 /* ----- action ----- */
 .active {
   background: $active-color;
