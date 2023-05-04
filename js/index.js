@@ -61,9 +61,7 @@ let openingObject;
 let crownObject; //2種類のクラウンで同じ名前共有できるか？できたみたい
 let lugObject;
 const lugThickness = mmToPixel(2);
-
-
-
+const lugLength = mmToPixel(8);
 
 // ラグを描く関数 ------------------------------------------
 
@@ -85,62 +83,68 @@ lugs.forEach(lug => {
   });
 });
 
-// lugを普通に描く関数
-// function drawRoundLug() {
-//   canvas.remove(lugObject);
-//   fabric.loadSVGFromURL('./images/lug-round.svg', (objects, options) => {
-//     lugObject = fabric.util.groupSVGElements(objects, options);
-//     lugObject.set({
-//       originX: 'center',
-//       left: canvasHalfWidth,
-//       top: canvasHalfHeight - caseObject.height / 2 - lugObject.height / 2
-//     });
-//     canvas.add(lugObject);
-//     lugObject.sendToBack();
-//   });
-// }
-
-// lugを2個描く --------------------------------------------------------------------
+// lugを4個描く --------------------------------------------------------------------
 const lugArray = [];
-let lugPosition = 0;
+const adjustValue = 1.7;
 function drawRoundLug() {
   lugArray.forEach(lug => {
     canvas.remove(lug);
   });
-  for(let i = 0; i < 2; i++) {
+  for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
     fabric.loadSVGFromURL('./images/lug-round.svg', (objects, options) => {
       lugArray[i] = fabric.util.groupSVGElements(objects, options);
       lugArray[i].set({
         originX: 'center',
-        left: canvasHalfWidth - lugWidth / 2 - lugThickness / 2 + lugPosition,
-        top: canvasHalfHeight - caseObject.height / 1.7,
+        left: canvasHalfWidth - lugWidth / 2 - lugThickness / 2,
+        top: canvasHalfHeight - caseObject.height / adjustValue,
       });
+      if (i === 1 || i === 3) {
+        lugArray[i].set({
+          left: canvasHalfWidth - lugWidth / 2 - lugThickness / 2 + lugWidth + lugThickness,
+        });
+      }
+      if(i === 2 || i === 3) {
+        lugArray[i].set({
+          flipY: true,
+          top: canvasHalfHeight + caseObject.height / adjustValue - lugLength,
+        });
+      }
       canvas.add(lugArray[i]);
       lugArray[i].sendToBack();
-      lugPosition += lugWidth + lugThickness;
     });
   }
-  lugPosition = 0;
+  canvas.renderAll();
 }
 function drawSquareLug() {
   lugArray.forEach(lug => {
     canvas.remove(lug);
   });
-  for(let i = 0; i < 2; i++) {
+  for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
     fabric.loadSVGFromURL('./images/lug-square.svg', (objects, options) => {
       lugArray[i] = fabric.util.groupSVGElements(objects, options);
       lugArray[i].set({
         originX: 'center',
-        left: canvasHalfWidth - lugWidth / 2 - lugThickness / 2 + lugPosition,
-        top: canvasHalfHeight - caseObject.height / 1.7,
+        left: canvasHalfWidth - lugWidth / 2 - lugThickness / 2,
+        top: canvasHalfHeight - caseObject.height / adjustValue,
       });
+      if (i === 1 || i === 3) {
+        lugArray[i].set({
+          left: canvasHalfWidth - lugWidth / 2 - lugThickness / 2 + lugWidth + lugThickness,
+        });
+      }
+      if(i === 2 || i === 3) {
+        lugArray[i].set({
+          flipY: true,
+          top: canvasHalfHeight + caseObject.height / adjustValue - lugLength,
+        });
+      }
       canvas.add(lugArray[i]);
       lugArray[i].sendToBack();
-      lugPosition += lugWidth + lugThickness;
     });
   }
-  lugPosition = 0;
+  canvas.renderAll();
 }
+
 
 // strapを描く関数 作成しておいたSVGファイルをcanvasに読み込む --------------------------
 function drawStrap() {
