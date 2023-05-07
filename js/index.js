@@ -60,6 +60,7 @@ const canvas = new fabric.Canvas('my-canvas');
 const canvasSize = 416;
 const canvasHalfWidth = 208;
 const canvasHalfHeight = 320;
+const canvasCenterHeight = mmToPixel(97);
 
 // 変数を事前に定義しておく -----------------------------------------------------------------
 let caseObject;
@@ -68,6 +69,9 @@ let crownObject; //2種類のクラウンで同じ名前共有できるか？で
 let lugObject;
 const lugThickness = mmToPixel(2);
 const lugLength = mmToPixel(8);
+
+// バックルを描く
+
 
 // ラグを描く関数 ------------------------------------------
 
@@ -102,7 +106,7 @@ function drawRoundLug() {
       lugArray[i].set({
         originX: 'center',
         left: canvasHalfWidth - lugWidth / 2 - lugThickness / 2,
-        top: canvasHalfHeight - caseObject.height / adjustValue,
+        top: canvasCenterHeight - caseObject.height / adjustValue,
       });
       if (i === 1 || i === 3) {
         lugArray[i].set({
@@ -112,7 +116,7 @@ function drawRoundLug() {
       if(i === 2 || i === 3) {
         lugArray[i].set({
           flipY: true,
-          top: canvasHalfHeight + caseObject.height / adjustValue - lugLength,
+          top: canvasCenterHeight + caseObject.height / adjustValue - lugLength,
         });
       }
       canvas.add(lugArray[i]);
@@ -131,7 +135,7 @@ function drawSquareLug() {
       lugArray[i].set({
         originX: 'center',
         left: canvasHalfWidth - lugWidth / 2 - lugThickness / 2,
-        top: canvasHalfHeight - caseObject.height / adjustValue,
+        top: canvasCenterHeight - caseObject.height / adjustValue,
       });
       if (i === 1 || i === 3) {
         lugArray[i].set({
@@ -141,7 +145,7 @@ function drawSquareLug() {
       if(i === 2 || i === 3) {
         lugArray[i].set({
           flipY: true,
-          top: canvasHalfHeight + caseObject.height / adjustValue - lugLength,
+          top: canvasCenterHeight + caseObject.height / adjustValue - lugLength,
         });
       }
       canvas.add(lugArray[i]);
@@ -227,7 +231,7 @@ function drawSquareCrown() {
     crownObject.set({
       originY: 'center',
       left: caseObject.left + caseObject.width / 2,
-      top: canvasHalfHeight,
+      top: canvasCenterHeight,
     });
     canvas.add(crownObject);
   });
@@ -239,7 +243,7 @@ function drawRoundCrown() {
     crownObject.set({
       originY: 'center',
       left: caseObject.left + caseObject.width / 2,
-      top: canvasHalfHeight,
+      top: canvasCenterHeight,
     });
     canvas.add(crownObject);
   });
@@ -256,7 +260,7 @@ function drawCase(){
     originX: 'center',
     originY: 'center',
     left: canvasHalfWidth,
-    top: canvasHalfHeight,
+    top: canvasCenterHeight,
     strokeWidth: 1,
     stroke: 'black',
     radius: caseSize / 2,
@@ -355,7 +359,7 @@ function drawOpening() {
     originX: 'center',
     originY: 'center',
     left: canvasHalfWidth,
-    top: canvasHalfHeight,
+    top: canvasCenterHeight,
     strokeWidth: 1,
     stroke: 'black',
     radius: openingSize / 2,
