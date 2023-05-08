@@ -394,4 +394,51 @@ canvas.on('mouse:down', function(options) {
   console.log(`x座標:${options.e.clientX}`, `y座標:${options.e.clientY - headerHeight}`);
 });
 
+// test -----------------------------------------------------------------------------------
+import { testBtn, testColorPicker } from './test.js';
+testBtn();
+testColorPicker();
+
+const text = new fabric.Text('hello', {
+  left: 100,
+  top: 100,
+  originX: 'center',
+  originY: 'center',
+  fill: 'red',
+  fontFamily: 'cursive',
+  stroke: 'black',
+});
+// canvas.add(text);
+
+const circle = new fabric.Circle({
+  radius: 50,
+  left: 200,
+  top: 300,
+  fill: 'blue',
+});
+// canvas.add(circle);
+
+const group = new fabric.Group([ text, circle ], {
+  left: 200,
+  top: 200,
+  originX: 'center',
+  originY: 'center',
+});
+canvas.add(group);
+
+const range = document.getElementById('test-range');
+range.addEventListener('input', () => {
+  const rangeValue = parseInt(range.value);
+  group.set({
+    scaleX: rangeValue / 10,
+    scaleY: rangeValue / 10,
+    strokeWidth: 1 / rangeValue,
+  });
+  group.item(0).set(
+    'text', 'good'
+  );
+  canvas.renderAll();
+});
+
+
 
