@@ -4,6 +4,7 @@
 $text-color: #333;
 $active-color: #e2e2e2;
 $border: 1px solid $text-color;
+$dashedBorder: 1px dashed $text-color;
 
 /* ----- common ----- */
 body {
@@ -23,6 +24,10 @@ h3 {
   margin: 0;
 }
 
+p {
+  margin: 0;
+}
+
 ul {
   margin: 0;
   padding: 0;
@@ -39,29 +44,33 @@ legend {
 
 /* ----- header ----- */
 header {
-  min-width: 1120px;
-  background: #ECECEC;
-  border-bottom: $border;
+  width: 1120px;
+  height: 96px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
   h1 {
-    width: 1120px;
-    margin: 0 auto;
-    padding: 16px;
+    font-family: 'Prompt', sans-serif;
+    margin-left: 32px;
     font-size: 20px;
+    letter-spacing: .2rem;
   }
 }
 
 /* ----- main common ----- */
 main {
   width: 1120px;
-  height: 640px;
+  height: 800px;
   margin: 0 auto;
   display: flex;
   #my-canvas {
     border: $border;
-    border-top: none;
+    border-radius: 16px;
   }
   .component-list {
-    width: 704px;
+    width: 724px;
+    margin-left: 12px;
     position: relative;
     .component {
       position: absolute;
@@ -70,15 +79,28 @@ main {
       h2.tab {
         width: 160px;
         height: 48px;
+        border-top: $border;
         border-right: $border;
+        border-radius: 0 8px 0 0;
         position: relative;
         font-size: 14px;
         text-align: center;
         line-height: 48px;
         cursor: pointer;
         pointer-events: auto;
-        &:hover {
-          background: $active-color;
+        opacity: .3;
+        &.active {
+          opacity: 1;
+          &::after {
+            content: '';
+            position: relative;
+            top: -1px;
+            width: 159px;
+            height: 1px;
+            display: block;
+            background: white;
+            z-index: 3;
+          }
         }
       }
       &:nth-child(2) .tab {
@@ -89,11 +111,11 @@ main {
       }
       /* ----- work space ----- */
       .workspace {
-        width: 704px;
-        height: 592px;
-        padding: 36px;
-        border: $border;
-        border-left: none;
+        width: 724px;
+        height: 752px;
+        padding: 16px;
+        border-top: $border;
+        font-size: 12px;
         pointer-events: auto;
         display: none;
         &.appear {
@@ -103,27 +125,63 @@ main {
         label {
           display: block;
         }
-        /* ----- text label ----- */
-        .text-label-container {
+        /* ----- top part ----- */
+        .workspace-top-container {
           display: flex;
-          label {
-            width: 120px;
+          padding-bottom: 16px;
+          border-bottom: $dashedBorder;
+          .info {
+            width: 260px;
+            position: relative;
+            img {
+              display: block;
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%,-50%);
+            }
+            .comment {
+              width: 36px;
+              height: 16px;
+              background: lightgray;
+              position: absolute;
+              top: 16px;
+              left: 50px;
+              display: none;
+              &.appear {
+                display: block;
+              }
+            }
           }
-          span {
-            margin-left: 8px;
+          /* ----- text label ----- */
+          .text-labels-container {
+            padding: 24px 32px;
+            border-left: $dashedBorder;
+            .text-label-container {
+              display: flex;
+              label {
+                width: 120px;
+              }
+              span {
+                margin-left: 8px;
+              }
+            }
+            .text-label-container + .text-label-container {
+              margin-top: 24px;
+            }
           }
         }
-        .text-label-container + .text-label-container {
-          margin-top: 24px;
-        }
+        
         /* ----- radio label ----- */
         .shape-list {
-          height: 80px;
-          margin-top: 24px;
+          height: 132px;
+          padding: 0 22px;
+          border-bottom: $dashedBorder;
           display: flex;
+          align-items: center;
           h3 {
             flex: 1;
-            font-size: 14px;
+            font-size: 12px;
             line-height: 80px;
           }
           ul {
@@ -133,10 +191,10 @@ main {
             li {
               position: relative;
               label.radio-label {
-                width: 144px;
-                height: 80px;
-                border: $border;
-                text-align: center;
+                width: 96px;
+                height: 96px;
+                border-radius: 8px;
+                // border: $border;
                 cursor: pointer;
                 input[type="radio"] {
                   display: none;
@@ -145,19 +203,23 @@ main {
               img,
               div {
                 position: absolute;
-                top: 50%;
+                top: 40%;
                 left: 50%;
                 transform: translate(-50%, -50%);
                 pointer-events: none;
+              }
+              p {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 8px;
+                font-size: 11px;
               }
               div {
                 width: 30px;
                 height: 30px;
               }
             }
-          }
-          &:nth-of-type(1) {
-            margin-top: 48px;
           }
         }
       }
@@ -194,7 +256,8 @@ main {
 }
 
 /* ----- action ----- */
-.active {
+label.active {
+  border: $border;
   background: $active-color;
 }
 
@@ -219,7 +282,7 @@ main {
 #test-color-container {
   width: 32px;
   height: 32px;
-  border: 1px solid black;
+  border: $border;
   background: pink;
 }
 

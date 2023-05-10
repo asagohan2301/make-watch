@@ -4,83 +4,106 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>make watch application</title>
+  <title>Watch Design Maker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
   <header>
-    <h1>Make Your Original Watch</h1>
+    <img src="./images/logo.png" width="40" height="40" alt="ロゴ">
+    <h1>Watch Design Maker</h1>
   </header>
     <main>
-      <canvas id="my-canvas" width="416" height="640"></canvas>
+      <canvas id="my-canvas" width="384" height="800"></canvas>
       <ul class="component-list">
         <li class="component">
-          <h2 class="tab">ケース</h2>
+          <h2 class="tab active">ケース</h2>
           <div class="workspace">
-            <div class="text-label-container">
-              <label for="case-size">ケース直径</label>
-              <input type="text" id="case-size" size="4">
-              <span>mm</span>
-            </div>
-            <div class="text-label-container">
-              <label for="opening-size">見切り直径</label>
-              <input type="text" id="opening-size" size="4">
-              <span>mm</span>
-            </div>
-            <div class="text-label-container">
-              <label for="lug-width">ラグ幅</label>
-              <input type="text" id="lug-width" size="4">
-              <span>mm</span>
+            <div class="workspace-top-container">
+              <div class="info">
+                <img src="./images/logo.png" alt="ケースの絵型">
+                <div class="comment">ケースの直径を入力してください</div>
+              </div>
+              <div class="text-labels-container">
+                <div class="text-label-container">
+                  <label for="case-size">ケース直径:</label>
+                  <input type="text" id="case-size" size="4">
+                  <span>mm</span>
+                </div>
+                <div class="text-label-container">
+                  <label for="opening-size">ケース見切り直径:</label>
+                  <input type="text" id="opening-size" size="4">
+                  <span>mm</span>
+                </div>
+                <div class="text-label-container">
+                  <label for="dial-size">文字盤見切り直径:</label>
+                  <input type="text" id="dial-size" size="4">
+                  <span>mm</span>
+                </div>
+                <div class="text-label-container">
+                  <label for="lug-width">ラグ幅:</label>
+                  <input type="text" id="lug-width" size="4">
+                  <span>mm</span>
+                </div>
+              </div>
             </div>
             <div>
               <div class="shape-list">
-                <h3>ラグ形状</h3>
+                <h3>ラグ形状:</h3>
                 <ul>
                   <li>
                     <label class="radio-label">
                       <input type="radio" name="lug-shape" value="round">
                     </label>
                     <img src="./images/lug-round-w.svg" alt="丸い形状のラグ" width="80" height="32">
+                    <p>丸型</p>
                   </li>
                   <li>
                     <label class="radio-label">
                       <input type="radio" name="lug-shape" value="square">
                     </label>
                     <img src="./images/lug-square-w.svg" alt="四角い形状のラグ" width="80" height="32">
+                    <p>丸型</p>
                   </li>
                 </ul>
               </div>
               <div class="shape-list">
-                <h3>リュウズ形状</h3>
+                <h3>リュウズ形状:</h3>
                 <ul>
                   <li>
                     <label class="radio-label">
                       <input type="radio" name="crown-shape" value="round">
                     </label>
                     <img src="./images/crown-round.svg" alt="丸い形状のリュウズ" width="15" height="18">
+                    <p>丸型</p>
                   </li>
                   <li>
                     <label class="radio-label">
                       <input type="radio" name="crown-shape" value="square">
                     </label>
                     <img src="./images/crown-square.svg" alt="四角い形状のリュウズ" width="12" height="18">
+                    <p>丸型</p>
                   </li>
                 </ul>
               </div>
               <div class="shape-list">
-              <h3>金属色</h3>
+              <h3>金属色:</h3>
               <ul>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="metal-color" value="gold">
                   </label>
                   <div class="gold-color"></div>
+                  <p>丸型</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="metal-color" value="silver">
                   </label>
                   <div class="silver-color"></div>
+                  <p>丸型</p>
                 </li>
                 <!-- <li>
                   <label class="radio-label">

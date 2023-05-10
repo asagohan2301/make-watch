@@ -18,6 +18,10 @@ h3 {
   margin: 0;
 }
 
+p {
+  margin: 0;
+}
+
 ul {
   margin: 0;
   padding: 0;
@@ -34,30 +38,34 @@ legend {
 
 /* ----- header ----- */
 header {
-  min-width: 1120px;
-  background: #ECECEC;
-  border-bottom: 1px solid #333;
+  width: 1120px;
+  height: 96px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
 }
 header h1 {
-  width: 1120px;
-  margin: 0 auto;
-  padding: 16px;
+  font-family: "Prompt", sans-serif;
+  margin-left: 32px;
   font-size: 20px;
+  letter-spacing: 0.2rem;
 }
 
 /* ----- main common ----- */
 main {
   width: 1120px;
-  height: 640px;
+  height: 800px;
   margin: 0 auto;
   display: flex;
 }
 main #my-canvas {
   border: 1px solid #333;
-  border-top: none;
+  border-radius: 16px;
 }
 main .component-list {
-  width: 704px;
+  width: 724px;
+  margin-left: 12px;
   position: relative;
 }
 main .component-list .component {
@@ -69,16 +77,29 @@ main .component-list .component {
 main .component-list .component h2.tab {
   width: 160px;
   height: 48px;
+  border-top: 1px solid #333;
   border-right: 1px solid #333;
+  border-radius: 0 8px 0 0;
   position: relative;
   font-size: 14px;
   text-align: center;
   line-height: 48px;
   cursor: pointer;
   pointer-events: auto;
+  opacity: 0.3;
 }
-main .component-list .component h2.tab:hover {
-  background: #e2e2e2;
+main .component-list .component h2.tab.active {
+  opacity: 1;
+}
+main .component-list .component h2.tab.active::after {
+  content: "";
+  position: relative;
+  top: -1px;
+  width: 159px;
+  height: 1px;
+  display: block;
+  background: white;
+  z-index: 3;
 }
 main .component-list .component:nth-child(2) .tab {
   left: 160px;
@@ -87,15 +108,15 @@ main .component-list .component:nth-child(3) .tab {
   left: 320px;
 }
 main .component-list .component .workspace {
-  width: 704px;
-  height: 592px;
-  padding: 36px;
-  border: 1px solid #333;
-  border-left: none;
+  width: 724px;
+  height: 752px;
+  padding: 16px;
+  border-top: 1px solid #333;
+  font-size: 12px;
   pointer-events: auto;
   display: none;
   /* ----- label ----- */
-  /* ----- text label ----- */
+  /* ----- top part ----- */
   /* ----- radio label ----- */
 }
 main .component-list .component .workspace.appear {
@@ -104,26 +125,61 @@ main .component-list .component .workspace.appear {
 main .component-list .component .workspace label {
   display: block;
 }
-main .component-list .component .workspace .text-label-container {
+main .component-list .component .workspace .workspace-top-container {
+  display: flex;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #333;
+  /* ----- text label ----- */
+}
+main .component-list .component .workspace .workspace-top-container .info {
+  width: 260px;
+  position: relative;
+}
+main .component-list .component .workspace .workspace-top-container .info img {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+main .component-list .component .workspace .workspace-top-container .info .comment {
+  width: 36px;
+  height: 16px;
+  background: lightgray;
+  position: absolute;
+  top: 16px;
+  left: 50px;
+  display: none;
+}
+main .component-list .component .workspace .workspace-top-container .info .comment.appear {
+  display: block;
+}
+main .component-list .component .workspace .workspace-top-container .text-labels-container {
+  padding: 24px 32px;
+  border-left: 1px dashed #333;
+}
+main .component-list .component .workspace .workspace-top-container .text-labels-container .text-label-container {
   display: flex;
 }
-main .component-list .component .workspace .text-label-container label {
+main .component-list .component .workspace .workspace-top-container .text-labels-container .text-label-container label {
   width: 120px;
 }
-main .component-list .component .workspace .text-label-container span {
+main .component-list .component .workspace .workspace-top-container .text-labels-container .text-label-container span {
   margin-left: 8px;
 }
-main .component-list .component .workspace .text-label-container + .text-label-container {
+main .component-list .component .workspace .workspace-top-container .text-labels-container .text-label-container + .text-label-container {
   margin-top: 24px;
 }
 main .component-list .component .workspace .shape-list {
-  height: 80px;
-  margin-top: 24px;
+  height: 132px;
+  padding: 0 22px;
+  border-bottom: 1px dashed #333;
   display: flex;
+  align-items: center;
 }
 main .component-list .component .workspace .shape-list h3 {
   flex: 1;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 80px;
 }
 main .component-list .component .workspace .shape-list ul {
@@ -135,10 +191,9 @@ main .component-list .component .workspace .shape-list ul li {
   position: relative;
 }
 main .component-list .component .workspace .shape-list ul li label.radio-label {
-  width: 144px;
-  height: 80px;
-  border: 1px solid #333;
-  text-align: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 8px;
   cursor: pointer;
 }
 main .component-list .component .workspace .shape-list ul li label.radio-label input[type=radio] {
@@ -147,17 +202,21 @@ main .component-list .component .workspace .shape-list ul li label.radio-label i
 main .component-list .component .workspace .shape-list ul li img,
 main .component-list .component .workspace .shape-list ul li div {
   position: absolute;
-  top: 50%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
+main .component-list .component .workspace .shape-list ul li p {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 8px;
+  font-size: 11px;
+}
 main .component-list .component .workspace .shape-list ul li div {
   width: 30px;
   height: 30px;
-}
-main .component-list .component .workspace .shape-list:nth-of-type(1) {
-  margin-top: 48px;
 }
 
 /* ----- main case ----- */
@@ -191,7 +250,8 @@ main .component-list .component .workspace .shape-list:nth-of-type(1) {
 }
 
 /* ----- action ----- */
-.active {
+label.active {
+  border: 1px solid #333;
   background: #e2e2e2;
 }
 
@@ -216,7 +276,7 @@ main .component-list .component .workspace .shape-list:nth-of-type(1) {
 #test-color-container {
   width: 32px;
   height: 32px;
-  border: 1px solid black;
+  border: 1px solid #333;
   background: pink;
 }
 

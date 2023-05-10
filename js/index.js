@@ -368,6 +368,19 @@ function drawOpening() {
   canvas.add(openingObject);
 }
 
+// infoもfabric.jsにするか
+
+
+// ホバーで説明を表示
+const target = document.querySelector('.text-label-container');
+const comment = document.querySelector('.comment');
+target.addEventListener('mouseover', () => {
+  comment.classList.add('appear');
+});
+target.addEventListener('mouseleave', () => {
+  comment.classList.remove('appear');
+});
+
 
 
 // canvasの内容をSVGに変換してダウンロードする ----------------------------------------------
