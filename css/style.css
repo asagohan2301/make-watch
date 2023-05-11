@@ -143,12 +143,14 @@ main .component-list .component .workspace .workspace-top-container .info img {
   transform: translate(-50%, -50%);
 }
 main .component-list .component .workspace .workspace-top-container .info .comment {
-  width: 36px;
-  height: 16px;
-  background: lightgray;
+  padding: 4px 8px;
+  background: #e2e2e2;
+  border-radius: 8px;
   position: absolute;
-  top: 16px;
-  left: 50px;
+  top: 50px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
   display: none;
 }
 main .component-list .component .workspace .workspace-top-container .info .comment.appear {
@@ -278,6 +280,11 @@ label.active {
   height: 32px;
   border: 1px solid #333;
   background: pink;
+}
+
+#info-canvas {
+  width: 260px;
+  height: 204px;
 }
 
 .gnavi {

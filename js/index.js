@@ -368,19 +368,126 @@ function drawOpening() {
   canvas.add(openingObject);
 }
 
-// infoもfabric.jsにするか
 
+const ctx = document.getElementById('test-canvas').getContext('2d');
+ctx.font = '14px sans-serif';
+ctx.fillText('ケースの直径を入力', 10, 50);
 
-// ホバーで説明を表示
-const target = document.querySelector('.text-label-container');
-const comment = document.querySelector('.comment');
-target.addEventListener('mouseover', () => {
-  comment.classList.add('appear');
+// info用のfabricインスタンス生成 ------------------------------------------------------
+// const infoCanvas = new fabric.StaticCanvas('info-canvas');
+
+// fabric.Object.prototype.objectCaching = false;
+
+const infoCanvas = new fabric.Canvas('info-canvas');
+
+// infoCanvas.setDimensions({
+//   width: 260,
+//   height: 204,
+// });
+// infoCanvas.setDimensions({
+//   width: 500,
+//   height: 500
+// }, {
+  // キャンバスの解像度を2倍に設定
+//   cssOnly: true,
+//   devicePixelRatio: 2
+// });
+
+const infoCanvasHalfHeight = 102;
+const infoCanvasHalfWidth = 130;
+// infoCanvas.setZoom(.5);
+
+// クラスを使って円を生成 ----------------------------------------------------------------
+class WatchCircle extends fabric.Circle {
+  constructor(options) {
+    super(options);
+    this.originX = 'center';
+    this.originY = 'center';
+    this.left = infoCanvasHalfWidth;
+    this.top = infoCanvasHalfHeight;
+    this.stroke = 'black';
+    this.fill = 'white';
+    this.strokeWidth = 1;
+  }
+}
+const infoCanvasCase = new WatchCircle({
+  radius: 45,
 });
-target.addEventListener('mouseleave', () => {
-  comment.classList.remove('appear');
+const infoCanvasOpening = new WatchCircle({
+  radius: 39,
+});
+const infoCanvasDialOpening = new WatchCircle({
+  radius: 36,
+});
+infoCanvas.add(infoCanvasCase, infoCanvasOpening, infoCanvasDialOpening);
+
+// コメントを生成 ----------------------------------------------------------------
+// コメントを生成
+const comments = {
+  case: 'ケースの直径を入力',
+  opening: 'ケースの見切の直径',
+}
+
+const comment = new fabric.Text(comments.case, {
+  originX: 'center',
+  originY: 'center',
+  top: 30,
+  left: infoCanvasHalfWidth,
+  fontFamily: 'cursive',
+  fontSize: 14,
 });
 
+const comment2 = new fabric.Text(comments.case, {
+  originX: 'center',
+  originY: 'center',
+  top: 30,
+  left: infoCanvasHalfWidth,
+  fontFamily: 'cursive',
+  fontSize: 14,
+  // objectCaching: false,
+});
+
+// comment2.set('textAntiAliasing', false);
+// コメントの下に来る吹き出しを生成
+// const commentBackground = new fabric.Rect({
+//   originX: 'center',
+//   originY: 'center',
+//   top: 30,
+//   left: infoCanvasHalfWidth,
+//   width: comment.width + 4,
+//   height: comment.height + 4,
+//   fill: 'lightgrey',
+// });
+
+
+
+canvas.add(comment2);
+
+
+// フォーカスで説明を表示 ---------------------------------------------------------------
+document.getElementById('case-size').addEventListener('focus', () => {
+  appearInfo(infoCanvasCase, 'case-comment');
+  infoCanvas.add(comment);
+});
+document.getElementById('case-size').addEventListener('blur', () => {
+  removeInfo(infoCanvasCase, 'case-comment');
+  infoCanvas.remove(comment);
+});
+
+function appearInfo(object, id) {
+  document.getElementById(id).classList.add('appear');
+  object.set({
+    stroke: 'red',
+  });
+  infoCanvas.renderAll();
+}
+function removeInfo(object, id) {
+  document.getElementById(id).classList.remove('appear');
+  object.set({
+    stroke: 'black',
+  });
+  infoCanvas.renderAll();
+}
 
 
 // canvasの内容をSVGに変換してダウンロードする ----------------------------------------------
@@ -423,6 +530,8 @@ const text = new fabric.Text('hello', {
 });
 // canvas.add(text);
 
+console.log('ピクセル密度:' + window.devicePixelRatio);
+
 const circle = new fabric.Circle({
   radius: 50,
   left: 200,
@@ -453,5 +562,39 @@ range.addEventListener('input', () => {
   canvas.renderAll();
 });
 
+var textPath = new fabric.Text('Text on a path', {
+  top: 150,
+  left: 150,
+  textAlign: 'center',
+  charSpacing: -50,
+  path: new fabric.Path('M 0 0 C 50 -100 150 -100 200 0', {
+      strokeWidth: 1,
+      visible: false
+  }),
+  pathSide: 'left',
+  pathStartOffset: 0
+});
+canvas.add(textPath);
+
+// document.getElementById('test-btn').addEventListener('click', () => {
+//   // fabric.jsのtoSVGメソッドを使って、canvasの内容をSVG形式のテキストデータに変換
+//   const svgData = infoCanvas.toSVG(); 
+//   // SVGをblobに変換
+//   const blob = new Blob([svgData], {type: 'image/svg+xml'});
+//   // aタグを生成して、
+//   const link = document.createElement('a');
+//   // ダウンロードリンクのURLを、BlobオブジェクトのURLに設定します。BlobオブジェクトのURLは、URL.createObjectURL()メソッドを使用して作成されます。
+//   link.href = URL.createObjectURL(blob);
+//   // ダウンロードするファイルの名前を指定して、
+//   link.download = 'watch.svg';
+//   // リンクを自動的にクリックしてダウンロードさせる
+//   link.click();
+//   // オブジェクト URL を解放
+//   URL.revokeObjectURL(link.href);
+// });
+const canvasRange = document.getElementById('canvas-range');
+canvasRange.addEventListener('input', () => {
+  canvas.setZoom(canvasRange.value);
+});
 
 
