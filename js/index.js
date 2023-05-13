@@ -23,18 +23,25 @@ function inputValueToPixel(id) { //引数にinput要素のid名を受け取る
 }
 
 // ラジオボタン 選択されたボタンに色をつける -----------------------------------------------------
-//* これだと別の分類のラジオボタンを選択したときもクラスが外れてしまうので修正が必要
-
-const radios = document.querySelectorAll('.radio-label input');
-console.log(radios);
-radios.forEach(radio => {
-  radio.addEventListener('click', () => {
-    radios.forEach(radio => {
-      radio.parentNode.classList.remove('active');
-    });
-    radio.parentNode.classList.add('active');
-  });
+const radioObjects = [ //ここにラジオボタン要素を追加していく
+document.querySelectorAll('input[name="lug-shape"]'),
+document.querySelectorAll('input[name="crown-shape"]'),
+document.querySelectorAll('input[name="metal-color"]'),
+];
+radioObjects.forEach(radioObject => {
+  selectRadio(radioObject);
 });
+
+function selectRadio(radios) {
+  radios.forEach(radio => {
+    radio.addEventListener('input', () => {
+      radios.forEach(radio => {
+        radio.parentNode.classList.remove('active');
+      });
+      radio.parentNode.classList.add('active');
+    });
+  });
+}
 
 // タブを切り替える ------------------------------------------------------------------------
 // 一つめのworkspaceを表示させておく
