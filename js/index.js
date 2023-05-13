@@ -4,10 +4,10 @@
 //* SVGへの変換だけをfabric.js機能を使って、描画は純粋なcanvasでできないかな？
 //* できないなーcanvasで書いたものはfabric.jsでdlできない。空になっちゃってる
 
-// グローバルな関数たち ----------------------------------------------------------------
+// common ----------------------------------------------------------------
 
 // mmからpixelに変換する関数 ----------------
-// ?dpiが72で良いのかどうかわからない
+//? dpiが72で良いのかどうかわからない
 function mmToPixel(mm) {
   const dpi = 72;
   // mmをインチに
@@ -24,7 +24,9 @@ function inputValueToPixel(id) { //引数にinput要素のid名を受け取る
   return pixel;
 }
 
-// ラジオボタン 選択されたボタンに色をつける ----------------
+// style ----------------------------------------------------------------
+
+// 選択されたラジオボタンに色をつける ----------------
 const radioObjects = [ //ここにラジオボタン要素を追加していく
 document.querySelectorAll('input[name="lug-shape"]'),
 document.querySelectorAll('input[name="crown-shape"]'),
@@ -84,7 +86,7 @@ class WatchCircle extends fabric.Circle {
 
 // main canvas ----------------------------------------------------------------
 
-// [index] lug:1 case:2 caseOpening:3 dialOpening:4
+// メモ 重なり順 lug:1 case:2 caseOpening:3 dialOpening:4
 
 // fabricインスタンス ----------------
 const mainCanvas = new fabric.Canvas('main-canvas');
@@ -97,7 +99,7 @@ let caseObject;
 let openingObject;
 let dialObject;
 let crownObject; //2種類のクラウンで同じ名前共有できるか？→できたみたい。同時には存在しないから？
-let lugObject;
+const lugArray = [];
 let lugWidth;
 const lugThickness = mmToPixel(2);
 const lugLength = mmToPixel(8);
@@ -138,84 +140,202 @@ document.getElementById('dial-size').addEventListener('input', () => {
 });
 
 // ラグを描く ----------------
-// 呼び出し
 const lugs = document.querySelectorAll('input[name="lug-shape"]');
+// ラグ幅が入力されたらcanvasに描画
+document.getElementById('lug-width').addEventListener('input', () => {
+  lugWidth = inputValueToPixel('lug-width');
+  let checkedLugValue;
+  lugs.forEach(lug => {
+    if(lug.checked){
+      checkedLugValue = lug.value;
+    }
+  });
+  switch(checkedLugValue) {
+    case undefined:
+      roundLug.drawLug();
+      break;
+    case 'round':
+      roundLug.drawLug();
+      break;
+    case 'square':
+      squareLug.drawLug();
+      break;
+  }
+});
+// ラグの形状が選ばれたらcanvasに描画
 lugs.forEach(lug => {
-  lug.addEventListener('click', () => {
-    // 入力されたラグ幅を変数に代入
-    lugWidth = inputValueToPixel('lug-width');
+  lug.addEventListener('input', () => {
     switch(lug.value) {
       case 'round':
-        drawRoundLug();
+        roundLug.drawLug();
         break;
       case 'square':
-        drawSquareLug();
+        squareLug.drawLug();
         break;
     }
   });
 });
-// lugを4個描く
-const lugArray = [];
-const adjustValue = 1.7;
-function drawRoundLug() {
-  lugArray.forEach(lug => {
-    mainCanvas.remove(lug);
-  });
-  for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
-    fabric.loadSVGFromURL('./images/lug-round.svg', (objects, options) => {
-      lugArray[i] = fabric.util.groupSVGElements(objects, options);
-      lugArray[i].set({
-        originX: 'center',
-        left: mainCanvasHalfWidth - lugWidth / 2 - lugThickness / 2,
-        top: mainCanvasCenterHeight - caseObject.height / adjustValue,
-      });
-      if (i === 1 || i === 3) {
-        lugArray[i].set({
-          left: mainCanvasHalfWidth - lugWidth / 2 - lugThickness / 2 + lugWidth + lugThickness,
-        });
-      }
-      if(i === 2 || i === 3) {
-        lugArray[i].set({
-          flipY: true,
-          top: mainCanvasCenterHeight + caseObject.height / adjustValue - lugLength,
-        });
-      }
-      mainCanvas.add(lugArray[i]);
-      lugArray[i].sendToBack();
-    });
+// ラグのクラス
+//* ラグ4つをグループ化したい→うまくできない
+class WatchLug {
+  constructor(url) {
+    this.url = url;
   }
-  mainCanvas.renderAll();
-}
-function drawSquareLug() {
-  lugArray.forEach(lug => {
-    mainCanvas.remove(lug);
-  });
-  for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
-    fabric.loadSVGFromURL('./images/lug-square.svg', (objects, options) => {
-      lugArray[i] = fabric.util.groupSVGElements(objects, options);
-      lugArray[i].set({
-        originX: 'center',
-        left: mainCanvasHalfWidth - lugWidth / 2 - lugThickness / 2,
-        top: mainCanvasCenterHeight - caseObject.height / adjustValue,
-      });
-      if (i === 1 || i === 3) {
-        lugArray[i].set({
-          left: mainCanvasHalfWidth - lugWidth / 2 - lugThickness / 2 + lugWidth + lugThickness,
-        });
-      }
-      if(i === 2 || i === 3) {
-        lugArray[i].set({
-          flipY: true,
-          top: mainCanvasCenterHeight + caseObject.height / adjustValue - lugLength,
-        });
-      }
-      mainCanvas.add(lugArray[i]);
-      lugArray[i].sendToBack();
+  drawLug() {
+    const adjustValue = 1.7; //! 要検討
+    lugArray.forEach(lug => {
+      mainCanvas.remove(lug);
     });
+    for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
+      fabric.loadSVGFromURL(this.url, (objects, options) => {
+        lugArray[i] = fabric.util.groupSVGElements(objects, options);
+        lugArray[i].set({
+          originX: 'center',
+          left: mainCanvasHalfWidth - lugWidth / 2 - lugThickness / 2,
+          top: mainCanvasCenterHeight - caseObject.height / adjustValue,
+        });
+        if (i === 1 || i === 3) {
+          lugArray[i].set({
+            left: mainCanvasHalfWidth - lugWidth / 2 - lugThickness / 2 + lugWidth + lugThickness,
+          });
+        }
+        if(i === 2 || i === 3) {
+          lugArray[i].set({
+            flipY: true,
+            top: mainCanvasCenterHeight + caseObject.height / adjustValue - lugLength,
+          });
+        }
+        mainCanvas.add(lugArray[i]);
+        lugArray[i].sendToBack();
+      });
+    }
+    mainCanvas.renderAll();
   }
-  mainCanvas.renderAll();
 }
 
+// roundLugはオブジェクトではないようだ。
+// 実際にcanvasに描かれるのはクラス内で定義したlugArrayオブジェクト？
+const roundLug = new WatchLug('./images/lug-round.svg');
+const squareLug = new WatchLug('./images/lug-square.svg');
+
+// リュウズを描く ----------------
+const crowns = document.querySelectorAll('input[name="crown-shape"]');
+crowns.forEach(crown => {
+  crown.addEventListener('input', () => {
+    switch(crown.value) {
+      case 'round':
+        roundCrown.drawCrown();
+        break;
+      case 'square':
+        squareCrown.drawCrown();
+        break;
+    }
+  });
+});
+// リュウズのクラス
+class WatchCrown {
+  constructor(url) {
+    this.url = url;
+  }
+  drawCrown() {
+    mainCanvas.remove(crownObject);
+    fabric.loadSVGFromURL(this.url, (objects, options) => {
+      crownObject = fabric.util.groupSVGElements(objects, options);
+      crownObject.set({
+        originY: 'center',
+        left: caseObject.left + caseObject.width / 2,
+        top: mainCanvasCenterHeight,
+      });
+      mainCanvas.add(crownObject);
+    });
+  }
+}
+// リュウズのインスタンス生成
+const roundCrown = new WatchCrown('./images/crown-round_re.svg');
+const squareCrown = new WatchCrown('./images/crown-square_re.svg');
+
+// 金属色 ----------------
+// グラデーションクラス
+class Gradation extends fabric.Gradient {
+  constructor(options) {
+    super(options);
+    this.type = 'linear';
+    this.gradientUnits = 'percentage';
+    this.coords = { x1: 0, y1: 0, x2: 1, y2: 0 };
+  }
+}
+const goldGradation = new Gradation({
+  colorStops:[
+    { offset: 0, color: 'rgb(238,215,71)'},
+    { offset: .5, color: '#fff'},
+    { offset: 1, color: 'rgb(238,215,71)'},
+  ]
+});
+const silverGradation = new Gradation({
+  colorStops:[
+    { offset: 0, color: 'rgb(211,211,211)'},
+    { offset: .5, color: 'rgb(247,247,247)'},
+    { offset: 1, color: 'rgb(211,211,211)'},
+  ]
+});
+const pinkGoldGradation = new Gradation({
+  colorStops:[
+    { offset: 0, color: 'rgb(220,170,119)'},
+    { offset: .5, color: 'rgb(255,239,230)'},
+    { offset: 1, color: 'rgb(220,170,119)'},
+  ]
+});
+
+// ケースなどに色をつける
+const caseColors = document.querySelectorAll('input[name="metal-color"]');
+caseColors.forEach(caseColor => {
+  caseColor.addEventListener('input', () => {
+    switch(caseColor.value) {
+      case 'gold':
+        caseObject.set({
+          fill: goldGradation,
+        });
+        crownObject.set({
+          fill: goldGradation,
+        });
+        lugArray.forEach(lug => {
+          lug.set({
+            fill: goldGradation,
+          });
+        });
+        break;
+      case 'silver':
+        caseObject.set({
+          fill: silverGradation,
+        });
+        crownObject.set({
+          fill: silverGradation,
+        });
+        lugArray.forEach(lug => {
+          lug.set({
+            fill: silverGradation,
+          });
+        });
+        break;
+      case 'pink-gold':
+        caseObject.set({
+          fill: pinkGoldGradation,
+        });
+        crownObject.set({
+          fill: pinkGoldGradation,
+        });
+        lugArray.forEach(lug => {
+          lug.set({
+            fill: pinkGoldGradation,
+          });
+        });
+        break;
+    }
+    mainCanvas.renderAll();
+  });
+});
+
+// ベルトを描く ----------------
 // strapの値を変更するたびに生成
 let strapWidth;
 let upperStrapObject;
@@ -262,128 +382,11 @@ function drawUpperStrap() {
 
 
 
-// リュウズを描く ----------------
-const crowns = document.querySelectorAll('input[name="crown-shape"]');
-crowns.forEach(crown => {
-  crown.addEventListener('click', () => {
-    switch(crown.value) {
-      case 'round':
-        drawRoundCrown();
-        break;
-      case 'square':
-        drawSquareCrown();
-        break;
-    }
-  });
-});
-function drawSquareCrown() {
-  mainCanvas.remove(crownObject);
-  fabric.loadSVGFromURL('./images/crown-square_re.svg', (objects, options) => {
-    crownObject = fabric.util.groupSVGElements(objects, options);
-    crownObject.set({
-      originY: 'center',
-      left: caseObject.left + caseObject.width / 2,
-      top: mainCanvasCenterHeight,
-    });
-    mainCanvas.add(crownObject);
-  });
-}
-function drawRoundCrown() {
-  mainCanvas.remove(crownObject);
-  fabric.loadSVGFromURL('./images/crown-round_re.svg', (objects, options) => {
-    crownObject = fabric.util.groupSVGElements(objects, options);
-    crownObject.set({
-      originY: 'center',
-      left: caseObject.left + caseObject.width / 2,
-      top: mainCanvasCenterHeight,
-    });
-    mainCanvas.add(crownObject);
-  });
-}
-// ?svgを読み込む関数分けられるかな？
 
 
 
-// ケースにグラデーションを適応
-// クラスを使ってみる！！
-class Gradation extends fabric.Gradient {
-  constructor(options) {
-    super(options);
-    this.type = 'linear';
-    this.gradientUnits = 'percentage';
-    this.coords = { x1: 0, y1: 0, x2: 1, y2: 0 };
-  }
-}
-const goldGradation = new Gradation({
-  colorStops:[
-    { offset: 0, color: 'rgb(238,215,71)'},
-    { offset: .5, color: '#fff'},
-    { offset: 1, color: 'rgb(238,215,71)'},
-  ]
-});
-const silverGradation = new Gradation({
-  colorStops:[
-    { offset: 0, color: 'rgb(211,211,211)'},
-    { offset: .5, color: 'rgb(247,247,247)'},
-    { offset: 1, color: 'rgb(211,211,211)'},
-  ]
-});
-const pinkGoldGradation = new Gradation({
-  colorStops:[
-    { offset: 0, color: 'rgb(220,170,119)'},
-    { offset: .5, color: 'rgb(255,239,230)'},
-    { offset: 1, color: 'rgb(220,170,119)'},
-  ]
-});
 
-// ボタンクリックでケースに色をつける
-const caseColors = document.querySelectorAll('input[name="metal-color"]');
-caseColors.forEach(caseColor => {
-  caseColor.addEventListener('click', () => {
-    switch(caseColor.value) {
-      case 'gold':
-        caseObject.set({
-          fill: goldGradation,
-        });
-        crownObject.set({
-          fill: goldGradation,
-        });
-        lugArray.forEach(lug => {
-          lug.set({
-            fill: goldGradation,
-          });
-        });
-        break;
-      case 'silver':
-        caseObject.set({
-          fill: silverGradation,
-        });
-        crownObject.set({
-          fill: silverGradation,
-        });
-        lugArray.forEach(lug => {
-          lug.set({
-            fill: silverGradation,
-          });
-        });
-        break;
-      case 'pink-gold':
-        caseObject.set({
-          fill: pinkGoldGradation,
-        });
-        crownObject.set({
-          fill: pinkGoldGradation,
-        });
-        lugArray.forEach(lug => {
-          lug.set({
-            fill: pinkGoldGradation,
-          });
-        });
-        break;
-    }
-    mainCanvas.renderAll();
-  });
-});
+
 
 
 
@@ -413,7 +416,6 @@ infoCanvas.add(infoCanvasCase, infoCanvasOpening, infoCanvasDialOpening);
 
 // lug生成
 function drawInfoCanvasLug() {
-  console.log('lug');
   const infoLugArray = [];
   for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
     fabric.loadSVGFromURL('./images/lug-round.svg', (objects, options) => {
@@ -556,7 +558,6 @@ const text = new fabric.Text('hello', {
 });
 // mainCanvas.add(text);
 
-console.log('ピクセル密度:' + window.devicePixelRatio);
 
 const circle = new fabric.Circle({
   radius: 50,
