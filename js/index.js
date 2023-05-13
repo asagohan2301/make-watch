@@ -4,7 +4,7 @@
 //* SVGへの変換だけをfabric.js機能を使って、描画は純粋なcanvasでできないかな？
 //* できないなーcanvasで書いたものはfabric.jsでdlできない。空になっちゃってる
 
-// mmからpixelに変換する関数 --------------------------------------------
+// mmからpixelに変換する関数 ----------------------------------------------------------------
 // ?dpiが72で良いのかどうかわからない
 function mmToPixel(mm) {
   const dpi = 72;
@@ -15,15 +15,18 @@ function mmToPixel(mm) {
   return pixel;
 }
 
-// inputの入力値を数値にしてpixelにして返す関数 ------------------------------------------------
+// inputの入力値(mm)をpixelにして返す関数 -----------------------------------------------------
 function inputValueToPixel(id) { //引数にinput要素のid名を受け取る
   const inputValue = document.getElementById(id).value;
   const pixel = mmToPixel(parseInt(inputValue));
   return pixel;
 }
 
-// ラジオボタン 選択されたボタンに色をつける
+// ラジオボタン 選択されたボタンに色をつける -----------------------------------------------------
+//* これだと別の分類のラジオボタンを選択したときもクラスが外れてしまうので修正が必要
+
 const radios = document.querySelectorAll('.radio-label input');
+console.log(radios);
 radios.forEach(radio => {
   radio.addEventListener('click', () => {
     radios.forEach(radio => {
@@ -55,8 +58,8 @@ tabs.forEach(tab => {
 });
 
 // fabricインスタンス生成 ------------------------------------------------------------------
-const canvas = new fabric.Canvas('my-canvas');
-// const canvas = new fabric.StaticCanvas('my-canvas');
+const canvas = new fabric.Canvas('main-canvas');
+// const canvas = new fabric.StaticCanvas('main-canvas');
 const canvasSize = 416;
 const canvasHalfWidth = 208;
 const canvasHalfHeight = 320;
@@ -369,8 +372,149 @@ function drawOpening() {
 }
 
 
+const ctx = document.getElementById('test-canvas').getContext('2d');
+ctx.font = '14px sans-serif';
+ctx.fillText('ケースの直径を入力', 10, 50);
 
-// canvasの内容をSVGに変換してダウンロードする ----------------------------------------------
+// info -----------------------------------------------------------------------------------------
+
+// info用のfabricインスタンス生成 ----------------------------------------
+
+// const infoCanvas = new fabric.StaticCanvas('info-canvas');
+const infoCanvas = new fabric.Canvas('info-canvas');
+
+const infoCanvasHalfHeight = 102;
+const infoCanvasHalfWidth = 130;
+
+// クラスを使って円を生成 -------------------------------------------------
+class WatchCircle extends fabric.Circle {
+  constructor(options) {
+    super(options);
+    this.originX = 'center';
+    this.originY = 'center';
+    this.left = infoCanvasHalfWidth;
+    this.top = infoCanvasHalfHeight;
+    this.stroke = 'black';
+    this.fill = 'white';
+  }
+}
+const infoCanvasCase = new WatchCircle({
+  radius: 45,
+});
+const infoCanvasOpening = new WatchCircle({
+  radius: 39,
+});
+const infoCanvasDialOpening = new WatchCircle({
+  radius: 36,
+});
+infoCanvas.add(infoCanvasCase, infoCanvasOpening, infoCanvasDialOpening);
+
+// lug生成
+function drawInfoCanvasLug() {
+  console.log('lug');
+  const infoLugArray = [];
+  for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
+    fabric.loadSVGFromURL('./images/lug-round.svg', (objects, options) => {
+      infoLugArray[i] = fabric.util.groupSVGElements(objects, options);
+      infoLugArray[i].set({
+        originX: 'center',
+        originY: 'center',
+        left: infoCanvasHalfWidth - 26,
+        top: infoCanvasHalfHeight - 44,
+      });
+      if (i === 1 || i === 3) {
+        infoLugArray[i].set({
+          left: infoCanvasHalfWidth + 26,
+        });
+      }
+      if(i === 2 || i === 3) {
+        infoLugArray[i].set({
+          flipY: true,
+          top: infoCanvasHalfHeight + 44,
+        });
+      }
+      infoCanvas.add(infoLugArray[i]);
+      infoLugArray[i].sendToBack();
+    });
+  }
+  canvas.renderAll();
+}
+drawInfoCanvasLug();
+
+// りゅうず生成
+fabric.loadSVGFromURL('./images/crown-round.svg', (objects, options) => {
+  const infoCanvasCrown = fabric.util.groupSVGElements(objects, options);
+  infoCanvasCrown.set({
+    originY: 'center',
+    top: infoCanvasHalfHeight,
+    left: infoCanvasHalfWidth + 45,
+  });
+  infoCanvas.add(infoCanvasCrown);
+});
+
+// 矢印生成
+const line = new fabric.Polyline([
+  {x: 85, y: infoCanvasHalfHeight},
+  {x: 175, y: infoCanvasHalfHeight}], {
+  stroke: 'red',
+});
+const tipLeft = new fabric.Polyline([
+  {x: 101, y: infoCanvasHalfHeight - 6},
+  {x: 85, y: infoCanvasHalfHeight},
+  {x: 101, y: infoCanvasHalfHeight + 6}],{
+  stroke: 'red',
+  fill: 'transparent',
+});
+const tipRight = new fabric.Polyline([
+  {x: 159, y: infoCanvasHalfHeight - 6},
+  {x: 175, y: infoCanvasHalfHeight},
+  {x: 159, y: infoCanvasHalfHeight + 6}],{
+  stroke: 'red',
+  fill: 'transparent',
+});
+
+
+// フォーカスで説明を表示 ------------------------------------------
+const infoIntroduction = document.querySelector('.info-introduction');
+infoIntroduction.classList.add('appear');
+
+document.getElementById('case-size').addEventListener('focus', () => {
+  appearInfo(infoCanvasCase, 'case-comment');
+  infoCanvasCase.animate('stroke', 'red', {
+    onChange: infoCanvas.renderAll.bind(infoCanvas)
+  });
+  infoCanvas.add(line, tipLeft, tipRight);
+  infoIntroduction.classList.remove('appear');
+});
+document.getElementById('case-size').addEventListener('blur', () => {
+  removeInfo(infoCanvasCase, 'case-comment');
+  infoCanvas.remove(line, tipLeft, tipRight);
+  infoIntroduction.classList.add('appear');
+
+});
+document.getElementById('case-size').addEventListener('input', () => {
+  // document.getElementById('case-size').focus();
+  removeInfo(infoCanvasCase, 'case-comment');
+  infoCanvas.remove(line, tipLeft, tipRight);
+});
+
+function appearInfo(object, id) {
+  document.getElementById(id).classList.add('appear');
+  object.set({
+    stroke: 'red',
+  });
+  infoCanvas.renderAll();
+}
+
+function removeInfo(object, id) {
+  document.getElementById(id).classList.remove('appear');
+  object.set({
+    stroke: 'black',
+  });
+  infoCanvas.renderAll();
+}
+
+// canvasの内容をSVGに変換してダウンロードする --------------------------------------------------------
 document.getElementById('dl-btn').addEventListener('click', () => {
   // fabric.jsのtoSVGメソッドを使って、canvasの内容をSVG形式のテキストデータに変換
   const svgData = canvas.toSVG(); 
@@ -392,6 +536,89 @@ document.getElementById('dl-btn').addEventListener('click', () => {
 const headerHeight = 62;
 canvas.on('mouse:down', function(options) {
   console.log(`x座標:${options.e.clientX}`, `y座標:${options.e.clientY - headerHeight}`);
+});
+
+// test -----------------------------------------------------------------------------------
+import { testBtn, testColorPicker } from './test.js';
+testBtn();
+testColorPicker();
+
+const text = new fabric.Text('hello', {
+  left: 100,
+  top: 100,
+  originX: 'center',
+  originY: 'center',
+  fill: 'red',
+  fontFamily: 'cursive',
+  stroke: 'black',
+});
+// canvas.add(text);
+
+console.log('ピクセル密度:' + window.devicePixelRatio);
+
+const circle = new fabric.Circle({
+  radius: 50,
+  left: 200,
+  top: 300,
+  fill: 'blue',
+});
+// canvas.add(circle);
+
+const group = new fabric.Group([ text, circle ], {
+  left: 200,
+  top: 200,
+  originX: 'center',
+  originY: 'center',
+});
+canvas.add(group);
+
+const range = document.getElementById('test-range');
+range.addEventListener('input', () => {
+  const rangeValue = parseInt(range.value);
+  group.set({
+    scaleX: rangeValue / 10,
+    scaleY: rangeValue / 10,
+    strokeWidth: 1 / rangeValue,
+  });
+  group.item(0).set(
+    'text', 'good'
+  );
+  canvas.renderAll();
+});
+
+var textPath = new fabric.Text('Text on a path', {
+  top: 150,
+  left: 150,
+  textAlign: 'center',
+  charSpacing: -50,
+  path: new fabric.Path('M 0 0 C 50 -100 150 -100 200 0', {
+      strokeWidth: 1,
+      visible: false
+  }),
+  pathSide: 'left',
+  pathStartOffset: 0
+});
+canvas.add(textPath);
+
+// document.getElementById('test-btn').addEventListener('click', () => {
+//   // fabric.jsのtoSVGメソッドを使って、canvasの内容をSVG形式のテキストデータに変換
+//   const svgData = infoCanvas.toSVG(); 
+//   // SVGをblobに変換
+//   const blob = new Blob([svgData], {type: 'image/svg+xml'});
+//   // aタグを生成して、
+//   const link = document.createElement('a');
+//   // ダウンロードリンクのURLを、BlobオブジェクトのURLに設定します。BlobオブジェクトのURLは、URL.createObjectURL()メソッドを使用して作成されます。
+//   link.href = URL.createObjectURL(blob);
+//   // ダウンロードするファイルの名前を指定して、
+//   link.download = 'watch.svg';
+//   // リンクを自動的にクリックしてダウンロードさせる
+//   link.click();
+//   // オブジェクト URL を解放
+//   URL.revokeObjectURL(link.href);
+// });
+const canvasRange = document.getElementById('canvas-range');
+canvasRange.addEventListener('input', () => {
+  canvas.setZoom(canvasRange.value);
 });
 
 
