@@ -69,7 +69,8 @@ tabs.forEach(tab => {
 // canvas common ----------------------------------------------------------------
 
 // 円のクラス ----------------
-// インスタンス生成時は radius を指定
+// インスタンス生成時は radius,left,topなどを指定する
+// オプションは何個でも、継承元のプロパティにあるものならoptionsで受け取ってくれるみたい
 class WatchCircle extends fabric.Circle {
   constructor(options) {
     super(options);
@@ -94,6 +95,7 @@ const mainCanvasCenterHeight = mmToPixel(125);
 // 変数定義 ----------------
 let caseObject;
 let openingObject;
+let dialObject;
 let crownObject; //2種類のクラウンで同じ名前共有できるか？→できたみたい。同時には存在しないから？
 let lugObject;
 let lugWidth;
@@ -101,32 +103,39 @@ const lugThickness = mmToPixel(2);
 const lugLength = mmToPixel(8);
 
 // ケース,ケース見切り,文字盤見切りを描く ----------------
-// ケースと見切り inputに入力するとcanvasに描かれる
+// ケース
 document.getElementById('case-size').addEventListener('input', () => {
   mainCanvas.remove(caseObject);
-  const diameter = inputValueToPixel('case-size');
   caseObject = new WatchCircle({
-    radius: diameter / 2,
-  })
-  drawCircle(caseObject, 2);
-});
-document.getElementById('opening-size').addEventListener('input', () => {
-  mainCanvas.remove(openingObject);
-  const diameter = inputValueToPixel('opening-size');
-  openingObject = new WatchCircle({
-    radius: diameter / 2,
-  })
-  drawCircle(openingObject, 3);
-});
-
-function drawCircle(object, order){
-  object.set ({
+    radius: inputValueToPixel('case-size') / 2,
     left: mainCanvasHalfWidth,
     top: mainCanvasCenterHeight,
   });
-  mainCanvas.add(object);
-  object.moveTo(order);
-}
+  mainCanvas.add(caseObject);
+  caseObject.moveTo(2);
+});
+// ケース見切り
+document.getElementById('opening-size').addEventListener('input', () => {
+  mainCanvas.remove(openingObject);
+  openingObject = new WatchCircle({
+    radius: inputValueToPixel('opening-size') / 2,
+    left: mainCanvasHalfWidth,
+    top: mainCanvasCenterHeight,
+  });
+  mainCanvas.add(openingObject);
+  openingObject.moveTo(3);
+});
+// ダイヤル見切
+document.getElementById('dial-size').addEventListener('input', () => {
+  mainCanvas.remove(dialObject);
+  dialObject = new WatchCircle({
+    radius: inputValueToPixel('dial-size') / 2,
+    left: mainCanvasHalfWidth,
+    top: mainCanvasCenterHeight,
+  });
+  mainCanvas.add(dialObject);
+  dialObject.moveTo(4);
+});
 
 // ラグを描く ----------------
 // 呼び出し
