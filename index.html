@@ -11,146 +11,157 @@
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
+  <!---------- header ---------->
   <header>
     <img src="./images/logo.png" width="40" height="40" alt="ロゴ">
     <h1>Watch Design Maker</h1>
   </header>
-    <main>
-      <canvas id="my-canvas" width="384" height="800"></canvas>
-      <ul class="component-list">
-        <li class="component">
-          <h2 class="tab active">ケース</h2>
-          <div class="workspace">
-            <div class="workspace-top-container">
-              <div class="info">
-                <canvas id="info-canvas" width="260" height="204"></canvas>
-                <div id="case-comment" class="comment">ケースの直径をmmで入力</div>
+  <main>
+    <!---------- main canvas ---------->
+    <canvas id="main-canvas" width="384" height="800"></canvas>
+    <ul class="component-list">
+      <!---------- case ---------->
+      <li class="component">
+        <h2 class="tab active">ケース</h2>
+        <div class="workspace">
+          <div class="workspace-top-container">
+            <!---------- case sizes ---------->
+            <div class="text-labels-container">
+              <div class="text-label-container">
+                <label for="case-size">ケース直径:</label>
+                <input type="text" id="case-size" size="4">
+                <span>mm</span>
               </div>
-              <div class="text-labels-container">
-                <div class="text-label-container">
-                  <label for="case-size">ケース直径:</label>
-                  <input type="text" id="case-size" size="4">
-                  <span>mm</span>
-                </div>
-                <div class="text-label-container">
-                  <label for="opening-size">ケース見切り直径:</label>
-                  <input type="text" id="opening-size" size="4">
-                  <span>mm</span>
-                </div>
-                <div class="text-label-container">
-                  <label for="dial-size">文字盤見切り直径:</label>
-                  <input type="text" id="dial-size" size="4">
-                  <span>mm</span>
-                </div>
-                <div class="text-label-container">
-                  <label for="lug-width">ラグ幅:</label>
-                  <input type="text" id="lug-width" size="4">
-                  <span>mm</span>
-                </div>
+              <div class="text-label-container">
+                <label for="opening-size">ケース見切り直径:</label>
+                <input type="text" id="opening-size" size="4">
+                <span>mm</span>
+              </div>
+              <div class="text-label-container">
+                <label for="dial-size">文字盤見切り直径:</label>
+                <input type="text" id="dial-size" size="4">
+                <span>mm</span>
+              </div>
+              <div class="text-label-container">
+                <label for="lug-width">ラグ幅:</label>
+                <input type="text" id="lug-width" size="4">
+                <span>mm</span>
               </div>
             </div>
-            <div>
-              <div class="shape-list">
-                <h3>ラグ形状:</h3>
-                <ul>
-                  <li>
-                    <label class="radio-label">
-                      <input type="radio" name="lug-shape" value="round">
-                    </label>
-                    <img src="./images/lug-round-w.svg" alt="丸い形状のラグ" width="80" height="32">
-                    <p>丸型</p>
-                  </li>
-                  <li>
-                    <label class="radio-label">
-                      <input type="radio" name="lug-shape" value="square">
-                    </label>
-                    <img src="./images/lug-square-w.svg" alt="四角い形状のラグ" width="80" height="32">
-                    <p>丸型</p>
-                  </li>
-                </ul>
-              </div>
-              <div class="shape-list">
-                <h3>リュウズ形状:</h3>
-                <ul>
-                  <li>
-                    <label class="radio-label">
-                      <input type="radio" name="crown-shape" value="round">
-                    </label>
-                    <img src="./images/crown-round.svg" alt="丸い形状のリュウズ" width="15" height="18">
-                    <p>丸型</p>
-                  </li>
-                  <li>
-                    <label class="radio-label">
-                      <input type="radio" name="crown-shape" value="square">
-                    </label>
-                    <img src="./images/crown-square.svg" alt="四角い形状のリュウズ" width="12" height="18">
-                    <p>丸型</p>
-                  </li>
-                </ul>
-              </div>
-              <div class="shape-list">
-              <h3>金属色:</h3>
+            <!---------- case info canvas ---------->
+            <div class="info">
+              <canvas id="info-canvas" width="260" height="204"></canvas>
+              <p class="info-introduction">入力するパーツの説明が表示されます</p>
+              <div id="case-comment" class="comment">ケースの直径をmm単位で入力</div>
+              <div id="opening-comment" class="comment">ケースの見切直径をmm単位で入力</div>
+              <div id="dial-comment" class="comment">ダイヤルの見える部分の直径をmmで入力</div>
+            </div>
+          </div>
+          <!---------- case shapes ---------->
+          <div>
+            <div class="shape-list">
+              <h3>ラグ形状:</h3>
               <ul>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="metal-color" value="gold">
+                    <input type="radio" name="lug-shape" value="round">
                   </label>
-                  <div class="gold-color"></div>
+                  <img src="./images/lug-round-w.svg" alt="丸い形状のラグ" width="80" height="32">
                   <p>丸型</p>
                 </li>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="metal-color" value="silver">
+                    <input type="radio" name="lug-shape" value="square">
                   </label>
-                  <div class="silver-color"></div>
+                  <img src="./images/lug-square-w.svg" alt="四角い形状のラグ" width="80" height="32">
                   <p>丸型</p>
                 </li>
-                <!-- <li>
-                  <label class="radio-label">
-                    <input type="radio" name="metal-color" value="pink-gold">
-                  </label>
-                  <div class="pink-gold-color"></div>
-                </li> -->
-                <!-- test -->
-                <li>
-                  <label class="radio-label">
-                    <input type="radio" name="metal-color" value="custom-color">
-                  </label>
-                  <div class="custom-color"></div>
-                </li>
-                <!-- test -->
               </ul>
-            </div>
-          </div>
-        </div>
-        </li>
-        <li class="component">
-          <h2 class="tab">ベルト</h2>
-          <div class="workspace">
-            <div class="text-label-container">
-              <label for="strap-width">ベルト幅</label>
-              <input type="text" id="strap-width" size="4">
-              <span>mm</span>
             </div>
             <div class="shape-list">
-              <h3>バックル形状</h3>
+              <h3>リュウズ形状:</h3>
               <ul>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="buckle-shape" value="square">
+                    <input type="radio" name="crown-shape" value="round">
                   </label>
-                  <img src="./images/buckle.svg" alt="四角い形状のラグ" width="80" height="32">
+                  <img src="./images/crown-round.svg" alt="丸い形状のリュウズ" width="15" height="18">
+                  <p>丸型</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="crown-shape" value="square">
+                  </label>
+                  <img src="./images/crown-square.svg" alt="四角い形状のリュウズ" width="12" height="18">
+                  <p>丸型</p>
                 </li>
               </ul>
             </div>
+            <div class="shape-list">
+            <h3>金属色:</h3>
+            <ul>
+              <li>
+                <label class="radio-label">
+                  <input type="radio" name="metal-color" value="gold">
+                </label>
+                <div class="gold-color"></div>
+                <p>丸型</p>
+              </li>
+              <li>
+                <label class="radio-label">
+                  <input type="radio" name="metal-color" value="silver">
+                </label>
+                <div class="silver-color"></div>
+                <p>丸型</p>
+              </li>
+              <!-- <li>
+                <label class="radio-label">
+                  <input type="radio" name="metal-color" value="pink-gold">
+                </label>
+                <div class="pink-gold-color"></div>
+              </li> -->
+              <!-- test -->
+              <li>
+                <label class="radio-label">
+                  <input type="radio" name="metal-color" value="custom-color">
+                </label>
+                <div class="custom-color"></div>
+              </li>
+              <!-- test -->
+            </ul>
           </div>
-        </li>
-        <li class="component">
-          <h2 class="tab">文字盤</h2>
-          <div class="workspace" style="overflow-y: scroll">文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。</div>
-        </li>
-      </ul>
-    </main>
+        </div>
+      </div>
+      </li>
+      <!---------- strap ---------->
+      <li class="component">
+        <h2 class="tab">ベルト</h2>
+        <div class="workspace">
+          <div class="text-label-container">
+            <label for="strap-width">ベルト幅</label>
+            <input type="text" id="strap-width" size="4">
+            <span>mm</span>
+          </div>
+          <div class="shape-list">
+            <h3>バックル形状</h3>
+            <ul>
+              <li>
+                <label class="radio-label">
+                  <input type="radio" name="buckle-shape" value="square">
+                </label>
+                <img src="./images/buckle.svg" alt="四角い形状のラグ" width="80" height="32">
+              </li>
+            </ul>
+          </div>
+        </div>
+      </li>
+      <!---------- dial ---------->
+      <li class="component">
+        <h2 class="tab">文字盤</h2>
+        <div class="workspace" style="overflow-y: scroll">文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。文字盤のデザインです。</div>
+      </li>
+    </ul>
+  </main>
     <div class="btn-container">
       <button id="dl-btn">ダウンロード(SVG)</button>
     </div>

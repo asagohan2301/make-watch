@@ -5,6 +5,14 @@ $text-color: #333;
 $active-color: #e2e2e2;
 $border: 1px solid $text-color;
 $dashedBorder: 1px dashed $text-color;
+$info-canvas-half-width: 130px;
+$info-canvas-half-height: 102px;
+@mixin box-center {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+}
 
 /* ----- common ----- */
 body {
@@ -64,7 +72,7 @@ main {
   height: 800px;
   margin: 0 auto;
   display: flex;
-  #my-canvas {
+  #main-canvas {
     border: $border;
     border-radius: 16px;
   }
@@ -130,40 +138,10 @@ main {
           display: flex;
           padding-bottom: 16px;
           border-bottom: $dashedBorder;
-          .info {
-            width: 260px;
-            position: relative;
-            img {
-              display: block;
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%,-50%);
-            }
-            $info-canvas-half-width: 130px;
-            $info-canvas-half-height: 102px;
-            .comment {
-              width: 160px;
-              text-align: center;
-              padding: 4px 8px;
-              background: $active-color;
-              border-radius: 8px;
-              position: absolute;
-              bottom: 150px;
-              left: 0;
-              right: 0;
-              margin: 0 auto;
-              font-size: 11px;
-              display: none;
-              &.appear {
-                display: block;
-              }
-            }
-          }
           /* ----- text label ----- */
           .text-labels-container {
             padding: 24px 32px;
-            border-left: $dashedBorder;
+            border-right: $dashedBorder;
             .text-label-container {
               display: flex;
               label {
@@ -175,6 +153,34 @@ main {
             }
             .text-label-container + .text-label-container {
               margin-top: 24px;
+            }
+          }
+          /* ----- info ----- */
+          .info {
+            position: relative;
+            border: 1px solid lightgray;
+            .info-introduction {
+              @include box-center;
+              top: 8px;
+              text-align: center;
+              display: none;
+              &.appear {
+                display: block;
+              }
+            }
+            .comment {
+              width: fit-content;
+              padding: 4px 8px;
+              border-radius: 8px;
+              background: $active-color;
+              @include box-center;
+              bottom: 150px;
+              text-align: center;
+              font-size: 11px;
+              display: none;
+              &.appear {
+                display: block;
+              }
             }
           }
         }
@@ -201,7 +207,6 @@ main {
                 width: 96px;
                 height: 96px;
                 border-radius: 8px;
-                // border: $border;
                 cursor: pointer;
                 input[type="radio"] {
                   display: none;

@@ -59,7 +59,7 @@ main {
   margin: 0 auto;
   display: flex;
 }
-main #my-canvas {
+main #main-canvas {
   border: 1px solid #333;
   border-radius: 16px;
 }
@@ -130,38 +130,11 @@ main .component-list .component .workspace .workspace-top-container {
   padding-bottom: 16px;
   border-bottom: 1px dashed #333;
   /* ----- text label ----- */
-}
-main .component-list .component .workspace .workspace-top-container .info {
-  width: 260px;
-  position: relative;
-}
-main .component-list .component .workspace .workspace-top-container .info img {
-  display: block;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-main .component-list .component .workspace .workspace-top-container .info .comment {
-  width: 160px;
-  text-align: center;
-  padding: 4px 8px;
-  background: #e2e2e2;
-  border-radius: 8px;
-  position: absolute;
-  bottom: 150px;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  font-size: 11px;
-  display: none;
-}
-main .component-list .component .workspace .workspace-top-container .info .comment.appear {
-  display: block;
+  /* ----- info ----- */
 }
 main .component-list .component .workspace .workspace-top-container .text-labels-container {
   padding: 24px 32px;
-  border-left: 1px dashed #333;
+  border-right: 1px dashed #333;
 }
 main .component-list .component .workspace .workspace-top-container .text-labels-container .text-label-container {
   display: flex;
@@ -174,6 +147,39 @@ main .component-list .component .workspace .workspace-top-container .text-labels
 }
 main .component-list .component .workspace .workspace-top-container .text-labels-container .text-label-container + .text-label-container {
   margin-top: 24px;
+}
+main .component-list .component .workspace .workspace-top-container .info {
+  position: relative;
+  border: 1px solid lightgray;
+}
+main .component-list .component .workspace .workspace-top-container .info .info-introduction {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  top: 8px;
+  text-align: center;
+  display: none;
+}
+main .component-list .component .workspace .workspace-top-container .info .info-introduction.appear {
+  display: block;
+}
+main .component-list .component .workspace .workspace-top-container .info .comment {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #e2e2e2;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  bottom: 150px;
+  text-align: center;
+  font-size: 11px;
+  display: none;
+}
+main .component-list .component .workspace .workspace-top-container .info .comment.appear {
+  display: block;
 }
 main .component-list .component .workspace .shape-list {
   height: 132px;

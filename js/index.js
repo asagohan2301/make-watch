@@ -4,7 +4,7 @@
 //* SVGへの変換だけをfabric.js機能を使って、描画は純粋なcanvasでできないかな？
 //* できないなーcanvasで書いたものはfabric.jsでdlできない。空になっちゃってる
 
-// mmからpixelに変換する関数 --------------------------------------------
+// mmからpixelに変換する関数 ----------------------------------------------------------------
 // ?dpiが72で良いのかどうかわからない
 function mmToPixel(mm) {
   const dpi = 72;
@@ -15,15 +15,18 @@ function mmToPixel(mm) {
   return pixel;
 }
 
-// inputの入力値を数値にしてpixelにして返す関数 ------------------------------------------------
+// inputの入力値(mm)をpixelにして返す関数 -----------------------------------------------------
 function inputValueToPixel(id) { //引数にinput要素のid名を受け取る
   const inputValue = document.getElementById(id).value;
   const pixel = mmToPixel(parseInt(inputValue));
   return pixel;
 }
 
-// ラジオボタン 選択されたボタンに色をつける
+// ラジオボタン 選択されたボタンに色をつける -----------------------------------------------------
+//* これだと別の分類のラジオボタンを選択したときもクラスが外れてしまうので修正が必要
+
 const radios = document.querySelectorAll('.radio-label input');
+console.log(radios);
 radios.forEach(radio => {
   radio.addEventListener('click', () => {
     radios.forEach(radio => {
@@ -55,8 +58,8 @@ tabs.forEach(tab => {
 });
 
 // fabricインスタンス生成 ------------------------------------------------------------------
-const canvas = new fabric.Canvas('my-canvas');
-// const canvas = new fabric.StaticCanvas('my-canvas');
+const canvas = new fabric.Canvas('main-canvas');
+// const canvas = new fabric.StaticCanvas('main-canvas');
 const canvasSize = 416;
 const canvasHalfWidth = 208;
 const canvasHalfHeight = 320;
@@ -472,18 +475,25 @@ const tipRight = new fabric.Polyline([
 
 
 // フォーカスで説明を表示 ------------------------------------------
+const infoIntroduction = document.querySelector('.info-introduction');
+infoIntroduction.classList.add('appear');
+
 document.getElementById('case-size').addEventListener('focus', () => {
-  // appearInfo(infoCanvasCase, 'case-comment');
+  appearInfo(infoCanvasCase, 'case-comment');
   infoCanvasCase.animate('stroke', 'red', {
     onChange: infoCanvas.renderAll.bind(infoCanvas)
   });
   infoCanvas.add(line, tipLeft, tipRight);
+  infoIntroduction.classList.remove('appear');
 });
 document.getElementById('case-size').addEventListener('blur', () => {
   removeInfo(infoCanvasCase, 'case-comment');
   infoCanvas.remove(line, tipLeft, tipRight);
+  infoIntroduction.classList.add('appear');
+
 });
 document.getElementById('case-size').addEventListener('input', () => {
+  // document.getElementById('case-size').focus();
   removeInfo(infoCanvasCase, 'case-comment');
   infoCanvas.remove(line, tipLeft, tipRight);
 });
