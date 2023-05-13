@@ -140,15 +140,20 @@ main {
               left: 50%;
               transform: translate(-50%,-50%);
             }
+            $info-canvas-half-width: 130px;
+            $info-canvas-half-height: 102px;
             .comment {
+              width: 160px;
+              text-align: center;
               padding: 4px 8px;
               background: $active-color;
               border-radius: 8px;
               position: absolute;
-              top: 50px;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              font-size: 10px;
+              bottom: 150px;
+              left: 0;
+              right: 0;
+              margin: 0 auto;
+              font-size: 11px;
               display: none;
               &.appear {
                 display: block;

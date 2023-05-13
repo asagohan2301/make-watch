@@ -373,31 +373,17 @@ const ctx = document.getElementById('test-canvas').getContext('2d');
 ctx.font = '14px sans-serif';
 ctx.fillText('ケースの直径を入力', 10, 50);
 
-// info用のfabricインスタンス生成 ------------------------------------------------------
+// info -----------------------------------------------------------------------------------------
+
+// info用のfabricインスタンス生成 ----------------------------------------
+
 // const infoCanvas = new fabric.StaticCanvas('info-canvas');
-
-// fabric.Object.prototype.objectCaching = false;
-
 const infoCanvas = new fabric.Canvas('info-canvas');
-
-// infoCanvas.setDimensions({
-//   width: 260,
-//   height: 204,
-// });
-// infoCanvas.setDimensions({
-//   width: 500,
-//   height: 500
-// }, {
-  // キャンバスの解像度を2倍に設定
-//   cssOnly: true,
-//   devicePixelRatio: 2
-// });
 
 const infoCanvasHalfHeight = 102;
 const infoCanvasHalfWidth = 130;
-// infoCanvas.setZoom(.5);
 
-// クラスを使って円を生成 ----------------------------------------------------------------
+// クラスを使って円を生成 -------------------------------------------------
 class WatchCircle extends fabric.Circle {
   constructor(options) {
     super(options);
@@ -407,7 +393,6 @@ class WatchCircle extends fabric.Circle {
     this.top = infoCanvasHalfHeight;
     this.stroke = 'black';
     this.fill = 'white';
-    this.strokeWidth = 1;
   }
 }
 const infoCanvasCase = new WatchCircle({
@@ -421,57 +406,86 @@ const infoCanvasDialOpening = new WatchCircle({
 });
 infoCanvas.add(infoCanvasCase, infoCanvasOpening, infoCanvasDialOpening);
 
-// コメントを生成 ----------------------------------------------------------------
-// コメントを生成
-const comments = {
-  case: 'ケースの直径を入力',
-  opening: 'ケースの見切の直径',
+// lug生成
+function drawInfoCanvasLug() {
+  console.log('lug');
+  const infoLugArray = [];
+  for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
+    fabric.loadSVGFromURL('./images/lug-round.svg', (objects, options) => {
+      infoLugArray[i] = fabric.util.groupSVGElements(objects, options);
+      infoLugArray[i].set({
+        originX: 'center',
+        originY: 'center',
+        left: infoCanvasHalfWidth - 26,
+        top: infoCanvasHalfHeight - 44,
+      });
+      if (i === 1 || i === 3) {
+        infoLugArray[i].set({
+          left: infoCanvasHalfWidth + 26,
+        });
+      }
+      if(i === 2 || i === 3) {
+        infoLugArray[i].set({
+          flipY: true,
+          top: infoCanvasHalfHeight + 44,
+        });
+      }
+      infoCanvas.add(infoLugArray[i]);
+      infoLugArray[i].sendToBack();
+    });
+  }
+  canvas.renderAll();
 }
+drawInfoCanvasLug();
 
-const comment = new fabric.Text(comments.case, {
-  originX: 'center',
-  originY: 'center',
-  top: 30,
-  left: infoCanvasHalfWidth,
-  fontFamily: 'cursive',
-  fontSize: 14,
+// りゅうず生成
+fabric.loadSVGFromURL('./images/crown-round.svg', (objects, options) => {
+  const infoCanvasCrown = fabric.util.groupSVGElements(objects, options);
+  infoCanvasCrown.set({
+    originY: 'center',
+    top: infoCanvasHalfHeight,
+    left: infoCanvasHalfWidth + 45,
+  });
+  infoCanvas.add(infoCanvasCrown);
 });
 
-const comment2 = new fabric.Text(comments.case, {
-  originX: 'center',
-  originY: 'center',
-  top: 30,
-  left: infoCanvasHalfWidth,
-  fontFamily: 'cursive',
-  fontSize: 14,
-  // objectCaching: false,
+// 矢印生成
+const line = new fabric.Polyline([
+  {x: 85, y: infoCanvasHalfHeight},
+  {x: 175, y: infoCanvasHalfHeight}], {
+  stroke: 'red',
+});
+const tipLeft = new fabric.Polyline([
+  {x: 101, y: infoCanvasHalfHeight - 6},
+  {x: 85, y: infoCanvasHalfHeight},
+  {x: 101, y: infoCanvasHalfHeight + 6}],{
+  stroke: 'red',
+  fill: 'transparent',
+});
+const tipRight = new fabric.Polyline([
+  {x: 159, y: infoCanvasHalfHeight - 6},
+  {x: 175, y: infoCanvasHalfHeight},
+  {x: 159, y: infoCanvasHalfHeight + 6}],{
+  stroke: 'red',
+  fill: 'transparent',
 });
 
-// comment2.set('textAntiAliasing', false);
-// コメントの下に来る吹き出しを生成
-// const commentBackground = new fabric.Rect({
-//   originX: 'center',
-//   originY: 'center',
-//   top: 30,
-//   left: infoCanvasHalfWidth,
-//   width: comment.width + 4,
-//   height: comment.height + 4,
-//   fill: 'lightgrey',
-// });
 
-
-
-canvas.add(comment2);
-
-
-// フォーカスで説明を表示 ---------------------------------------------------------------
+// フォーカスで説明を表示 ------------------------------------------
 document.getElementById('case-size').addEventListener('focus', () => {
-  appearInfo(infoCanvasCase, 'case-comment');
-  infoCanvas.add(comment);
+  // appearInfo(infoCanvasCase, 'case-comment');
+  infoCanvasCase.animate('stroke', 'red', {
+    onChange: infoCanvas.renderAll.bind(infoCanvas)
+  });
+  infoCanvas.add(line, tipLeft, tipRight);
 });
 document.getElementById('case-size').addEventListener('blur', () => {
   removeInfo(infoCanvasCase, 'case-comment');
-  infoCanvas.remove(comment);
+  infoCanvas.remove(line, tipLeft, tipRight);
+});
+document.getElementById('case-size').addEventListener('input', () => {
+  removeInfo(infoCanvasCase, 'case-comment');
+  infoCanvas.remove(line, tipLeft, tipRight);
 });
 
 function appearInfo(object, id) {
@@ -481,6 +495,7 @@ function appearInfo(object, id) {
   });
   infoCanvas.renderAll();
 }
+
 function removeInfo(object, id) {
   document.getElementById(id).classList.remove('appear');
   object.set({
@@ -489,8 +504,7 @@ function removeInfo(object, id) {
   infoCanvas.renderAll();
 }
 
-
-// canvasの内容をSVGに変換してダウンロードする ----------------------------------------------
+// canvasの内容をSVGに変換してダウンロードする --------------------------------------------------------
 document.getElementById('dl-btn').addEventListener('click', () => {
   // fabric.jsのtoSVGメソッドを使って、canvasの内容をSVG形式のテキストデータに変換
   const svgData = canvas.toSVG(); 
