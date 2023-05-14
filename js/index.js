@@ -398,7 +398,7 @@ function drawUpperStrap() {
 // fabricインスタンス ----------------
 const infoCanvas = new fabric.Canvas('info-canvas');
 // const infoCanvas = new fabric.StaticCanvas('info-canvas');
-const infoCanvasHalfHeight = 102;
+const infoCanvasCenterHeight = 108;
 const infoCanvasHalfWidth = 130;
 const infoCanvasCaseRadius = 45;
 const infoCanvasOpeningRadius = 39;
@@ -409,121 +409,156 @@ const infoCanvasDialRadius = 36;
 const infoCanvasCase = new WatchCircle({
   radius: infoCanvasCaseRadius,
   left: infoCanvasHalfWidth,
-  top: infoCanvasHalfHeight,
+  top: infoCanvasCenterHeight,
 });
 const infoCanvasOpening = new WatchCircle({
   radius: infoCanvasOpeningRadius,
   left: infoCanvasHalfWidth,
-  top: infoCanvasHalfHeight,
+  top: infoCanvasCenterHeight,
 });
 const infoCanvasDial = new WatchCircle({
   radius: infoCanvasDialRadius,
   left: infoCanvasHalfWidth,
-  top: infoCanvasHalfHeight,
+  top: infoCanvasCenterHeight,
 });
 infoCanvas.add(infoCanvasCase, infoCanvasOpening, infoCanvasDial);
 // ラグ
-function drawInfoCanvasLug() {
-  const infoLugArray = [];
-  for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
-    fabric.loadSVGFromURL('./images/lug-round.svg', (objects, options) => {
-      infoLugArray[i] = fabric.util.groupSVGElements(objects, options);
-      infoLugArray[i].set({
-        originX: 'center',
-        originY: 'center',
-        left: infoCanvasHalfWidth - 26,
-        top: infoCanvasHalfHeight - 44,
-      });
-      if (i === 1 || i === 3) {
-        infoLugArray[i].set({
-          left: infoCanvasHalfWidth + 26,
-        });
-      }
-      if(i === 2 || i === 3) {
-        infoLugArray[i].set({
-          flipY: true,
-          top: infoCanvasHalfHeight + 44,
-        });
-      }
-      infoCanvas.add(infoLugArray[i]);
-      infoLugArray[i].sendToBack();
+const infoLugArray = [];
+for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
+  fabric.loadSVGFromURL('./images/lug-round.svg', (objects, options) => {
+    infoLugArray[i] = fabric.util.groupSVGElements(objects, options);
+    infoLugArray[i].set({
+      originX: 'center',
+      originY: 'center',
+      left: infoCanvasHalfWidth - 26,
+      top: infoCanvasCenterHeight - 44,
     });
-  }
-  mainCanvas.renderAll();
+    if (i === 1 || i === 3) {
+      infoLugArray[i].set({
+        left: infoCanvasHalfWidth + 26,
+      });
+    }
+    if(i === 2 || i === 3) {
+      infoLugArray[i].set({
+        flipY: true,
+        top: infoCanvasCenterHeight + 44,
+      });
+    }
+    infoCanvas.add(infoLugArray[i]);
+    infoLugArray[i].sendToBack();
+  });
 }
-drawInfoCanvasLug();
+mainCanvas.renderAll();
 // リュウズ
 fabric.loadSVGFromURL('./images/crown-round.svg', (objects, options) => {
   const infoCanvasCrown = fabric.util.groupSVGElements(objects, options);
   infoCanvasCrown.set({
     originY: 'center',
-    top: infoCanvasHalfHeight,
-    left: infoCanvasHalfWidth + 45,
+    top: infoCanvasCenterHeight,
+    left: infoCanvasHalfWidth + infoCanvasCaseRadius,
   });
   infoCanvas.add(infoCanvasCrown);
 });
 
 // 矢印 ----------------
-const line = new fabric.Polyline([
-  {x: 85, y: infoCanvasHalfHeight},
-  {x: 175, y: infoCanvasHalfHeight}], {
-  stroke: 'red',
-});
-const tipLeft = new fabric.Polyline([
-  {x: 101, y: infoCanvasHalfHeight - 6},
-  {x: 85, y: infoCanvasHalfHeight},
-  {x: 101, y: infoCanvasHalfHeight + 6}],{
-  stroke: 'red',
-  fill: 'transparent',
-});
-const tipRight = new fabric.Polyline([
-  {x: 159, y: infoCanvasHalfHeight - 6},
-  {x: 175, y: infoCanvasHalfHeight},
-  {x: 159, y: infoCanvasHalfHeight + 6}],{
-  stroke: 'red',
-  fill: 'transparent',
-});
+// 矢印クラス
+class Arrow {
+  constructor(radius) {
+    this.leftMost = infoCanvasHalfWidth - radius;
+    this.rightMost = infoCanvasHalfWidth + radius;
+    this.line = new fabric.Polyline([
+      {x: this.leftMost, y: infoCanvasCenterHeight},
+      {x: this.rightMost, y: infoCanvasCenterHeight}], {
+      stroke: 'red',
+    });
+    this.tipLeft = new fabric.Polyline([
+      {x: this.leftMost + 16, y: infoCanvasCenterHeight - 6},
+      {x: this.leftMost, y: infoCanvasCenterHeight},
+      {x: this.leftMost + 16, y: infoCanvasCenterHeight + 6}],{
+      stroke: 'red',
+      fill: 'transparent',
+    });
+    this.tipRight = new fabric.Polyline([
+      {x: this.rightMost - 16, y: infoCanvasCenterHeight - 6},
+      {x: this.rightMost, y: infoCanvasCenterHeight},
+      {x: this.rightMost - 16, y: infoCanvasCenterHeight + 6}],{
+      stroke: 'red',
+      fill: 'transparent',
+    });
+  }
+  drawArrow() {
+    infoCanvas.add(this.line, this.tipLeft, this.tipRight);
+  }
+  removeArrow() {
+    infoCanvas.remove(this.line, this.tipLeft, this.tipRight)
+  }
+}
+const caseArrow = new Arrow(infoCanvasCaseRadius);
+const openingArrow = new Arrow(infoCanvasOpeningRadius);
+const dialArrow = new Arrow(infoCanvasDialRadius);
 
-// フォーカスで説明を表示 ----------------
+// 説明を表示 ----------------
+// 変数定義
 const infoIntroduction = document.querySelector('.info-introduction');
-infoIntroduction.classList.add('appear');
-
-document.getElementById('case-size').addEventListener('focus', () => {
-  // appearInfo(infoCanvasCase, 'case-comment');
-  infoCanvasCase.animate('stroke', 'red', {
-    onChange: infoCanvas.renderAll.bind(infoCanvas)
-  });
-  infoCanvas.add(line, tipLeft, tipRight);
-  // infoIntroduction.classList.remove('appear');
-  infoIntroduction.textContent = 'ケースの直径をmm単位で入力してください';
+const textBoxCase = document.getElementById('case-size');
+const textBoxOpening = document.getElementById('opening-size');
+const textBoxDial = document.getElementById('dial-size');
+const comment = {
+  default: '入力するパーツの説明が表示されます',
+  case: 'ケースの直径をmm単位で入力してください',
+  opening: 'ケース見切りの直径をmm単位で入力してください',
+  dial: '文字盤の直径をmm単位で入力してください',
+  lug: 'ラグの間の距離をmm単位で入力してください',
+}
+// イベントで関数呼び出し
+// case
+textBoxCase.addEventListener('focus', () => {
+  appearInfo(infoCanvasCase, caseArrow, comment.case)
 });
-document.getElementById('case-size').addEventListener('blur', () => {
-  removeInfo(infoCanvasCase, 'case-comment');
-  infoCanvas.remove(line, tipLeft, tipRight);
-  infoIntroduction.classList.add('appear');
-
+textBoxCase.addEventListener('blur', () => {
+  disappearInfo(infoCanvasCase, caseArrow);
 });
-document.getElementById('case-size').addEventListener('input', () => {
-  // document.getElementById('case-size').focus();
-  removeInfo(infoCanvasCase, 'case-comment');
-  infoCanvas.remove(line, tipLeft, tipRight);
+textBoxCase.addEventListener('input', () => {
+  disappearInfo(infoCanvasCase, caseArrow);
 });
-
-function appearInfo(object, id) {
-  document.getElementById(id).classList.add('appear');
+// opening
+textBoxOpening.addEventListener('focus', () => {
+  appearInfo(infoCanvasOpening, openingArrow, comment.opening)
+});
+textBoxOpening.addEventListener('blur', () => {
+  disappearInfo(infoCanvasOpening, openingArrow);
+});
+textBoxOpening.addEventListener('input', () => {
+  disappearInfo(infoCanvasOpening, openingArrow);
+});
+// dial
+textBoxDial.addEventListener('focus', () => {
+  appearInfo(infoCanvasDial, dialArrow, comment.dial)
+});
+textBoxDial.addEventListener('blur', () => {
+  disappearInfo(infoCanvasDial, dialArrow);
+});
+textBoxDial.addEventListener('input', () => {
+  disappearInfo(infoCanvasDial, dialArrow);
+});
+// 説明を表示,非表示する関数
+function appearInfo(object, arrow, com) {
   object.set({
     stroke: 'red',
   });
-  infoCanvas.renderAll();
+  arrow.drawArrow();
+  infoIntroduction.textContent = com;
 }
-
-function removeInfo(object, id) {
-  document.getElementById(id).classList.remove('appear');
+function disappearInfo(object, arrow) {
   object.set({
     stroke: 'black',
   });
-  infoCanvas.renderAll();
+  arrow.removeArrow();
+  infoIntroduction.textContent = comment.default;
 }
+
+
+
 
 
 

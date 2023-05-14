@@ -159,27 +159,6 @@ main .component-list .component .workspace .workspace-top-container .info .info-
   margin: 0 auto;
   top: 8px;
   text-align: center;
-  display: none;
-}
-main .component-list .component .workspace .workspace-top-container .info .info-introduction.appear {
-  display: block;
-}
-main .component-list .component .workspace .workspace-top-container .info .comment {
-  width: fit-content;
-  padding: 4px 8px;
-  border-radius: 8px;
-  background: #e2e2e2;
-  position: absolute;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  bottom: 150px;
-  text-align: center;
-  font-size: 11px;
-  display: none;
-}
-main .component-list .component .workspace .workspace-top-container .info .comment.appear {
-  display: block;
 }
 main .component-list .component .workspace .shape-list {
   height: 132px;
