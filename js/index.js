@@ -24,6 +24,24 @@ function inputValueToPixel(id) { //引数にinput要素のid名を受け取る
   return pixel;
 }
 
+// canvasの内容をSVGに変換してダウンロード ----------------
+document.getElementById('dl-btn').addEventListener('click', () => {
+  // fabric.jsのtoSVGメソッドを使って、canvasの内容をSVG形式のテキストデータに変換
+  const svgData = mainCanvas.toSVG(); 
+  // SVGをblobに変換
+  const blob = new Blob([svgData], {type: 'image/svg+xml'});
+  // aタグを生成して、
+  const link = document.createElement('a');
+  // ダウンロードリンクのURLを、BlobオブジェクトのURLに設定します。BlobオブジェクトのURLは、URL.createObjectURL()メソッドを使用して作成されます。
+  link.href = URL.createObjectURL(blob);
+  // ダウンロードするファイルの名前を指定して、
+  link.download = 'watch.svg';
+  // リンクを自動的にクリックしてダウンロードさせる
+  link.click();
+  // オブジェクト URL を解放
+  URL.revokeObjectURL(link.href);
+});
+
 // style ----------------------------------------------------------------
 
 // 選択されたラジオボタンに色をつける ----------------
@@ -183,8 +201,8 @@ class WatchLug {
   }
   drawLug() {
     const adjustValue = 1.7; //! 要検討
-    lugArray.forEach(lug => {
-      mainCanvas.remove(lug);
+    lugArray.forEach(lugObject => {
+      mainCanvas.remove(lugObject);
     });
     for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
       fabric.loadSVGFromURL(this.url, (objects, options) => {
@@ -290,47 +308,28 @@ const pinkGoldGradation = new Gradation({
 const caseColors = document.querySelectorAll('input[name="metal-color"]');
 caseColors.forEach(caseColor => {
   caseColor.addEventListener('input', () => {
+    let inputColor;
     switch(caseColor.value) {
       case 'gold':
-        caseObject.set({
-          fill: goldGradation,
-        });
-        crownObject.set({
-          fill: goldGradation,
-        });
-        lugArray.forEach(lug => {
-          lug.set({
-            fill: goldGradation,
-          });
-        });
+        inputColor = goldGradation;
         break;
       case 'silver':
-        caseObject.set({
-          fill: silverGradation,
-        });
-        crownObject.set({
-          fill: silverGradation,
-        });
-        lugArray.forEach(lug => {
-          lug.set({
-            fill: silverGradation,
-          });
-        });
+        inputColor = silverGradation;
         break;
       case 'pink-gold':
-        caseObject.set({
-          fill: pinkGoldGradation,
-        });
-        crownObject.set({
-          fill: pinkGoldGradation,
-        });
-        lugArray.forEach(lug => {
-          lug.set({
-            fill: pinkGoldGradation,
-          });
-        });
-        break;
+        inputColor = pinkGoldGradation;
     }
+    caseObject.set({
+      fill: inputColor,
+    });
+    crownObject.set({
+      fill: inputColor,
+    });
+    lugArray.forEach(lugObject => {
+      lugObject.set({
+        fill: inputColor,
+      });
+    });
     mainCanvas.renderAll();
   });
 });
@@ -396,25 +395,34 @@ function drawUpperStrap() {
 
 // info canvas ----------------------------------------------------------------
 
-// fabricインスタンス  ----------------
+// fabricインスタンス ----------------
 const infoCanvas = new fabric.Canvas('info-canvas');
 // const infoCanvas = new fabric.StaticCanvas('info-canvas');
 const infoCanvasHalfHeight = 102;
 const infoCanvasHalfWidth = 130;
+const infoCanvasCaseRadius = 45;
+const infoCanvasOpeningRadius = 39;
+const infoCanvasDialRadius = 36;
 
-
+// 時計の図を生成 ----------------
+// ケースなど
 const infoCanvasCase = new WatchCircle({
-  radius: 45,
-}, infoCanvasHalfWidth, infoCanvasHalfHeight);
+  radius: infoCanvasCaseRadius,
+  left: infoCanvasHalfWidth,
+  top: infoCanvasHalfHeight,
+});
 const infoCanvasOpening = new WatchCircle({
-  radius: 39,
+  radius: infoCanvasOpeningRadius,
+  left: infoCanvasHalfWidth,
+  top: infoCanvasHalfHeight,
 });
-const infoCanvasDialOpening = new WatchCircle({
-  radius: 36,
+const infoCanvasDial = new WatchCircle({
+  radius: infoCanvasDialRadius,
+  left: infoCanvasHalfWidth,
+  top: infoCanvasHalfHeight,
 });
-infoCanvas.add(infoCanvasCase, infoCanvasOpening, infoCanvasDialOpening);
-
-// lug生成
+infoCanvas.add(infoCanvasCase, infoCanvasOpening, infoCanvasDial);
+// ラグ
 function drawInfoCanvasLug() {
   const infoLugArray = [];
   for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
@@ -444,8 +452,7 @@ function drawInfoCanvasLug() {
   mainCanvas.renderAll();
 }
 drawInfoCanvasLug();
-
-// りゅうず生成
+// リュウズ
 fabric.loadSVGFromURL('./images/crown-round.svg', (objects, options) => {
   const infoCanvasCrown = fabric.util.groupSVGElements(objects, options);
   infoCanvasCrown.set({
@@ -456,7 +463,7 @@ fabric.loadSVGFromURL('./images/crown-round.svg', (objects, options) => {
   infoCanvas.add(infoCanvasCrown);
 });
 
-// 矢印生成
+// 矢印 ----------------
 const line = new fabric.Polyline([
   {x: 85, y: infoCanvasHalfHeight},
   {x: 175, y: infoCanvasHalfHeight}], {
@@ -477,18 +484,18 @@ const tipRight = new fabric.Polyline([
   fill: 'transparent',
 });
 
-
-// フォーカスで説明を表示 ------------------------------------------
+// フォーカスで説明を表示 ----------------
 const infoIntroduction = document.querySelector('.info-introduction');
 infoIntroduction.classList.add('appear');
 
 document.getElementById('case-size').addEventListener('focus', () => {
-  appearInfo(infoCanvasCase, 'case-comment');
+  // appearInfo(infoCanvasCase, 'case-comment');
   infoCanvasCase.animate('stroke', 'red', {
     onChange: infoCanvas.renderAll.bind(infoCanvas)
   });
   infoCanvas.add(line, tipLeft, tipRight);
-  infoIntroduction.classList.remove('appear');
+  // infoIntroduction.classList.remove('appear');
+  infoIntroduction.textContent = 'ケースの直径をmm単位で入力してください';
 });
 document.getElementById('case-size').addEventListener('blur', () => {
   removeInfo(infoCanvasCase, 'case-comment');
@@ -518,29 +525,19 @@ function removeInfo(object, id) {
   infoCanvas.renderAll();
 }
 
-// canvasの内容をSVGに変換してダウンロードする --------------------------------------------------------
-document.getElementById('dl-btn').addEventListener('click', () => {
-  // fabric.jsのtoSVGメソッドを使って、canvasの内容をSVG形式のテキストデータに変換
-  const svgData = mainCanvas.toSVG(); 
-  // SVGをblobに変換
-  const blob = new Blob([svgData], {type: 'image/svg+xml'});
-  // aタグを生成して、
-  const link = document.createElement('a');
-  // ダウンロードリンクのURLを、BlobオブジェクトのURLに設定します。BlobオブジェクトのURLは、URL.createObjectURL()メソッドを使用して作成されます。
-  link.href = URL.createObjectURL(blob);
-  // ダウンロードするファイルの名前を指定して、
-  link.download = 'watch.svg';
-  // リンクを自動的にクリックしてダウンロードさせる
-  link.click();
-  // オブジェクト URL を解放
-  URL.revokeObjectURL(link.href);
-});
 
-// canvasの(ページの？)座標をconsoleに表示する -----------------------------------------------
+
+// 確認用コード ----------------------------------------------------------------
+
+// canvasの(ページの？)座標をconsoleに表示する ----------------
 const headerHeight = 62;
 mainCanvas.on('mouse:down', function(options) {
   console.log(`x座標:${options.e.clientX}`, `y座標:${options.e.clientY - headerHeight}`);
 });
+
+
+
+
 
 // test -----------------------------------------------------------------------------------
 import { testBtn, testColorPicker } from './test.js';
