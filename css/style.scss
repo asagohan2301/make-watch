@@ -163,25 +163,7 @@ main {
               @include box-center;
               top: 8px;
               text-align: center;
-              // display: none;
-              // &.appear {
-              //   display: block;
-              // }
             }
-            // .comment {
-            //   width: fit-content;
-            //   padding: 4px 8px;
-            //   border-radius: 8px;
-            //   background: $active-color;
-            //   @include box-center;
-            //   bottom: 150px;
-            //   text-align: center;
-            //   font-size: 11px;
-            //   display: none;
-            //   &.appear {
-            //     display: block;
-            //   }
-            // }
           }
         }
         
@@ -198,7 +180,7 @@ main {
             line-height: 80px;
           }
           ul {
-            flex: 3;
+            flex: 4;
             display: flex;
             gap: 16px;
             li {
@@ -220,16 +202,25 @@ main {
                 transform: translate(-50%, -50%);
                 pointer-events: none;
               }
-              p {
-                position: absolute;
-                left: 50%;
-                transform: translateX(-50%);
-                bottom: 8px;
-                font-size: 11px;
-              }
               div {
                 width: 30px;
                 height: 30px;
+              }
+              #color-picker {
+                width: 96px;
+                height: 96px;
+                @include box-center;
+                top: 50%;
+                transform: translateY(-50%);
+                cursor: pointer;
+                opacity: 0;
+              }
+              p {
+                @include box-center;
+                bottom: 8px;
+                text-align: center;
+                font-size: 11px;
+                pointer-events: none;
               }
             }
           }
@@ -248,6 +239,9 @@ main {
 }
 .pink-gold-color {
   background: linear-gradient(rgb(220,170,119), rgb(255,239,230));
+}
+.custom-color {
+  background: pink;
 }
 
 /* ----- button ----- */
@@ -278,29 +272,6 @@ label.active {
   position: absolute;
   top: 670px;
   left: 380px;
-}
-
-.custom-color {
-  background-color: red;
-}
-
-#test-color-picker {
-  border: none;
-  background: none;
-  opacity: 0;
-  cursor: pointer;
-}
-
-#test-color-container {
-  width: 32px;
-  height: 32px;
-  border: $border;
-  background: pink;
-}
-
-#info-canvas {
-  width: 260px;
-  height: 204px;
 }
 
 // 枠線test ---------------------------------------------------------

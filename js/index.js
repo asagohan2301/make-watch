@@ -104,8 +104,6 @@ class WatchCircle extends fabric.Circle {
 
 // main canvas ----------------------------------------------------------------
 
-// メモ 重なり順 lug:1 case:2 caseOpening:3 dialOpening:4
-
 // fabricインスタンス ----------------
 const mainCanvas = new fabric.Canvas('main-canvas');
 // const mainCanvas = new fabric.StaticCanvas('main-canvas');
@@ -121,6 +119,7 @@ const lugArray = [];
 let lugWidth;
 const lugThickness = mmToPixel(2);
 const lugLength = mmToPixel(8);
+let inputColor = 'white'; //初期値
 
 // ケース,ケース見切り,文字盤見切りを描く ----------------
 // ケース
@@ -131,8 +130,12 @@ document.getElementById('case-size').addEventListener('input', () => {
     left: mainCanvasHalfWidth,
     top: mainCanvasCenterHeight,
   });
+  // すでに色が選ばれていた場合はその色にする
+  caseObject.set({
+    fill: inputColor,
+  });
   mainCanvas.add(caseObject);
-  caseObject.moveTo(2);
+  stackingOrder();
 });
 // ケース見切り
 document.getElementById('opening-size').addEventListener('input', () => {
@@ -143,7 +146,7 @@ document.getElementById('opening-size').addEventListener('input', () => {
     top: mainCanvasCenterHeight,
   });
   mainCanvas.add(openingObject);
-  openingObject.moveTo(3);
+  stackingOrder();
 });
 // ダイヤル見切
 document.getElementById('dial-size').addEventListener('input', () => {
@@ -154,7 +157,7 @@ document.getElementById('dial-size').addEventListener('input', () => {
     top: mainCanvasCenterHeight,
   });
   mainCanvas.add(dialObject);
-  dialObject.moveTo(4);
+  stackingOrder();
 });
 
 // ラグを描く ----------------
@@ -169,6 +172,7 @@ document.getElementById('lug-width').addEventListener('input', () => {
     }
   });
   switch(checkedLugValue) {
+    // 形がまだ選択されていない場合は仮に丸型としておく
     case undefined:
       roundLug.drawLug();
       break;
@@ -211,6 +215,7 @@ class WatchLug {
           originX: 'center',
           left: mainCanvasHalfWidth - lugWidth / 2 - lugThickness / 2,
           top: mainCanvasCenterHeight - caseObject.height / adjustValue,
+          fill: inputColor,
         });
         if (i === 1 || i === 3) {
           lugArray[i].set({
@@ -224,7 +229,7 @@ class WatchLug {
           });
         }
         mainCanvas.add(lugArray[i]);
-        lugArray[i].sendToBack();
+        stackingOrder();
       });
     }
     mainCanvas.renderAll();
@@ -262,6 +267,7 @@ class WatchCrown {
         originY: 'center',
         left: caseObject.left + caseObject.width / 2,
         top: mainCanvasCenterHeight,
+        fill: inputColor,
       });
       mainCanvas.add(crownObject);
     });
@@ -303,12 +309,29 @@ const pinkGoldGradation = new Gradation({
   ]
 });
 
-// ケースなどに色をつける
-const caseColors = document.querySelectorAll('input[name="metal-color"]');
-caseColors.forEach(caseColor => {
-  caseColor.addEventListener('input', () => {
-    let inputColor;
-    switch(caseColor.value) {
+// カラーピッカー
+const colorPicker = document.getElementById('color-picker');
+const customColor = document.querySelector('.custom-color');
+colorPicker.addEventListener('input', () => {
+  // ボタンの色を変える
+  customColor.style.backgroundColor = colorPicker.value;
+  // inputColorに値を入れておく
+  inputColor = colorPicker.value;
+  // オブジェクトに色をつける
+  applyColor();
+});
+// カラーピッカーをクリックしたときにも、そのradioをクリックしたことにする
+colorPicker.addEventListener('click', () => {
+  document.getElementById('custom-color-radio').click();
+});
+
+// オブジェクトがすでにあれば色を付ける
+// オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色を付ける
+const metalColors = document.querySelectorAll('input[name="metal-color"]');
+metalColors.forEach(metalColor => {
+  metalColor.addEventListener('input', () => {
+    // inputColorに値を入れておく
+    switch(metalColor.value) {
       case 'gold':
         inputColor = goldGradation;
         break;
@@ -317,21 +340,55 @@ caseColors.forEach(caseColor => {
         break;
       case 'pink-gold':
         inputColor = pinkGoldGradation;
+        break;
+      case 'custom-color':
+        inputColor = colorPicker.value;
+        break;
     }
+    // オブジェクトに色をつける
+    applyColor();
+  });
+});
+
+// オブジェクトに色をつける関数 
+function applyColor() {
+  if (caseObject !== undefined) {
     caseObject.set({
       fill: inputColor,
     });
+  }
+  if (crownObject !== undefined) {
     crownObject.set({
       fill: inputColor,
     });
+  }
+  if (lugArray !== undefined) {
     lugArray.forEach(lugObject => {
       lugObject.set({
         fill: inputColor,
       });
     });
-    mainCanvas.renderAll();
-  });
-});
+  }
+  mainCanvas.renderAll();
+}
+
+// 重なり順を直す関数 ----------------
+function stackingOrder() {
+  if (lugArray !== undefined) {
+    lugArray.forEach(lugObject => {
+      lugObject.moveTo(1);
+    });
+  }
+  if (caseObject !== undefined) {
+    caseObject.moveTo(5);
+  }
+  if (openingObject !== undefined) {
+    openingObject.moveTo(6);
+  }
+  if (dialObject !== undefined) {
+    dialObject.moveTo(7);
+  }
+}
 
 // ベルトを描く ----------------
 // strapの値を変更するたびに生成
@@ -588,9 +645,8 @@ mainCanvas.on('mouse:down', function(options) {
 
 
 // test -----------------------------------------------------------------------------------
-import { testBtn, testColorPicker } from './test.js';
+import { testBtn } from './test.js';
 testBtn();
-testColorPicker();
 
 const text = new fabric.Text('hello', {
   left: 100,
