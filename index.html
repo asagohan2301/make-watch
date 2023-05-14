@@ -52,9 +52,6 @@
             <div class="info">
               <canvas id="info-canvas" width="260" height="204"></canvas>
               <p class="info-introduction">入力するパーツの説明が表示されます</p>
-              <!-- <div id="case-comment" class="comment">ケースの直径をmm単位で入力</div>
-              <div id="opening-comment" class="comment">ケースの見切直径をmm単位で入力</div>
-              <div id="dial-comment" class="comment">ダイヤルの見える部分の直径をmmで入力</div> -->
             </div>
           </div>
           <!---------- case shapes ---------->
@@ -105,30 +102,30 @@
                   <input type="radio" name="metal-color" value="gold">
                 </label>
                 <div class="gold-color"></div>
-                <p>丸型</p>
+                <p>ゴールド</p>
               </li>
               <li>
                 <label class="radio-label">
                   <input type="radio" name="metal-color" value="silver">
                 </label>
                 <div class="silver-color"></div>
-                <p>丸型</p>
+                <p>シルバー</p>
               </li>
               <li>
                 <label class="radio-label">
                   <input type="radio" name="metal-color" value="pink-gold">
                 </label>
                 <div class="pink-gold-color"></div>
-                <p>丸型</p>
+                <p>ピンクゴールド</p>
               </li>
-              <!-- test -->
               <li>
                 <label class="radio-label">
-                  <input type="radio" name="metal-color" value="custom-color">
+                  <input type="radio" name="metal-color" value="custom-color" id="custom-color-radio">
                 </label>
                 <div class="custom-color"></div>
+                <input type="color" id="color-picker">
+                <p>その他の色を選ぶ</p>
               </li>
-              <!-- test -->
             </ul>
           </div>
         </div>
@@ -168,9 +165,7 @@
     </div>
     <!-- test ----------------------------------------->
     <button id="test-btn">dl</button>
-    <div id="test-color-container">
-      <input type="color" id="test-color-picker">
-    </div>
+    
     <input type="range" name="crown-size" id="test-range" min="1" max="50" step="1">
     <input type="range" name="canvas-size" id="canvas-range" min="1" max="5" step=".1">
     <ul class="gnavi">

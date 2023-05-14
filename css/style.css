@@ -173,7 +173,7 @@ main .component-list .component .workspace .shape-list h3 {
   line-height: 80px;
 }
 main .component-list .component .workspace .shape-list ul {
-  flex: 3;
+  flex: 4;
   display: flex;
   gap: 16px;
 }
@@ -197,16 +197,30 @@ main .component-list .component .workspace .shape-list ul li div {
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
-main .component-list .component .workspace .shape-list ul li p {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 8px;
-  font-size: 11px;
-}
 main .component-list .component .workspace .shape-list ul li div {
   width: 30px;
   height: 30px;
+}
+main .component-list .component .workspace .shape-list ul li #color-picker {
+  width: 96px;
+  height: 96px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  opacity: 0;
+}
+main .component-list .component .workspace .shape-list ul li p {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  bottom: 8px;
+  text-align: center;
+  font-size: 11px;
 }
 
 /* ----- main case ----- */
@@ -220,6 +234,10 @@ main .component-list .component .workspace .shape-list ul li div {
 
 .pink-gold-color {
   background: linear-gradient(rgb(220, 170, 119), rgb(255, 239, 230));
+}
+
+.custom-color {
+  background: pink;
 }
 
 /* ----- button ----- */
@@ -250,29 +268,6 @@ label.active {
   position: absolute;
   top: 670px;
   left: 380px;
-}
-
-.custom-color {
-  background-color: red;
-}
-
-#test-color-picker {
-  border: none;
-  background: none;
-  opacity: 0;
-  cursor: pointer;
-}
-
-#test-color-container {
-  width: 32px;
-  height: 32px;
-  border: 1px solid #333;
-  background: pink;
-}
-
-#info-canvas {
-  width: 260px;
-  height: 204px;
 }
 
 .gnavi {

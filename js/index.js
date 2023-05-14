@@ -303,12 +303,35 @@ const pinkGoldGradation = new Gradation({
   ]
 });
 
+// カラーピッカー
+const colorPicker = document.getElementById('color-picker');
+const customColor = document.querySelector('.custom-color');
+colorPicker.addEventListener('input', () => {
+  customColor.style.backgroundColor = colorPicker.value;
+  caseObject.set({
+    fill: colorPicker.value,
+  });
+  crownObject.set({
+    fill: colorPicker.value,
+  });
+  lugArray.forEach(lugObject => {
+    lugObject.set({
+      fill: colorPicker.value,
+    });
+  });
+  mainCanvas.renderAll();
+});
+// カラーピッカーをクリックしたときにも、そのradioをクリックしたことにする
+colorPicker.addEventListener('click', () => {
+  document.getElementById('custom-color-radio').click();
+});
+
 // ケースなどに色をつける
-const caseColors = document.querySelectorAll('input[name="metal-color"]');
-caseColors.forEach(caseColor => {
-  caseColor.addEventListener('input', () => {
+const metalColors = document.querySelectorAll('input[name="metal-color"]');
+metalColors.forEach(metalColor => {
+  metalColor.addEventListener('input', () => {
     let inputColor;
-    switch(caseColor.value) {
+    switch(metalColor.value) {
       case 'gold':
         inputColor = goldGradation;
         break;
@@ -317,6 +340,10 @@ caseColors.forEach(caseColor => {
         break;
       case 'pink-gold':
         inputColor = pinkGoldGradation;
+        break;
+      case 'custom-color':
+        inputColor = colorPicker.value;
+        break;
     }
     caseObject.set({
       fill: inputColor,
@@ -332,6 +359,7 @@ caseColors.forEach(caseColor => {
     mainCanvas.renderAll();
   });
 });
+
 
 // ベルトを描く ----------------
 // strapの値を変更するたびに生成
