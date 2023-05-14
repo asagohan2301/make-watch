@@ -119,6 +119,7 @@ const lugArray = [];
 let lugWidth;
 const lugThickness = mmToPixel(2);
 const lugLength = mmToPixel(8);
+let inputColor = 'white'; //初期値
 
 // ケース,ケース見切り,文字盤見切りを描く ----------------
 // ケース
@@ -128,6 +129,10 @@ document.getElementById('case-size').addEventListener('input', () => {
     radius: inputValueToPixel('case-size') / 2,
     left: mainCanvasHalfWidth,
     top: mainCanvasCenterHeight,
+  });
+  // すでに色が選ばれていた場合はその色にする
+  caseObject.set({
+    fill: inputColor,
   });
   mainCanvas.add(caseObject);
   stackingOrder();
@@ -167,6 +172,7 @@ document.getElementById('lug-width').addEventListener('input', () => {
     }
   });
   switch(checkedLugValue) {
+    // 形がまだ選択されていない場合は仮に丸型としておく
     case undefined:
       roundLug.drawLug();
       break;
@@ -209,6 +215,7 @@ class WatchLug {
           originX: 'center',
           left: mainCanvasHalfWidth - lugWidth / 2 - lugThickness / 2,
           top: mainCanvasCenterHeight - caseObject.height / adjustValue,
+          fill: inputColor,
         });
         if (i === 1 || i === 3) {
           lugArray[i].set({
@@ -260,6 +267,7 @@ class WatchCrown {
         originY: 'center',
         left: caseObject.left + caseObject.width / 2,
         top: mainCanvasCenterHeight,
+        fill: inputColor,
       });
       mainCanvas.add(crownObject);
     });
@@ -305,30 +313,24 @@ const pinkGoldGradation = new Gradation({
 const colorPicker = document.getElementById('color-picker');
 const customColor = document.querySelector('.custom-color');
 colorPicker.addEventListener('input', () => {
+  // ボタンの色を変える
   customColor.style.backgroundColor = colorPicker.value;
-  caseObject.set({
-    fill: colorPicker.value,
-  });
-  crownObject.set({
-    fill: colorPicker.value,
-  });
-  lugArray.forEach(lugObject => {
-    lugObject.set({
-      fill: colorPicker.value,
-    });
-  });
-  mainCanvas.renderAll();
+  // inputColorに値を入れておく
+  inputColor = colorPicker.value;
+  // オブジェクトに色をつける
+  applyColor();
 });
 // カラーピッカーをクリックしたときにも、そのradioをクリックしたことにする
 colorPicker.addEventListener('click', () => {
   document.getElementById('custom-color-radio').click();
 });
 
-// ケースなどに色をつける
+// オブジェクトがすでにあれば色を付ける
+// オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色を付ける
 const metalColors = document.querySelectorAll('input[name="metal-color"]');
 metalColors.forEach(metalColor => {
   metalColor.addEventListener('input', () => {
-    let inputColor;
+    // inputColorに値を入れておく
     switch(metalColor.value) {
       case 'gold':
         inputColor = goldGradation;
@@ -343,20 +345,32 @@ metalColors.forEach(metalColor => {
         inputColor = colorPicker.value;
         break;
     }
+    // オブジェクトに色をつける
+    applyColor();
+  });
+});
+
+// オブジェクトに色をつける関数 
+function applyColor() {
+  if (caseObject !== undefined) {
     caseObject.set({
       fill: inputColor,
     });
+  }
+  if (crownObject !== undefined) {
     crownObject.set({
       fill: inputColor,
     });
+  }
+  if (lugArray !== undefined) {
     lugArray.forEach(lugObject => {
       lugObject.set({
         fill: inputColor,
       });
     });
-    mainCanvas.renderAll();
-  });
-});
+  }
+  mainCanvas.renderAll();
+}
 
 // 重なり順を直す関数 ----------------
 function stackingOrder() {
