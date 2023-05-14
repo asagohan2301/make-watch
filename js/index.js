@@ -1,10 +1,14 @@
 'use strict';
 
+
 //* mmへの変換をいつするか。ダウンロード時にまとめてするという手もあり？
 //* SVGへの変換だけをfabric.js機能を使って、描画は純粋なcanvasでできないかな？
 //* できないなーcanvasで書いたものはfabric.jsでdlできない。空になっちゃってる
 
 // common ----------------------------------------------------------------
+
+import { downloadSVG } from './download.js';
+downloadSVG();
 
 // mmからpixelに変換する関数 ----------------
 //? dpiが72で良いのかどうかわからない
@@ -23,24 +27,6 @@ function inputValueToPixel(id) { //引数にinput要素のid名を受け取る
   const pixel = mmToPixel(parseInt(inputValue));
   return pixel;
 }
-
-// canvasの内容をSVGに変換してダウンロード ----------------
-document.getElementById('dl-btn').addEventListener('click', () => {
-  // fabric.jsのtoSVGメソッドを使って、canvasの内容をSVG形式のテキストデータに変換
-  const svgData = mainCanvas.toSVG(); 
-  // SVGをblobに変換
-  const blob = new Blob([svgData], {type: 'image/svg+xml'});
-  // aタグを生成して、
-  const link = document.createElement('a');
-  // ダウンロードリンクのURLを、BlobオブジェクトのURLに設定します。BlobオブジェクトのURLは、URL.createObjectURL()メソッドを使用して作成されます。
-  link.href = URL.createObjectURL(blob);
-  // ダウンロードするファイルの名前を指定して、
-  link.download = 'watch.svg';
-  // リンクを自動的にクリックしてダウンロードさせる
-  link.click();
-  // オブジェクト URL を解放
-  URL.revokeObjectURL(link.href);
-});
 
 // style ----------------------------------------------------------------
 
@@ -645,8 +631,7 @@ mainCanvas.on('mouse:down', function(options) {
 
 
 // test -----------------------------------------------------------------------------------
-import { testBtn } from './test.js';
-testBtn();
+
 
 const text = new fabric.Text('hello', {
   left: 100,
@@ -704,22 +689,6 @@ var textPath = new fabric.Text('Text on a path', {
 });
 mainCanvas.add(textPath);
 
-// document.getElementById('test-btn').addEventListener('click', () => {
-//   // fabric.jsのtoSVGメソッドを使って、canvasの内容をSVG形式のテキストデータに変換
-//   const svgData = infoCanvas.toSVG(); 
-//   // SVGをblobに変換
-//   const blob = new Blob([svgData], {type: 'image/svg+xml'});
-//   // aタグを生成して、
-//   const link = document.createElement('a');
-//   // ダウンロードリンクのURLを、BlobオブジェクトのURLに設定します。BlobオブジェクトのURLは、URL.createObjectURL()メソッドを使用して作成されます。
-//   link.href = URL.createObjectURL(blob);
-//   // ダウンロードするファイルの名前を指定して、
-//   link.download = 'watch.svg';
-//   // リンクを自動的にクリックしてダウンロードさせる
-//   link.click();
-//   // オブジェクト URL を解放
-//   URL.revokeObjectURL(link.href);
-// });
 const canvasRange = document.getElementById('canvas-range');
 canvasRange.addEventListener('input', () => {
   mainCanvas.setZoom(canvasRange.value);
@@ -729,4 +698,5 @@ const ctx = document.getElementById('test-canvas').getContext('2d');
 ctx.font = '14px sans-serif';
 ctx.fillText('ケースの直径を入力', 10, 50);
 
+export { mainCanvas };
 

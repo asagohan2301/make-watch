@@ -58,6 +58,7 @@ main {
   height: 800px;
   margin: 0 auto;
   display: flex;
+  position: relative; /* for dl-btn */
 }
 main #main-canvas {
   border: 1px solid #333;
@@ -242,19 +243,19 @@ main .component-list .component .workspace .shape-list ul li p {
 }
 
 /* ----- button ----- */
-.btn-container {
-  width: 1120px;
-  margin: 16px auto 0;
-}
-.btn-container #dl-btn {
+#dl-btn {
   all: unset;
   display: block;
+  position: absolute;
+  bottom: 0;
+  right: 736px;
   padding: 8px 16px;
-  margin-left: auto;
+  background-color: white;
   border: 1px solid #333;
+  z-index: 5;
   cursor: pointer;
 }
-.btn-container #dl-btn:hover {
+#dl-btn:hover {
   background: #e2e2e2;
 }
 

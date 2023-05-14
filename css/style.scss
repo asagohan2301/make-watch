@@ -72,6 +72,7 @@ main {
   height: 800px;
   margin: 0 auto;
   display: flex;
+  position: relative; /* for dl-btn */
   #main-canvas {
     border: $border;
     border-radius: 16px;
@@ -245,21 +246,25 @@ main {
 }
 
 /* ----- button ----- */
-.btn-container {
-  width: 1120px;
-  margin: 16px auto 0;
+// .btn-container {
+//   width: 1120px;
+//   margin: 16px auto 0;
   #dl-btn {
     all: unset;
     display: block;
+    position: absolute;
+    bottom: 0;
+    right: 736px;
     padding: 8px 16px;
-    margin-left: auto;
+    background-color: white;
     border: $border;
+    z-index: 5;
     cursor: pointer;
     &:hover {
       background: $active-color;
     }
   }
-}
+// }
 
 /* ----- action ----- */
 label.active {

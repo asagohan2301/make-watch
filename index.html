@@ -17,8 +17,10 @@
     <h1>Watch Design Maker</h1>
   </header>
   <main>
+    <button id="dl-btn">ダウンロード(SVG)</button>
     <!---------- main canvas ---------->
-    <canvas id="main-canvas" width="384" height="800"></canvas>
+    <canvas id="main-canvas" width="384" height="800">
+    </canvas>
     <ul class="component-list">
       <!---------- case ---------->
       <li class="component">
@@ -160,11 +162,7 @@
       </li>
     </ul>
   </main>
-    <div class="btn-container">
-      <button id="dl-btn">ダウンロード(SVG)</button>
-    </div>
     <!-- test ----------------------------------------->
-    <button id="test-btn">dl</button>
     
     <input type="range" name="crown-size" id="test-range" min="1" max="50" step="1">
     <input type="range" name="canvas-size" id="canvas-range" min="1" max="5" step=".1">
