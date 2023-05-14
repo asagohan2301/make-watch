@@ -221,6 +221,7 @@ main .component-list .component .workspace .shape-list ul li p {
   bottom: 8px;
   text-align: center;
   font-size: 11px;
+  pointer-events: none;
 }
 
 /* ----- main case ----- */

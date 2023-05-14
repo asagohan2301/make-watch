@@ -104,8 +104,6 @@ class WatchCircle extends fabric.Circle {
 
 // main canvas ----------------------------------------------------------------
 
-// メモ 重なり順 lug:1 case:2 caseOpening:3 dialOpening:4
-
 // fabricインスタンス ----------------
 const mainCanvas = new fabric.Canvas('main-canvas');
 // const mainCanvas = new fabric.StaticCanvas('main-canvas');
@@ -132,7 +130,7 @@ document.getElementById('case-size').addEventListener('input', () => {
     top: mainCanvasCenterHeight,
   });
   mainCanvas.add(caseObject);
-  caseObject.moveTo(2);
+  stackingOrder();
 });
 // ケース見切り
 document.getElementById('opening-size').addEventListener('input', () => {
@@ -143,7 +141,7 @@ document.getElementById('opening-size').addEventListener('input', () => {
     top: mainCanvasCenterHeight,
   });
   mainCanvas.add(openingObject);
-  openingObject.moveTo(3);
+  stackingOrder();
 });
 // ダイヤル見切
 document.getElementById('dial-size').addEventListener('input', () => {
@@ -154,7 +152,7 @@ document.getElementById('dial-size').addEventListener('input', () => {
     top: mainCanvasCenterHeight,
   });
   mainCanvas.add(dialObject);
-  dialObject.moveTo(4);
+  stackingOrder();
 });
 
 // ラグを描く ----------------
@@ -224,7 +222,7 @@ class WatchLug {
           });
         }
         mainCanvas.add(lugArray[i]);
-        lugArray[i].sendToBack();
+        stackingOrder();
       });
     }
     mainCanvas.renderAll();
@@ -360,6 +358,23 @@ metalColors.forEach(metalColor => {
   });
 });
 
+// 重なり順を直す関数 ----------------
+function stackingOrder() {
+  if (lugArray !== undefined) {
+    lugArray.forEach(lugObject => {
+      lugObject.moveTo(1);
+    });
+  }
+  if (caseObject !== undefined) {
+    caseObject.moveTo(5);
+  }
+  if (openingObject !== undefined) {
+    openingObject.moveTo(6);
+  }
+  if (dialObject !== undefined) {
+    dialObject.moveTo(7);
+  }
+}
 
 // ベルトを描く ----------------
 // strapの値を変更するたびに生成
@@ -616,9 +631,8 @@ mainCanvas.on('mouse:down', function(options) {
 
 
 // test -----------------------------------------------------------------------------------
-import { testBtn, testColorPicker } from './test.js';
+import { testBtn } from './test.js';
 testBtn();
-testColorPicker();
 
 const text = new fabric.Text('hello', {
   left: 100,
