@@ -103,6 +103,8 @@ let dialObject;
 let crownObject; //2種類のクラウンで同じ名前共有できるか？→できたみたい。同時には存在しないから？
 const lugArray = [];
 let lugWidth;
+let checkedLugValue = 'round'; //初期値
+let checkedCrownValue = 'round'; //初期値
 const lugThickness = mmToPixel(2);
 const lugLength = mmToPixel(8);
 let inputColor = 'white'; //初期値
@@ -121,6 +123,29 @@ document.getElementById('case-size').addEventListener('input', () => {
     fill: inputColor,
   });
   mainCanvas.add(caseObject);
+  // ラグ再描画
+  if (lugArray !== undefined) {
+    switch(checkedLugValue) { // checkedLugValueの初期値は'round'
+      case 'round':
+        roundLug.drawLug();
+        break;
+      case 'square':
+        squareLug.drawLug();
+        break;
+    }
+  }
+  // リュウズ再描画
+  if (crownObject !== undefined) {
+    switch(checkedCrownValue) {
+      case 'round':
+        roundCrown.drawCrown();
+        break;
+      case 'square':
+        squareCrown.drawCrown();
+        break;
+    }
+  }
+  // 重なり順を直す
   stackingOrder();
 });
 // ケース見切り
@@ -151,17 +176,12 @@ const lugs = document.querySelectorAll('input[name="lug-shape"]');
 // ラグ幅が入力されたらcanvasに描画
 document.getElementById('lug-width').addEventListener('input', () => {
   lugWidth = inputValueToPixel('lug-width');
-  let checkedLugValue;
   lugs.forEach(lug => {
     if(lug.checked){
       checkedLugValue = lug.value;
     }
   });
-  switch(checkedLugValue) {
-    // 形がまだ選択されていない場合は仮に丸型としておく
-    case undefined:
-      roundLug.drawLug();
-      break;
+  switch(checkedLugValue) { // checkedLugValueの初期値は'round'
     case 'round':
       roundLug.drawLug();
       break;
@@ -230,7 +250,8 @@ const squareLug = new WatchLug('./images/lug-square.svg');
 const crowns = document.querySelectorAll('input[name="crown-shape"]');
 crowns.forEach(crown => {
   crown.addEventListener('input', () => {
-    switch(crown.value) {
+    checkedCrownValue = crown.value;
+    switch(checkedCrownValue) {
       case 'round':
         roundCrown.drawCrown();
         break;
