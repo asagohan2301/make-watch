@@ -231,8 +231,7 @@ class WatchLug {
   }
 }
 
-// roundLugはオブジェクトではないようだ。
-// 実際にcanvasに描かれるのはクラス内で定義したlugArrayオブジェクト？
+// memo: roundLugはオブジェクトではなく、インスタンスが持つメソッドdrawLugで生成したlugArrayがオブジェクト？
 const roundLug = new WatchLug('./images/lug-round.svg');
 const squareLug = new WatchLug('./images/lug-square.svg');
 
@@ -380,19 +379,6 @@ function drawUpperStrap() {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // info canvas ----------------------------------------------------------------
 
 // fabricインスタンス ----------------
@@ -403,6 +389,7 @@ const infoCanvasHalfWidth = 130;
 const infoCanvasCaseRadius = 45;
 const infoCanvasOpeningRadius = 39;
 const infoCanvasDialRadius = 36;
+const infoCanvasLugHalfDistance = 26;
 
 // 時計の図を生成 ----------------
 // ケースなど
@@ -430,12 +417,12 @@ for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
     infoLugArray[i].set({
       originX: 'center',
       originY: 'center',
-      left: infoCanvasHalfWidth - 26,
+      left: infoCanvasHalfWidth - infoCanvasLugHalfDistance,
       top: infoCanvasCenterHeight - 44,
     });
     if (i === 1 || i === 3) {
       infoLugArray[i].set({
-        left: infoCanvasHalfWidth + 26,
+        left: infoCanvasHalfWidth + infoCanvasLugHalfDistance,
       });
     }
     if(i === 2 || i === 3) {
@@ -496,6 +483,7 @@ class Arrow {
 const caseArrow = new Arrow(infoCanvasCaseRadius);
 const openingArrow = new Arrow(infoCanvasOpeningRadius);
 const dialArrow = new Arrow(infoCanvasDialRadius);
+const lugArrow = new Arrow(infoCanvasLugHalfDistance - lugThickness / 2);
 
 // 説明を表示 ----------------
 // 変数定義
@@ -503,6 +491,7 @@ const infoIntroduction = document.querySelector('.info-introduction');
 const textBoxCase = document.getElementById('case-size');
 const textBoxOpening = document.getElementById('opening-size');
 const textBoxDial = document.getElementById('dial-size');
+const textBoxLug = document.getElementById('lug-width');
 const comment = {
   default: '入力するパーツの説明が表示されます',
   case: 'ケースの直径をmm単位で入力してください',
@@ -540,6 +529,30 @@ textBoxDial.addEventListener('blur', () => {
 });
 textBoxDial.addEventListener('input', () => {
   disappearInfo(infoCanvasDial, dialArrow);
+});
+// lug
+textBoxLug.addEventListener('focus', () => {
+  lugArrow.drawArrow();
+  // 生成したオブジェクトの位置を書き換え
+  // memo: インスタンスのフィールドであるlineなどがfabricオブジェクト？
+  lugArrow.line.set({
+    top: infoCanvasCenterHeight - infoCanvasCaseRadius - 6,
+  });
+  lugArrow.tipLeft.set({
+    top: infoCanvasCenterHeight - infoCanvasCaseRadius - 12,
+  });
+  lugArrow.tipRight.set({
+    top: infoCanvasCenterHeight - infoCanvasCaseRadius - 12,
+  });
+  infoIntroduction.textContent = comment.lug;
+});
+textBoxLug.addEventListener('blur', () => {
+  lugArrow.removeArrow();
+  infoIntroduction.textContent = comment.lug;
+});
+textBoxLug.addEventListener('input', () => {
+  lugArrow.removeArrow();
+  infoIntroduction.textContent = comment.lug;
 });
 // 説明を表示,非表示する関数
 function appearInfo(object, arrow, com) {
