@@ -242,23 +242,61 @@ main .component-list .component .workspace .shape-list ul li p {
   background: pink;
 }
 
-/* ----- button ----- */
+/* ----- download button ----- */
 #dl-btn {
-  all: unset;
-  display: block;
   position: absolute;
-  bottom: 0;
-  right: 736px;
-  padding: 8px 16px;
-  background-color: white;
-  border: 1px solid #333;
+  bottom: 16px;
+  right: 752px;
+  padding: 4px 8px 0;
+  text-align: center;
+  font-size: 11px;
+  border-top: 1px solid #333;
   z-index: 5;
   cursor: pointer;
 }
-#dl-btn:hover {
-  background: #e2e2e2;
+#dl-btn::before {
+  content: "";
+  position: absolute;
+  top: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 24px;
+  background: #333;
+}
+#dl-btn::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top: 6px solid #333;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+#dl-btn:hover::before {
+  animation: line 1s infinite;
+}
+#dl-btn:hover::after {
+  animation: arrow 1s infinite;
 }
 
+@keyframes line {
+  0% {
+    height: 0;
+  }
+  90% {
+    height: 24PX;
+  }
+}
+@keyframes arrow {
+  0% {
+    top: -36px;
+  }
+  90% {
+    top: -12px;
+  }
+}
 /* ----- action ----- */
 label.active {
   border: 1px solid #333;
