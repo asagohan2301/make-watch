@@ -247,27 +247,25 @@ main .component-list .component .workspace .shape-list ul li p {
   position: absolute;
   bottom: 16px;
   right: 752px;
-  padding: 4px 8px 0;
-  text-align: center;
-  font-size: 11px;
-  border-top: 1px solid #333;
+  width: 36px;
+  height: 52px;
   z-index: 5;
   cursor: pointer;
 }
 #dl-btn::before {
   content: "";
   position: absolute;
-  top: -36px;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 1px;
-  height: 24px;
+  height: 22px;
   background: #333;
 }
 #dl-btn::after {
   content: "";
   position: absolute;
-  top: -12px;
+  top: 18px;
   left: 50%;
   transform: translateX(-50%);
   border-top: 6px solid #333;
@@ -280,21 +278,32 @@ main .component-list .component .workspace .shape-list ul li p {
 #dl-btn:hover::after {
   animation: arrow 1s infinite;
 }
+#dl-btn p {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  bottom: 0;
+  padding-top: 4px;
+  border-top: 1px solid #333;
+  text-align: center;
+  font-size: 11px;
+}
 
 @keyframes line {
   0% {
     height: 0;
   }
   90% {
-    height: 24PX;
+    height: 22PX;
   }
 }
 @keyframes arrow {
   0% {
-    top: -36px;
+    top: 0;
   }
   90% {
-    top: -12px;
+    top: 18px;
   }
 }
 /* ----- action ----- */
