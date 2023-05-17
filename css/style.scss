@@ -13,6 +13,11 @@ $info-canvas-half-height: 102px;
   right: 0;
   margin: 0 auto;
 }
+@mixin box-comment {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: $active-color;
+}
 
 /* ----- common ----- */
 body {
@@ -72,6 +77,7 @@ main {
   height: 800px;
   margin: 0 auto;
   display: flex;
+  position: relative; /* for dl-btn */
   #main-canvas {
     border: $border;
     border-radius: 16px;
@@ -158,11 +164,19 @@ main {
           /* ----- info ----- */
           .info {
             position: relative;
-            border: 1px solid lightgray;
             .info-introduction {
-              @include box-center;
+              width: fit-content;
+              max-width: 240px;
+              position: absolute;
               top: 8px;
-              text-align: center;
+              left: 0;
+              right: 0;
+              margin: 0 auto;
+              padding: 4px 8px;
+              border-radius: 6px;
+              background: $active-color;
+              font-size: 11px;
+              // transition: all .5s;
             }
           }
         }
@@ -193,6 +207,9 @@ main {
                 input[type="radio"] {
                   display: none;
                 }
+              }
+              &:hover label.radio-label {
+                background: $active-color;
               }
               img,
               div {
@@ -244,27 +261,88 @@ main {
   background: pink;
 }
 
-/* ----- button ----- */
-.btn-container {
-  width: 1120px;
-  margin: 16px auto 0;
-  #dl-btn {
-    all: unset;
-    display: block;
-    padding: 8px 16px;
-    margin-left: auto;
-    border: $border;
-    cursor: pointer;
-    &:hover {
-      background: $active-color;
-    }
+/* ----- download button ----- */
+#dl-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 752px;
+  width: 36px;
+  height: 52px;
+  font-size: 11px;
+  z-index: 5;
+  cursor: pointer;
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 22px;
+    background: $text-color;
   }
+  &::after {
+    content: "";
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    // 矢印の形
+    border-top: 6px solid $text-color;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+  }
+  &:hover::before {
+    animation: line 1s infinite;
+  }
+  &:hover::after {
+    animation: arrow 1s infinite;
+  }
+  p.svg {
+    @include box-center;
+    bottom: 0;
+    padding-top: 4px;
+    border-top: $border;
+    text-align: center;
+  }
+  // ツールチップ
+  p.svg-comment {
+    display: none;
+    opacity: 0;
+  }
+  &:hover p.svg-comment {
+    display: block;
+    opacity: 1;
+    position: absolute;
+    bottom: 58px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: $active-color;
+    animation: comment .5s;
+  }
+}
+
+@keyframes line {
+  0%{height: 0}
+  90%{height: 22PX}
+}
+
+@keyframes arrow {
+  0%{top: 0}
+  90%{top: 18px}
+}
+
+@keyframes comment {
+  0%{opacity: 0}
+  100%{opacity: 1}
 }
 
 /* ----- action ----- */
 label.active {
   border: $border;
-  background: $active-color;
 }
 
 /* ----- test ----- */

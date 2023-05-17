@@ -58,6 +58,7 @@ main {
   height: 800px;
   margin: 0 auto;
   display: flex;
+  position: relative; /* for dl-btn */
 }
 main #main-canvas {
   border: 1px solid #333;
@@ -150,15 +151,19 @@ main .component-list .component .workspace .workspace-top-container .text-labels
 }
 main .component-list .component .workspace .workspace-top-container .info {
   position: relative;
-  border: 1px solid lightgray;
 }
 main .component-list .component .workspace .workspace-top-container .info .info-introduction {
+  width: fit-content;
+  max-width: 240px;
   position: absolute;
+  top: 8px;
   left: 0;
   right: 0;
   margin: 0 auto;
-  top: 8px;
-  text-align: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #e2e2e2;
+  font-size: 11px;
 }
 main .component-list .component .workspace .shape-list {
   height: 132px;
@@ -188,6 +193,9 @@ main .component-list .component .workspace .shape-list ul li label.radio-label {
 }
 main .component-list .component .workspace .shape-list ul li label.radio-label input[type=radio] {
   display: none;
+}
+main .component-list .component .workspace .shape-list ul li:hover label.radio-label {
+  background: #e2e2e2;
 }
 main .component-list .component .workspace .shape-list ul li img,
 main .component-list .component .workspace .shape-list ul li div {
@@ -241,27 +249,98 @@ main .component-list .component .workspace .shape-list ul li p {
   background: pink;
 }
 
-/* ----- button ----- */
-.btn-container {
-  width: 1120px;
-  margin: 16px auto 0;
-}
-.btn-container #dl-btn {
-  all: unset;
-  display: block;
-  padding: 8px 16px;
-  margin-left: auto;
-  border: 1px solid #333;
+/* ----- download button ----- */
+#dl-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 752px;
+  width: 36px;
+  height: 52px;
+  font-size: 11px;
+  z-index: 5;
   cursor: pointer;
 }
-.btn-container #dl-btn:hover {
+#dl-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 22px;
+  background: #333;
+}
+#dl-btn::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top: 6px solid #333;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+#dl-btn:hover::before {
+  animation: line 1s infinite;
+}
+#dl-btn:hover::after {
+  animation: arrow 1s infinite;
+}
+#dl-btn p.svg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  bottom: 0;
+  padding-top: 4px;
+  border-top: 1px solid #333;
+  text-align: center;
+}
+#dl-btn p.svg-comment {
+  display: none;
+  opacity: 0;
+}
+#dl-btn:hover p.svg-comment {
+  display: block;
+  opacity: 1;
+  position: absolute;
+  bottom: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  padding: 6px 12px;
+  border-radius: 6px;
   background: #e2e2e2;
+  animation: comment 0.5s;
 }
 
+@keyframes line {
+  0% {
+    height: 0;
+  }
+  90% {
+    height: 22PX;
+  }
+}
+@keyframes arrow {
+  0% {
+    top: 0;
+  }
+  90% {
+    top: 18px;
+  }
+}
+@keyframes comment {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 /* ----- action ----- */
 label.active {
   border: 1px solid #333;
-  background: #e2e2e2;
 }
 
 /* ----- test ----- */
