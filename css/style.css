@@ -151,15 +151,19 @@ main .component-list .component .workspace .workspace-top-container .text-labels
 }
 main .component-list .component .workspace .workspace-top-container .info {
   position: relative;
-  border: 1px solid lightgray;
 }
 main .component-list .component .workspace .workspace-top-container .info .info-introduction {
+  width: fit-content;
+  max-width: 240px;
   position: absolute;
+  top: 8px;
   left: 0;
   right: 0;
   margin: 0 auto;
-  top: 8px;
-  text-align: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #e2e2e2;
+  font-size: 11px;
 }
 main .component-list .component .workspace .shape-list {
   height: 132px;
@@ -189,6 +193,9 @@ main .component-list .component .workspace .shape-list ul li label.radio-label {
 }
 main .component-list .component .workspace .shape-list ul li label.radio-label input[type=radio] {
   display: none;
+}
+main .component-list .component .workspace .shape-list ul li:hover label.radio-label {
+  background: #e2e2e2;
 }
 main .component-list .component .workspace .shape-list ul li img,
 main .component-list .component .workspace .shape-list ul li div {
@@ -334,7 +341,6 @@ main .component-list .component .workspace .shape-list ul li p {
 /* ----- action ----- */
 label.active {
   border: 1px solid #333;
-  background: #e2e2e2;
 }
 
 /* ----- test ----- */

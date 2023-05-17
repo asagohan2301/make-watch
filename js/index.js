@@ -446,9 +446,9 @@ function drawUpperStrap() {
 // info canvas ----------------------------------------------------------------
 
 // fabricインスタンス ----------------
-const infoCanvas = new fabric.Canvas('info-canvas');
-// const infoCanvas = new fabric.StaticCanvas('info-canvas');
-const infoCanvasCenterHeight = 108;
+const infoCanvas = new fabric.StaticCanvas('info-canvas');
+// const infoCanvas = new fabric.Canvas('info-canvas');
+const infoCanvasCenterHeight = 118;
 const infoCanvasHalfWidth = 130;
 const infoCanvasCaseRadius = 45;
 const infoCanvasOpeningRadius = 39;
@@ -501,8 +501,9 @@ for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
 }
 mainCanvas.renderAll();
 // リュウズ
-fabric.loadSVGFromURL('./images/crown-round.svg', (objects, options) => {
-  const infoCanvasCrown = fabric.util.groupSVGElements(objects, options);
+let infoCanvasCrown;
+fabric.loadSVGFromURL('./images/crown-round_re.svg', (objects, options) => {
+  infoCanvasCrown = fabric.util.groupSVGElements(objects, options);
   infoCanvasCrown.set({
     originY: 'center',
     top: infoCanvasCenterHeight,
@@ -558,41 +559,53 @@ const textBoxDial = document.getElementById('dial-size');
 const textBoxLug = document.getElementById('lug-width');
 const comment = {
   default: '入力するパーツの説明が表示されます',
-  case: 'ケースの直径をmm単位で入力してください',
-  opening: 'ケース見切りの直径をmm単位で入力してください',
-  dial: '文字盤の直径をmm単位で入力してください',
-  lug: 'ラグの間の距離をmm単位で入力してください',
+  caseSize: 'ケースの直径をmm単位で入力してください',
+  openingSize: 'ケース見切りの直径をmm単位で入力してください',
+  dialSize: '文字盤の直径をmm単位で入力してください',
+  lugWidth: 'ラグの間の距離をmm単位で入力してください',
+  lugShape: 'ラグの形状を選択してください',
+  crownShape: 'りゅうずの形状を選択してください',
+  metalColor: 'ケース、ラグ、りゅうずにつける色を選択してください',
 }
 // イベントで関数呼び出し
 // case
 textBoxCase.addEventListener('focus', () => {
-  appearInfo(infoCanvasCase, caseArrow, comment.case)
+  appearArrowInfo(infoCanvasCase, caseArrow);
+  fadeInComment(comment.caseSize);
 });
 textBoxCase.addEventListener('blur', () => {
-  disappearInfo(infoCanvasCase, caseArrow);
+  disappearArrowInfo(infoCanvasCase, caseArrow);
+  fadeOutComment();
 });
 textBoxCase.addEventListener('input', () => {
-  disappearInfo(infoCanvasCase, caseArrow);
+  disappearArrowInfo(infoCanvasCase, caseArrow);
+  fadeOutComment();
 });
 // opening
 textBoxOpening.addEventListener('focus', () => {
-  appearInfo(infoCanvasOpening, openingArrow, comment.opening)
+  appearArrowInfo(infoCanvasOpening, openingArrow);
+  fadeInComment(comment.openingSize);
 });
 textBoxOpening.addEventListener('blur', () => {
-  disappearInfo(infoCanvasOpening, openingArrow);
+  disappearArrowInfo(infoCanvasOpening, openingArrow);
+  fadeOutComment();
 });
 textBoxOpening.addEventListener('input', () => {
-  disappearInfo(infoCanvasOpening, openingArrow);
+  disappearArrowInfo(infoCanvasOpening, openingArrow);
+  fadeOutComment();
 });
 // dial
 textBoxDial.addEventListener('focus', () => {
-  appearInfo(infoCanvasDial, dialArrow, comment.dial)
+  appearArrowInfo(infoCanvasDial, dialArrow);
+  fadeInComment(comment.dialSize);
 });
 textBoxDial.addEventListener('blur', () => {
-  disappearInfo(infoCanvasDial, dialArrow);
+  disappearArrowInfo(infoCanvasDial, dialArrow);
+  fadeOutComment();
 });
 textBoxDial.addEventListener('input', () => {
-  disappearInfo(infoCanvasDial, dialArrow);
+  disappearArrowInfo(infoCanvasDial, dialArrow);
+  fadeOutComment();
 });
 // lug
 textBoxLug.addEventListener('focus', () => {
@@ -608,32 +621,111 @@ textBoxLug.addEventListener('focus', () => {
   lugArrow.tipRight.set({
     top: infoCanvasCenterHeight - infoCanvasCaseRadius - 12,
   });
-  infoIntroduction.textContent = comment.lug;
+  fadeInComment(comment.lugWidth);
 });
 textBoxLug.addEventListener('blur', () => {
   lugArrow.removeArrow();
-  infoIntroduction.textContent = comment.lug;
+  fadeOutComment();
 });
 textBoxLug.addEventListener('input', () => {
   lugArrow.removeArrow();
-  infoIntroduction.textContent = comment.lug;
+  fadeOutComment();
 });
-// 説明を表示,非表示する関数
-function appearInfo(object, arrow, com) {
+// lug shape
+const lugLists = document.querySelectorAll('.shape-list-lug li');
+lugLists.forEach(list => {
+  list.addEventListener('mouseover', () => {
+    infoLugArray.forEach(lug => {
+      appearShapeInfo(lug, comment.lugShape);
+    });
+  });
+  list.addEventListener('mouseleave', () => {
+    infoLugArray.forEach(lug => {
+      disappearShapeInfo(lug);
+    });
+  });
+});
+// crown shape
+const crownLists = document.querySelectorAll('.shape-list-crown li');
+crownLists.forEach(list => {
+  list.addEventListener('mouseover', () => {
+    appearShapeInfo(infoCanvasCrown, comment.crownShape);
+  });
+  list.addEventListener('mouseleave', () => {
+    disappearShapeInfo(infoCanvasCrown);
+  });
+});
+// metal color
+let colorChangeLists;
+window.addEventListener('load', () => {
+  // 色を変えたいオブジェクトを配列にまとめておく
+  colorChangeLists = [infoCanvasCase, infoCanvasCrown, ...infoLugArray];
+});
+const colorLists = document.querySelectorAll('.shape-list-color li');
+colorLists.forEach(list => {
+  list.addEventListener('mouseover', () => {
+    colorChangeLists.forEach(colorChangeList => {
+      colorChangeList.set({
+        fill: '#e2e2e2',
+      });
+    });
+    infoCanvas.renderAll();
+    infoIntroduction.textContent = comment.metalColor;
+  });
+  list.addEventListener('mouseleave', () => {
+    colorChangeLists.forEach(colorChangeList => {
+      colorChangeList.set({
+        fill: 'white',
+      });
+    });
+    infoCanvas.renderAll();
+    infoIntroduction.textContent = comment.default;
+  });
+});
+
+// 説明(矢印つき)を表示,非表示する関数
+function appearArrowInfo(object, arrow) {
   object.set({
     stroke: 'red',
   });
   arrow.drawArrow();
-  infoIntroduction.textContent = com;
 }
-function disappearInfo(object, arrow) {
+function disappearArrowInfo(object, arrow) {
   object.set({
     stroke: 'black',
   });
   arrow.removeArrow();
+}
+
+// 説明(形)を表示,非表示する関数
+function appearShapeInfo(object, com) {
+  object.set({
+    stroke: 'red',
+  });
+  infoCanvas.renderAll();
+  infoIntroduction.textContent = com;
+}
+function disappearShapeInfo(object) {
+  object.set({
+    stroke: 'black',
+  });
+  infoCanvas.renderAll();
   infoIntroduction.textContent = comment.default;
 }
 
+// ふわっとテキストを切り替え
+function fadeInComment(com) {
+  infoIntroduction.style.opacity = 0;
+  infoIntroduction.textContent = com;
+  setTimeout(() => {
+    infoIntroduction.style.transition = 'all .5s';
+    infoIntroduction.style.opacity = '1';
+  }, 10);
+}
+function fadeOutComment() {
+  infoIntroduction.style.transition = 'none';
+  infoIntroduction.textContent = comment.default;
+}
 
 
 

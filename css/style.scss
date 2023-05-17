@@ -13,6 +13,11 @@ $info-canvas-half-height: 102px;
   right: 0;
   margin: 0 auto;
 }
+@mixin box-comment {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: $active-color;
+}
 
 /* ----- common ----- */
 body {
@@ -159,11 +164,19 @@ main {
           /* ----- info ----- */
           .info {
             position: relative;
-            border: 1px solid lightgray;
             .info-introduction {
-              @include box-center;
+              width: fit-content;
+              max-width: 240px;
+              position: absolute;
               top: 8px;
-              text-align: center;
+              left: 0;
+              right: 0;
+              margin: 0 auto;
+              padding: 4px 8px;
+              border-radius: 6px;
+              background: $active-color;
+              font-size: 11px;
+              // transition: all .5s;
             }
           }
         }
@@ -194,6 +207,9 @@ main {
                 input[type="radio"] {
                   display: none;
                 }
+              }
+              &:hover label.radio-label {
+                background: $active-color;
               }
               img,
               div {
@@ -327,7 +343,6 @@ main {
 /* ----- action ----- */
 label.active {
   border: $border;
-  background: $active-color;
 }
 
 /* ----- test ----- */
