@@ -5,8 +5,8 @@ $text-color: #333;
 $active-color: #e2e2e2;
 $border: 1px solid $text-color;
 $dashedBorder: 1px dashed $text-color;
-$info-canvas-half-width: 130px;
-$info-canvas-half-height: 102px;
+$case-info-canvas-half-width: 130px;
+$case-info-canvas-half-height: 102px;
 @mixin box-center {
   position: absolute;
   left: 0;
@@ -161,6 +161,34 @@ main {
               margin-top: 24px;
             }
           }
+          /* ----- option radio ----- */
+          .option-container {
+            display: flex;
+            align-items: center;
+            margin-top: 22px;
+            h3 {
+              width: 120px;
+              font-size: 12px;
+            }
+            label.option-list {
+              padding: 8px 12px;
+              border-radius: 8px;
+              letter-spacing: .1rem;
+              cursor: pointer;
+              input[type="radio"] {
+                display: none;
+              }
+              &:hover {
+                background: $active-color;
+              }
+            }
+            label.option-list + label.option-list {
+              margin-left: 24px;
+            }
+          }
+          .option-container + .option-container {
+            margin-top: 16px;
+          }
           /* ----- info ----- */
           .info {
             position: relative;
@@ -181,7 +209,7 @@ main {
           }
         }
         
-        /* ----- radio label ----- */
+        /* ----- shape radio ----- */
         .shape-list {
           height: 132px;
           padding: 0 22px;
@@ -223,7 +251,7 @@ main {
                 width: 30px;
                 height: 30px;
               }
-              #color-picker {
+              .color-picker {
                 width: 96px;
                 height: 96px;
                 @include box-center;
@@ -247,7 +275,7 @@ main {
   }
 }
 
-/* ----- main case ----- */
+/* ----- colors ----- */
 .gold-color {
   background: linear-gradient(rgb(238,215,71), rgb(255,252,245));
 }
@@ -256,6 +284,15 @@ main {
 }
 .pink-gold-color {
   background: linear-gradient(rgb(220,170,119), rgb(255,239,230));
+}
+.black-color {
+  background: black;
+}
+.brown-color {
+  background: brown;
+}
+.gray-color {
+  background: gray;
 }
 .custom-color {
   background: pink;

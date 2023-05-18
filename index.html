@@ -55,7 +55,7 @@
             </div>
             <!---------- case info canvas ---------->
             <div class="info">
-              <canvas id="info-canvas" width="260" height="204"></canvas>
+              <canvas id="case-info-canvas" width="260" height="204"></canvas>
               <p class="info-introduction">入力するパーツの説明が表示されます</p>
             </div>
           </div>
@@ -100,63 +100,179 @@
               </ul>
             </div>
             <div class="shape-list shape-list-color">
-            <h3>金属色:</h3>
-            <ul>
-              <li>
-                <label class="radio-label">
-                  <input type="radio" name="metal-color" value="gold">
-                </label>
-                <div class="gold-color"></div>
-                <p>ゴールド</p>
-              </li>
-              <li>
-                <label class="radio-label">
-                  <input type="radio" name="metal-color" value="silver">
-                </label>
-                <div class="silver-color"></div>
-                <p>シルバー</p>
-              </li>
-              <li>
-                <label class="radio-label">
-                  <input type="radio" name="metal-color" value="pink-gold">
-                </label>
-                <div class="pink-gold-color"></div>
-                <p>ピンクゴールド</p>
-              </li>
-              <li>
-                <label class="radio-label">
-                  <input type="radio" name="metal-color" value="custom-color" id="custom-color-radio">
-                </label>
-                <div class="custom-color"></div>
-                <input type="color" id="color-picker">
-                <p>その他の色</p>
-              </li>
-            </ul>
+              <h3>金属色:</h3>
+              <ul>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="metal-color" value="gold">
+                  </label>
+                  <div class="gold-color"></div>
+                  <p>ゴールド</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="metal-color" value="silver">
+                  </label>
+                  <div class="silver-color"></div>
+                  <p>シルバー</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="metal-color" value="pink-gold">
+                  </label>
+                  <div class="pink-gold-color"></div>
+                  <p>ピンクゴールド</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="metal-color" value="custom-color">
+                  </label>
+                  <div class="custom-color"></div>
+                  <input type="color" id="case-color-picker" class="color-picker">
+                  <p>その他の色</p>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
       </li>
       <!---------- strap ---------->
       <li class="component">
         <h2 class="tab">ベルト</h2>
         <div class="workspace">
-          <div class="text-label-container">
-            <label for="strap-width">ベルト幅</label>
-            <input type="text" id="strap-width" size="4">
-            <span>mm</span>
-          </div>
-          <div class="shape-list">
-            <h3>バックル形状</h3>
-            <ul>
-              <li>
-                <label class="radio-label">
-                  <input type="radio" name="buckle-shape" value="square">
+          <div class="workspace-top-container">
+            <!---------- strap sizes ---------->
+            <div class="text-labels-container">
+              <div class="text-label-container">
+                <label for="strap-top-length">ベルト長さ(上側):</label>
+                <input type="text" id="strap-top-length" size="4">
+                <span>mm</span>
+              </div>
+              <div class="text-label-container">
+                <label for="strap-bottom-length">ベルト長さ(下側):</label>
+                <input type="text" id="strap-bottom-length" size="4">
+                <span>mm</span>
+              </div>
+              <div class="option-container">
+                <h3>ベルト穴個数:</h3>
+                <label class="option-list">
+                  6個
+                  <input type="radio" name="hole-quantity" value="6">
                 </label>
-                <img src="./images/buckle.svg" alt="四角い形状のラグ" width="80" height="32">
-              </li>
-            </ul>
+                <label class="option-list">
+                  7個
+                  <input type="radio" name="hole-quantity" value="7">
+                </label>
+                <label class="option-list">
+                  8個
+                  <input type="radio" name="hole-quantity" value="8">
+                </label>
+              </div>
+              <div class="option-container">
+                <h3>ベルト穴間隔:</h3>
+                <label class="option-list">
+                  6mm
+                  <input type="radio" name="hole-distance" value="6">
+                </label>
+                <label class="option-list">
+                  7mm
+                  <input type="radio" name="hole-distance" value="7">
+                </label>
+              </div>
+              <div class="option-container">
+                <h3>ステッチの有無:</h3>
+                <label class="option-list">
+                  あり
+                  <input type="radio" name="stitch" value="with-stitch">
+                </label>
+                <label class="option-list">
+                  なし
+                  <input type="radio" name="stitch" value="without-stitch">
+                </label>
+              </div>
+            </div>
+            <!---------- strap info canvas ---------->
+            <div class="info">
+              <canvas id="strap-info-canvas" width="260" height="204"></canvas>
+              <p class="info-introduction">入力するパーツの説明が表示されます</p>
+            </div>
           </div>
+          <!---------- strap shapes ---------->
+          <div>
+            <div class="shape-list shape-list-strap">
+              <h3>ベルト形状:</h3>
+              <ul>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="strap-shape" value="straight">
+                  </label>
+                  <img src="./images/buckle.svg" alt="丸い形状のラグ" width="80" height="32">
+                  <p>ストレート</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="strap-shape" value="taper">
+                  </label>
+                  <img src="./images/buckle.svg" alt="四角い形状のラグ" width="80" height="32">
+                  <p>テーパー</p>
+                </li>
+              </ul>
+            </div>
+            <div class="shape-list shape-list-strap-color">
+              <h3>ベルト色:</h3>
+              <ul>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="strap-color" value="black">
+                  </label>
+                  <div class="black-color"></div>
+                  <p>黒</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="strap-color" value="brown">
+                  </label>
+                  <div class="brown-color"></div>
+                  <p>茶</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="strap-color" value="gray">
+                  </label>
+                  <div class="gray-color"></div>
+                  <p>グレー</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="strap-color" value="custom-color">
+                  </label>
+                  <div class="custom-color"></div>
+                  <input type="color" id="strap-color-picker" class="color-picker">
+                  <p>その他の色</p>
+                </li>
+              </ul>
+            </div>
+            <div class="shape-list shape-list-buckle">
+              <h3>バックル形状:</h3>
+              <ul>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="buckle-shape" value="round">
+                  </label>
+                  <img src="./images/buckle.svg" alt="丸い形状のラグ" width="80" height="32">
+                  <p>丸型</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="buckle-shape" value="square">
+                  </label>
+                  <img src="./images/buckle.svg" alt="四角い形状のラグ" width="80" height="32">
+                  <p>角型</p>
+                </li>
+              </ul>
+            </div>
         </div>
+      </div>
       </li>
       <!---------- dial ---------->
       <li class="component">

@@ -107,7 +107,8 @@ let checkedLugValue = 'round'; //初期値
 let checkedCrownValue = 'round'; //初期値
 const lugThickness = mmToPixel(2);
 const lugLength = mmToPixel(8);
-let inputColor = 'white'; //初期値
+let inputCaseColor = 'white'; //初期値
+let inputStrapColor = 'white'; //初期値
 
 // ケース,ケース見切り,文字盤見切りを描く ----------------
 // ケース
@@ -120,7 +121,7 @@ document.getElementById('case-size').addEventListener('input', () => {
   });
   // すでに色が選ばれていた場合はその色にする
   caseObject.set({
-    fill: inputColor,
+    fill: inputCaseColor,
   });
   mainCanvas.add(caseObject);
   // ラグ再描画
@@ -221,7 +222,7 @@ class WatchLug {
           originX: 'center',
           left: mainCanvasHalfWidth - lugWidth / 2 - lugThickness / 2,
           top: mainCanvasCenterHeight - caseObject.height / adjustValue,
-          fill: inputColor,
+          fill: inputCaseColor,
         });
         if (i === 1 || i === 3) {
           lugArray[i].set({
@@ -274,7 +275,7 @@ class WatchCrown {
         originY: 'center',
         left: caseObject.left + caseObject.width / 2,
         top: mainCanvasCenterHeight,
-        fill: inputColor,
+        fill: inputCaseColor,
       });
       mainCanvas.add(crownObject);
     });
@@ -317,19 +318,18 @@ const pinkGoldGradation = new Gradation({
 });
 
 // カラーピッカー
-const colorPicker = document.getElementById('color-picker');
-const customColor = document.querySelector('.custom-color');
-colorPicker.addEventListener('input', () => {
+const caseColorPicker = document.getElementById('case-color-picker');
+caseColorPicker.addEventListener('input', () => {
   // ボタンの色を変える
-  customColor.style.backgroundColor = colorPicker.value;
-  // inputColorに値を入れておく
-  inputColor = colorPicker.value;
+  caseColorPicker.previousElementSibling.style.backgroundColor = caseColorPicker.value;
+  // inputCaseColorに値を入れておく
+  inputCaseColor = caseColorPicker.value;
   // オブジェクトに色をつける
   applyColor();
 });
-// カラーピッカーをクリックしたときにも、そのradioをクリックしたことにする
-colorPicker.addEventListener('click', () => {
-  document.getElementById('custom-color-radio').click();
+// カラーピッカーをクリックしたときにも、radioをクリックしたことにする
+caseColorPicker.addEventListener('click', () => {
+  caseColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
 });
 
 // オブジェクトがすでにあれば色を付ける
@@ -337,19 +337,19 @@ colorPicker.addEventListener('click', () => {
 const metalColors = document.querySelectorAll('input[name="metal-color"]');
 metalColors.forEach(metalColor => {
   metalColor.addEventListener('input', () => {
-    // inputColorに値を入れておく
+    // inputCaseColorに値を入れておく
     switch(metalColor.value) {
       case 'gold':
-        inputColor = goldGradation;
+        inputCaseColor = goldGradation;
         break;
       case 'silver':
-        inputColor = silverGradation;
+        inputCaseColor = silverGradation;
         break;
       case 'pink-gold':
-        inputColor = pinkGoldGradation;
+        inputCaseColor = pinkGoldGradation;
         break;
       case 'custom-color':
-        inputColor = colorPicker.value;
+        inputCaseColor = caseColorPicker.value;
         break;
     }
     // オブジェクトに色をつける
@@ -361,18 +361,18 @@ metalColors.forEach(metalColor => {
 function applyColor() {
   if (caseObject !== undefined) {
     caseObject.set({
-      fill: inputColor,
+      fill: inputCaseColor,
     });
   }
   if (crownObject !== undefined) {
     crownObject.set({
-      fill: inputColor,
+      fill: inputCaseColor,
     });
   }
   if (lugArray !== undefined) {
     lugArray.forEach(lugObject => {
       lugObject.set({
-        fill: inputColor,
+        fill: inputCaseColor,
       });
     });
   }
@@ -399,17 +399,17 @@ function stackingOrder() {
 
 // ベルトを描く ----------------
 // strapの値を変更するたびに生成
-let strapWidth;
-let upperStrapObject;
-let lowerStrapObject;
-const defaultStrapWidth = mmToPixel(16);
+// let strapWidth;
+// let upperStrapObject;
+// let lowerStrapObject;
+// const defaultStrapWidth = mmToPixel(16);
 
-document.getElementById('strap-width').addEventListener('input', () => {
-  mainCanvas.remove(upperStrapObject);
-  mainCanvas.remove(lowerStrapObject);
-  drawUpperStrap();
-  drawLowerStrap();
-});
+// document.getElementById('strap-width').addEventListener('input', () => {
+//   mainCanvas.remove(upperStrapObject);
+//   mainCanvas.remove(lowerStrapObject);
+//   drawUpperStrap();
+//   drawLowerStrap();
+// });
 
 // ベルトを描く ----------------
 function drawLowerStrap() {
@@ -446,33 +446,33 @@ function drawUpperStrap() {
 // info canvas ----------------------------------------------------------------
 
 // fabricインスタンス ----------------
-const infoCanvas = new fabric.StaticCanvas('info-canvas');
-// const infoCanvas = new fabric.Canvas('info-canvas');
-const infoCanvasCenterHeight = 118;
-const infoCanvasHalfWidth = 130;
-const infoCanvasCaseRadius = 45;
-const infoCanvasOpeningRadius = 39;
-const infoCanvasDialRadius = 36;
-const infoCanvasLugHalfDistance = 26;
+const caseInfoCanvas = new fabric.StaticCanvas('case-info-canvas');
+// const caseInfoCanvas = new fabric.Canvas('case-info-canvas');
+const caseInfoCanvasCenterHeight = 118;
+const caseInfoCanvasHalfWidth = 130;
+const caseInfoCanvasCaseRadius = 45;
+const caseInfoCanvasOpeningRadius = 39;
+const caseInfoCanvasDialRadius = 36;
+const caseInfoCanvasLugHalfDistance = 26;
 
 // 時計の図を生成 ----------------
 // ケースなど
-const infoCanvasCase = new WatchCircle({
-  radius: infoCanvasCaseRadius,
-  left: infoCanvasHalfWidth,
-  top: infoCanvasCenterHeight,
+const caseInfoCanvasCase = new WatchCircle({
+  radius: caseInfoCanvasCaseRadius,
+  left: caseInfoCanvasHalfWidth,
+  top: caseInfoCanvasCenterHeight,
 });
-const infoCanvasOpening = new WatchCircle({
-  radius: infoCanvasOpeningRadius,
-  left: infoCanvasHalfWidth,
-  top: infoCanvasCenterHeight,
+const caseInfoCanvasOpening = new WatchCircle({
+  radius: caseInfoCanvasOpeningRadius,
+  left: caseInfoCanvasHalfWidth,
+  top: caseInfoCanvasCenterHeight,
 });
-const infoCanvasDial = new WatchCircle({
-  radius: infoCanvasDialRadius,
-  left: infoCanvasHalfWidth,
-  top: infoCanvasCenterHeight,
+const caseInfoCanvasDial = new WatchCircle({
+  radius: caseInfoCanvasDialRadius,
+  left: caseInfoCanvasHalfWidth,
+  top: caseInfoCanvasCenterHeight,
 });
-infoCanvas.add(infoCanvasCase, infoCanvasOpening, infoCanvasDial);
+caseInfoCanvas.add(caseInfoCanvasCase, caseInfoCanvasOpening, caseInfoCanvasDial);
 // ラグ
 const infoLugArray = [];
 for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
@@ -481,74 +481,74 @@ for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
     infoLugArray[i].set({
       originX: 'center',
       originY: 'center',
-      left: infoCanvasHalfWidth - infoCanvasLugHalfDistance,
-      top: infoCanvasCenterHeight - 44,
+      left: caseInfoCanvasHalfWidth - caseInfoCanvasLugHalfDistance,
+      top: caseInfoCanvasCenterHeight - 44,
     });
     if (i === 1 || i === 3) {
       infoLugArray[i].set({
-        left: infoCanvasHalfWidth + infoCanvasLugHalfDistance,
+        left: caseInfoCanvasHalfWidth + caseInfoCanvasLugHalfDistance,
       });
     }
     if(i === 2 || i === 3) {
       infoLugArray[i].set({
         flipY: true,
-        top: infoCanvasCenterHeight + 44,
+        top: caseInfoCanvasCenterHeight + 44,
       });
     }
-    infoCanvas.add(infoLugArray[i]);
+    caseInfoCanvas.add(infoLugArray[i]);
     infoLugArray[i].sendToBack();
   });
 }
 mainCanvas.renderAll();
 // リュウズ
-let infoCanvasCrown;
+let caseInfoCanvasCrown;
 fabric.loadSVGFromURL('./images/crown-round_re.svg', (objects, options) => {
-  infoCanvasCrown = fabric.util.groupSVGElements(objects, options);
-  infoCanvasCrown.set({
+  caseInfoCanvasCrown = fabric.util.groupSVGElements(objects, options);
+  caseInfoCanvasCrown.set({
     originY: 'center',
-    top: infoCanvasCenterHeight,
-    left: infoCanvasHalfWidth + infoCanvasCaseRadius,
+    top: caseInfoCanvasCenterHeight,
+    left: caseInfoCanvasHalfWidth + caseInfoCanvasCaseRadius,
   });
-  infoCanvas.add(infoCanvasCrown);
+  caseInfoCanvas.add(caseInfoCanvasCrown);
 });
 
 // 矢印 ----------------
 // 矢印クラス
 class Arrow {
   constructor(radius) {
-    this.leftMost = infoCanvasHalfWidth - radius;
-    this.rightMost = infoCanvasHalfWidth + radius;
+    this.leftMost = caseInfoCanvasHalfWidth - radius;
+    this.rightMost = caseInfoCanvasHalfWidth + radius;
     this.line = new fabric.Polyline([
-      {x: this.leftMost, y: infoCanvasCenterHeight},
-      {x: this.rightMost, y: infoCanvasCenterHeight}], {
+      {x: this.leftMost, y: caseInfoCanvasCenterHeight},
+      {x: this.rightMost, y: caseInfoCanvasCenterHeight}], {
       stroke: 'red',
     });
     this.tipLeft = new fabric.Polyline([
-      {x: this.leftMost + 16, y: infoCanvasCenterHeight - 6},
-      {x: this.leftMost, y: infoCanvasCenterHeight},
-      {x: this.leftMost + 16, y: infoCanvasCenterHeight + 6}],{
+      {x: this.leftMost + 16, y: caseInfoCanvasCenterHeight - 6},
+      {x: this.leftMost, y: caseInfoCanvasCenterHeight},
+      {x: this.leftMost + 16, y: caseInfoCanvasCenterHeight + 6}],{
       stroke: 'red',
       fill: 'transparent',
     });
     this.tipRight = new fabric.Polyline([
-      {x: this.rightMost - 16, y: infoCanvasCenterHeight - 6},
-      {x: this.rightMost, y: infoCanvasCenterHeight},
-      {x: this.rightMost - 16, y: infoCanvasCenterHeight + 6}],{
+      {x: this.rightMost - 16, y: caseInfoCanvasCenterHeight - 6},
+      {x: this.rightMost, y: caseInfoCanvasCenterHeight},
+      {x: this.rightMost - 16, y: caseInfoCanvasCenterHeight + 6}],{
       stroke: 'red',
       fill: 'transparent',
     });
   }
   drawArrow() {
-    infoCanvas.add(this.line, this.tipLeft, this.tipRight);
+    caseInfoCanvas.add(this.line, this.tipLeft, this.tipRight);
   }
   removeArrow() {
-    infoCanvas.remove(this.line, this.tipLeft, this.tipRight)
+    caseInfoCanvas.remove(this.line, this.tipLeft, this.tipRight)
   }
 }
-const caseArrow = new Arrow(infoCanvasCaseRadius);
-const openingArrow = new Arrow(infoCanvasOpeningRadius);
-const dialArrow = new Arrow(infoCanvasDialRadius);
-const lugArrow = new Arrow(infoCanvasLugHalfDistance - lugThickness / 2);
+const caseArrow = new Arrow(caseInfoCanvasCaseRadius);
+const openingArrow = new Arrow(caseInfoCanvasOpeningRadius);
+const dialArrow = new Arrow(caseInfoCanvasDialRadius);
+const lugArrow = new Arrow(caseInfoCanvasLugHalfDistance - lugThickness / 2);
 
 // 説明を表示 ----------------
 // 変数定義
@@ -570,41 +570,41 @@ const comment = {
 // イベントで関数呼び出し
 // case
 textBoxCase.addEventListener('focus', () => {
-  appearArrowInfo(infoCanvasCase, caseArrow);
+  appearArrowInfo(caseInfoCanvasCase, caseArrow);
   fadeInComment(comment.caseSize);
 });
 textBoxCase.addEventListener('blur', () => {
-  disappearArrowInfo(infoCanvasCase, caseArrow);
+  disappearArrowInfo(caseInfoCanvasCase, caseArrow);
   fadeOutComment();
 });
 textBoxCase.addEventListener('input', () => {
-  disappearArrowInfo(infoCanvasCase, caseArrow);
+  disappearArrowInfo(caseInfoCanvasCase, caseArrow);
   fadeOutComment();
 });
 // opening
 textBoxOpening.addEventListener('focus', () => {
-  appearArrowInfo(infoCanvasOpening, openingArrow);
+  appearArrowInfo(caseInfoCanvasOpening, openingArrow);
   fadeInComment(comment.openingSize);
 });
 textBoxOpening.addEventListener('blur', () => {
-  disappearArrowInfo(infoCanvasOpening, openingArrow);
+  disappearArrowInfo(caseInfoCanvasOpening, openingArrow);
   fadeOutComment();
 });
 textBoxOpening.addEventListener('input', () => {
-  disappearArrowInfo(infoCanvasOpening, openingArrow);
+  disappearArrowInfo(caseInfoCanvasOpening, openingArrow);
   fadeOutComment();
 });
 // dial
 textBoxDial.addEventListener('focus', () => {
-  appearArrowInfo(infoCanvasDial, dialArrow);
+  appearArrowInfo(caseInfoCanvasDial, dialArrow);
   fadeInComment(comment.dialSize);
 });
 textBoxDial.addEventListener('blur', () => {
-  disappearArrowInfo(infoCanvasDial, dialArrow);
+  disappearArrowInfo(caseInfoCanvasDial, dialArrow);
   fadeOutComment();
 });
 textBoxDial.addEventListener('input', () => {
-  disappearArrowInfo(infoCanvasDial, dialArrow);
+  disappearArrowInfo(caseInfoCanvasDial, dialArrow);
   fadeOutComment();
 });
 // lug
@@ -613,13 +613,13 @@ textBoxLug.addEventListener('focus', () => {
   // 生成したオブジェクトの位置を書き換え
   // memo: インスタンスのフィールドであるlineなどがfabricオブジェクト？
   lugArrow.line.set({
-    top: infoCanvasCenterHeight - infoCanvasCaseRadius - 6,
+    top: caseInfoCanvasCenterHeight - caseInfoCanvasCaseRadius - 6,
   });
   lugArrow.tipLeft.set({
-    top: infoCanvasCenterHeight - infoCanvasCaseRadius - 12,
+    top: caseInfoCanvasCenterHeight - caseInfoCanvasCaseRadius - 12,
   });
   lugArrow.tipRight.set({
-    top: infoCanvasCenterHeight - infoCanvasCaseRadius - 12,
+    top: caseInfoCanvasCenterHeight - caseInfoCanvasCaseRadius - 12,
   });
   fadeInComment(comment.lugWidth);
 });
@@ -649,17 +649,17 @@ lugLists.forEach(list => {
 const crownLists = document.querySelectorAll('.shape-list-crown li');
 crownLists.forEach(list => {
   list.addEventListener('mouseover', () => {
-    appearShapeInfo(infoCanvasCrown, comment.crownShape);
+    appearShapeInfo(caseInfoCanvasCrown, comment.crownShape);
   });
   list.addEventListener('mouseleave', () => {
-    disappearShapeInfo(infoCanvasCrown);
+    disappearShapeInfo(caseInfoCanvasCrown);
   });
 });
 // metal color
 let colorChangeLists;
 window.addEventListener('load', () => {
   // 色を変えたいオブジェクトを配列にまとめておく
-  colorChangeLists = [infoCanvasCase, infoCanvasCrown, ...infoLugArray];
+  colorChangeLists = [caseInfoCanvasCase, caseInfoCanvasCrown, ...infoLugArray];
 });
 const colorLists = document.querySelectorAll('.shape-list-color li');
 colorLists.forEach(list => {
@@ -669,7 +669,7 @@ colorLists.forEach(list => {
         fill: '#e2e2e2',
       });
     });
-    infoCanvas.renderAll();
+    caseInfoCanvas.renderAll();
     infoIntroduction.textContent = comment.metalColor;
   });
   list.addEventListener('mouseleave', () => {
@@ -678,7 +678,7 @@ colorLists.forEach(list => {
         fill: 'white',
       });
     });
-    infoCanvas.renderAll();
+    caseInfoCanvas.renderAll();
     infoIntroduction.textContent = comment.default;
   });
 });
@@ -702,14 +702,14 @@ function appearShapeInfo(object, com) {
   object.set({
     stroke: 'red',
   });
-  infoCanvas.renderAll();
+  caseInfoCanvas.renderAll();
   infoIntroduction.textContent = com;
 }
 function disappearShapeInfo(object) {
   object.set({
     stroke: 'black',
   });
-  infoCanvas.renderAll();
+  caseInfoCanvas.renderAll();
   infoIntroduction.textContent = comment.default;
 }
 
