@@ -162,8 +162,12 @@ main .component-list .component .workspace .workspace-top-container .option-cont
 main .component-list .component .workspace .workspace-top-container .option-container label.option-list {
   padding: 8px 12px;
   border-radius: 8px;
+  border: 1px solid transparent;
   letter-spacing: 0.1rem;
   cursor: pointer;
+}
+main .component-list .component .workspace .workspace-top-container .option-container label.option-list.active {
+  border: 1px solid #333;
 }
 main .component-list .component .workspace .workspace-top-container .option-container label.option-list input[type=radio] {
   display: none;

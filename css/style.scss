@@ -173,8 +173,12 @@ main {
             label.option-list {
               padding: 8px 12px;
               border-radius: 8px;
+              border: 1px solid transparent;
               letter-spacing: .1rem;
               cursor: pointer;
+              &.active {
+                border: $border;
+              }
               input[type="radio"] {
                 display: none;
               }

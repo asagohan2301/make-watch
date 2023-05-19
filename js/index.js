@@ -34,8 +34,15 @@ function inputValueToPixel(id) { //引数にinput要素のid名を受け取る
 const radioObjects = [ //ここにラジオボタン要素を追加していく
 document.querySelectorAll('input[name="lug-shape"]'),
 document.querySelectorAll('input[name="crown-shape"]'),
-document.querySelectorAll('input[name="metal-color"]'),
+document.querySelectorAll('input[name="case-color"]'),
+document.querySelectorAll('input[name="hole-quantity"]'),
+document.querySelectorAll('input[name="hole-distance"]'),
+document.querySelectorAll('input[name="stitch"]'),
+document.querySelectorAll('input[name="strap-shape"]'),
+document.querySelectorAll('input[name="strap-color"]'),
+document.querySelectorAll('input[name="buckle-shape"]'),
 ];
+
 radioObjects.forEach(radioObject => {
   selectRadio(radioObject);
 });
@@ -146,6 +153,13 @@ document.getElementById('case-size').addEventListener('input', () => {
         break;
     }
   }
+  // ベルト再描画
+  if (upperStrapObject !== undefined) {
+    drawUpperStrap();
+  }
+  if (lowerStrapObject !== undefined) {
+    drawLowerStrap();
+  }
   // 重なり順を直す
   stackingOrder();
 });
@@ -189,6 +203,13 @@ document.getElementById('lug-width').addEventListener('input', () => {
     case 'square':
       squareLug.drawLug();
       break;
+  }
+  // ベルト再描画
+  if (upperStrapObject !== undefined) {
+    drawUpperStrap();
+  }
+  if (lowerStrapObject !== undefined) {
+    drawLowerStrap();
   }
 });
 // ラグの形状が選ばれたらcanvasに描画
@@ -319,13 +340,24 @@ const pinkGoldGradation = new Gradation({
 
 // カラーピッカー
 const caseColorPicker = document.getElementById('case-color-picker');
+const strapColorPicker = document.getElementById('strap-color-picker');
 caseColorPicker.addEventListener('input', () => {
   // ボタンの色を変える
   caseColorPicker.previousElementSibling.style.backgroundColor = caseColorPicker.value;
   // inputCaseColorに値を入れておく
   inputCaseColor = caseColorPicker.value;
   // オブジェクトに色をつける
-  applyColor();
+  applyCaseColor();
+  // colorPicker(caseColorPicker, inputCaseColor)
+});
+strapColorPicker.addEventListener('input', () => {
+  // ボタンの色を変える
+  strapColorPicker.previousElementSibling.style.backgroundColor = strapColorPicker.value;
+  // inputCaseColorに値を入れておく
+  inputStrapColor = strapColorPicker.value;
+  // オブジェクトに色をつける
+  applyStrapColor();
+  // colorPicker(caseColorPicker, inputCaseColor)
 });
 // カラーピッカーをクリックしたときにも、radioをクリックしたことにする
 caseColorPicker.addEventListener('click', () => {
@@ -334,10 +366,10 @@ caseColorPicker.addEventListener('click', () => {
 
 // オブジェクトがすでにあれば色を付ける
 // オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色を付ける
-const metalColors = document.querySelectorAll('input[name="metal-color"]');
+const metalColors = document.querySelectorAll('input[name="case-color"]');
 metalColors.forEach(metalColor => {
   metalColor.addEventListener('input', () => {
-    // inputCaseColorに値を入れておく
+    // 色のラジオボタンを押した時点で、inputCaseColorに値を入れておく
     switch(metalColor.value) {
       case 'gold':
         inputCaseColor = goldGradation;
@@ -353,12 +385,12 @@ metalColors.forEach(metalColor => {
         break;
     }
     // オブジェクトに色をつける
-    applyColor();
+    applyCaseColor();
   });
 });
 
 // オブジェクトに色をつける関数 
-function applyColor() {
+function applyCaseColor() {
   if (caseObject !== undefined) {
     caseObject.set({
       fill: inputCaseColor,
@@ -397,50 +429,77 @@ function stackingOrder() {
   }
 }
 
-// ベルトを描く ----------------
-// strapの値を変更するたびに生成
-// let strapWidth;
-// let upperStrapObject;
-// let lowerStrapObject;
-// const defaultStrapWidth = mmToPixel(16);
+// ベルト ----------------
+let strapWidth;
+let upperStrapObject;
+let lowerStrapObject;
+const defaultStrapWidth = mmToPixel(16); //用意したSVGのベルト幅
+const defaultUpperStrapLength = mmToPixel(70); //用意したSVGのベルト長さ
+const defaultLowerStrapLength = mmToPixel(110); //用意したSVGのベルト長さ
 
-// document.getElementById('strap-width').addEventListener('input', () => {
-//   mainCanvas.remove(upperStrapObject);
-//   mainCanvas.remove(lowerStrapObject);
-//   drawUpperStrap();
-//   drawLowerStrap();
-// });
+
+
+document.getElementById('upper-strap-length').addEventListener('input', () => {
+  drawUpperStrap();
+});
+document.getElementById('lower-strap-length').addEventListener('input', () => {
+  drawLowerStrap();
+});
 
 // ベルトを描く ----------------
+function drawUpperStrap() {
+  mainCanvas.remove(upperStrapObject);
+  fabric.loadSVGFromURL('./images/upper-strap.svg', (objects, options) =>{
+    upperStrapObject = fabric.util.groupSVGElements(objects, options);
+    strapWidth = lugWidth;
+    upperStrapObject.set({
+      originX: 'center',
+      originY: 'bottom',
+      left: mainCanvasHalfWidth,
+      // strapを描く位置(高さ)を、ケースの位置から取得する
+      top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
+      // 入力値にあわせて幅と長さを拡大縮小
+      scaleX: strapWidth / defaultStrapWidth,
+      scaleY: inputValueToPixel('upper-strap-length') / defaultUpperStrapLength,
+      // 線幅を保つ
+      strokeUniform: true,
+    });
+    mainCanvas.add(upperStrapObject);
+  });
+}
 function drawLowerStrap() {
+  mainCanvas.remove(lowerStrapObject);
   fabric.loadSVGFromURL('./images/lower-strap.svg', (objects, options) =>{
     lowerStrapObject = fabric.util.groupSVGElements(objects, options);
-    strapWidth = inputValueToPixel('strap-width');
+    strapWidth = lugWidth;
     lowerStrapObject.set({
       originX: 'center',
       left: mainCanvasHalfWidth,
       // strapを描く位置(高さ)を、ケースの位置から取得する
       top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
       scaleX: strapWidth / defaultStrapWidth,
+      scaleY: inputValueToPixel('lower-strap-length') / defaultLowerStrapLength,
+      strokeUniform: true,
     });
     mainCanvas.add(lowerStrapObject);
   });
 }
-function drawUpperStrap() {
-  fabric.loadSVGFromURL('./images/upper-strap.svg', (objects, options) =>{
-    lowerStrapObject = fabric.util.groupSVGElements(objects, options);
-    strapWidth = inputValueToPixel('strap-width');
-    lowerStrapObject.set({
-      originX: 'center',
-      originY: 'bottom',
-      left: mainCanvasHalfWidth,
-      // strapを描く位置(高さ)を、ケースの位置から取得する
-      top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
-      scaleX: strapWidth / defaultStrapWidth,
-    });
-    mainCanvas.add(lowerStrapObject);
+// ベルト穴
+
+
+// テスト用
+document.getElementById('button-for-test').addEventListener('click', () => {
+  const strapHole = new fabric.Circle({
+    radius: mmToPixel(0.75),
+    originX: 'center',
+    originY: 'center',
+    left: mainCanvasHalfWidth,
+    top: lowerStrapObject.top + (lowerStrapObject.height * inputValueToPixel('lower-strap-length') / defaultLowerStrapLength) - mmToPixel(25),
   });
-}
+  mainCanvas.add(strapHole);
+  // mainCanvas.renderAll();
+  console.log(lowerStrapObject);
+});
 
 
 // info canvas ----------------------------------------------------------------
@@ -746,33 +805,33 @@ mainCanvas.on('mouse:down', function(options) {
 // test -----------------------------------------------------------------------------------
 
 
-const text = new fabric.Text('hello', {
-  left: 100,
-  top: 100,
-  originX: 'center',
-  originY: 'center',
-  fill: 'red',
-  fontFamily: 'cursive',
-  stroke: 'black',
-});
+// const text = new fabric.Text('hello', {
+//   left: 100,
+//   top: 100,
+//   originX: 'center',
+//   originY: 'center',
+//   fill: 'red',
+//   fontFamily: 'cursive',
+//   stroke: 'black',
+// });
 // mainCanvas.add(text);
 
 
-const circle = new fabric.Circle({
-  radius: 50,
-  left: 200,
-  top: 300,
-  fill: 'blue',
-});
+// const circle = new fabric.Circle({
+//   radius: 50,
+//   left: 200,
+//   top: 300,
+//   fill: 'blue',
+// });
 // mainCanvas.add(circle);
 
-const group = new fabric.Group([ text, circle ], {
-  left: 200,
-  top: 200,
-  originX: 'center',
-  originY: 'center',
-});
-mainCanvas.add(group);
+// const group = new fabric.Group([ text, circle ], {
+//   left: 200,
+//   top: 200,
+//   originX: 'center',
+//   originY: 'center',
+// });
+// mainCanvas.add(group);
 
 const range = document.getElementById('test-range');
 range.addEventListener('input', () => {
@@ -788,19 +847,19 @@ range.addEventListener('input', () => {
   mainCanvas.renderAll();
 });
 
-var textPath = new fabric.Text('Text on a path', {
-  top: 150,
-  left: 150,
-  textAlign: 'center',
-  charSpacing: -50,
-  path: new fabric.Path('M 0 0 C 50 -100 150 -100 200 0', {
-      strokeWidth: 1,
-      visible: false
-  }),
-  pathSide: 'left',
-  pathStartOffset: 0
-});
-mainCanvas.add(textPath);
+// var textPath = new fabric.Text('Text on a path', {
+//   top: 150,
+//   left: 150,
+//   textAlign: 'center',
+//   charSpacing: -50,
+//   path: new fabric.Path('M 0 0 C 50 -100 150 -100 200 0', {
+//       strokeWidth: 1,
+//       visible: false
+//   }),
+//   pathSide: 'left',
+//   pathStartOffset: 0
+// });
+// mainCanvas.add(textPath);
 
 const canvasRange = document.getElementById('canvas-range');
 canvasRange.addEventListener('input', () => {
