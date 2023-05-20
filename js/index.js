@@ -467,6 +467,7 @@ function drawUpperStrap() {
     mainCanvas.add(upperStrapObject);
   });
 }
+
 function drawLowerStrap() {
   mainCanvas.remove(lowerStrapObject);
   fabric.loadSVGFromURL('./images/lower-strap.svg', (objects, options) =>{
@@ -477,8 +478,10 @@ function drawLowerStrap() {
       left: mainCanvasHalfWidth,
       // strapを描く位置(高さ)を、ケースの位置から取得する
       top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
+      // 入力値にあわせて幅と長さを拡大縮小
       scaleX: strapWidth / defaultStrapWidth,
       scaleY: inputValueToPixel('lower-strap-length') / defaultLowerStrapLength,
+      // 線幅を保つ
       strokeUniform: true,
     });
     mainCanvas.add(lowerStrapObject);
@@ -540,20 +543,51 @@ function drawStrapHoles() {
   });
 }
 
-// テスト用
-document.getElementById('button-for-test').addEventListener('click', () => {
-  // mainCanvas.add(strapHoles);
-  // mainCanvas.renderAll();
-  // console.log(lowerStrapObject);
-  // console.log(strapHoleObjects);
-  // strapHoleObjects.forEach(strapHoleObject => {
-  //   mainCanvas.remove(strapHoleObject);
-  // });
-  // mainCanvas.remove(strapHoleObjects[1]);
+// ステッチを描く
+const stitchInputs = document.querySelectorAll('input[name="stitch"]');
+stitchInputs.forEach(stitchInput => {
+  stitchInput.addEventListener('input', () => {
+    if (stitchInput.value === 'with-stitch') {
+      drawStitch();
+    }
+  });
 });
+
+function drawStitch() {
+  mainCanvas.remove(lowerStrapStitchObject);
+  // 基本はlowerStrapObjectと同じで、位置の調整と点線に変更
+  fabric.loadSVGFromURL('./images/lower-strap-stitch.svg', (objects, options) =>{
+    lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
+    strapWidth = lugWidth;
+    lowerStrapStitchObject.set({
+      originX: 'center',
+      left: mainCanvasHalfWidth,
+      // strapを描く位置(高さ)を、ケースの位置から取得する 3mm下に移動する
+      top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
+      // 入力値にあわせて幅と長さを拡大縮小
+      scaleX: strapWidth / defaultStrapWidth,
+      scaleY: inputValueToPixel('lower-strap-length') / defaultLowerStrapLength,
+      // 線幅を保つ
+      strokeUniform: true,
+      // 点線に
+      strokeDashArray: [8, 2],
+    });
+    mainCanvas.add(lowerStrapStitchObject);
+  });
+}
+
+// テスト用
+//* widthとheightを指定しても、余白がその分増えるだけで線を書いた部分のwidth/heightが指定できるわけではない。
+//* SVGを読み込んでFabric.jsオブジェクトに変換した場合、SVG内の要素はパスやシェイプとして解釈されます。このため、線のある部分を単独で拡大するという操作は、SVG要素の構造的な変更を伴うため、単純には行えません。
+// *SVG読み込み時には、周りに余白があっても無視されているようだ。
+let lowerStrapStitchObject;
+document.getElementById('button-for-test').addEventListener('click', () => {
+
+
+});
+
 document.getElementById('button-for-test2').addEventListener('click', () => {
-  // console.log(strapHoleObjects);
-  // console.log(lugArray);
+
 });
 
 
