@@ -484,21 +484,76 @@ function drawLowerStrap() {
     mainCanvas.add(lowerStrapObject);
   });
 }
-// ベルト穴
 
+// ベルト穴を描く ---------------- 
+
+// 変数定義
+let strapHoleQuantity = 6; // 初期値
+let strapHoleDistance = mmToPixel(7); // 初期値
+
+// inputで関数呼び出し
+const strapHoleQuantityInputs = document.querySelectorAll('input[name="hole-quantity"]');
+strapHoleQuantityInputs.forEach(strapHoleQuantityInput => {
+  strapHoleQuantityInput.addEventListener('input', () => {
+    strapHoleQuantity = parseInt(strapHoleQuantityInput.value);
+    drawStrapHoles();
+  });
+});
+
+const holeDistanceInputs = document.querySelectorAll('input[name="hole-distance"]');
+holeDistanceInputs.forEach(holeDistanceInput => {
+  holeDistanceInput.addEventListener('input', () => {
+    strapHoleDistance = mmToPixel(parseInt(holeDistanceInput.value));
+    drawStrapHoles();
+  });
+});
+
+// ベルト穴を描く関数
+let strapHoleObjects = [];
+
+function drawStrapHoles() {
+  // canvasから前回のオブジェクトを取り除く
+  strapHoleObjects.forEach(strapHoleObject => {
+    mainCanvas.remove(strapHoleObject);
+  });
+  // canvasから取り除いても配列内にはオブジェクトが残ったままなので、
+  // 前回分もあわせた、例えば14個のオブジェクトが描画されてしまう
+  // よってここで配列を空にしておく
+  strapHoleObjects = [];
+
+  let distance = 0;
+  for(let i = 0; i < strapHoleQuantity ; i++) {
+    const strapHoleObject = new fabric.Circle({
+      radius: mmToPixel(0.75),
+      originX: 'center',
+      originY: 'center',
+      left: mainCanvasHalfWidth,
+      top: lowerStrapObject.top + (lowerStrapObject.height * inputValueToPixel('lower-strap-length') / defaultLowerStrapLength) - mmToPixel(25) - distance,
+      stroke: 'black',
+      fill: 'white',
+    });
+    strapHoleObjects.push(strapHoleObject);
+    distance += strapHoleDistance;
+  }
+  strapHoleObjects.forEach(strapHoleObject => {
+    mainCanvas.add(strapHoleObject);
+  });
+}
 
 // テスト用
 document.getElementById('button-for-test').addEventListener('click', () => {
-  const strapHole = new fabric.Circle({
-    radius: mmToPixel(0.75),
-    originX: 'center',
-    originY: 'center',
-    left: mainCanvasHalfWidth,
-    top: lowerStrapObject.top + (lowerStrapObject.height * inputValueToPixel('lower-strap-length') / defaultLowerStrapLength) - mmToPixel(25),
-  });
-  mainCanvas.add(strapHole);
+  // mainCanvas.add(strapHoles);
   // mainCanvas.renderAll();
-  console.log(lowerStrapObject);
+  // console.log(lowerStrapObject);
+  // console.log(strapHoleObjects);
+  // strapHoleObjects.forEach(strapHoleObject => {
+  //   mainCanvas.remove(strapHoleObject);
+  // });
+  // mainCanvas.remove(strapHoleObjects[1]);
+});
+document.getElementById('button-for-test2').addEventListener('click', () => {
+  // console.log(strapHoleObjects);
+  // console.log(lugArray);
 });
 
 
