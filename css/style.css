@@ -118,7 +118,7 @@ main .component-list .component .workspace {
   display: none;
   /* ----- label ----- */
   /* ----- top part ----- */
-  /* ----- radio label ----- */
+  /* ----- shape radio ----- */
 }
 main .component-list .component .workspace.appear {
   display: block;
@@ -131,6 +131,7 @@ main .component-list .component .workspace .workspace-top-container {
   padding-bottom: 16px;
   border-bottom: 1px dashed #333;
   /* ----- text label ----- */
+  /* ----- option radio ----- */
   /* ----- info ----- */
 }
 main .component-list .component .workspace .workspace-top-container .text-labels-container {
@@ -148,6 +149,37 @@ main .component-list .component .workspace .workspace-top-container .text-labels
 }
 main .component-list .component .workspace .workspace-top-container .text-labels-container .text-label-container + .text-label-container {
   margin-top: 24px;
+}
+main .component-list .component .workspace .workspace-top-container .option-container {
+  display: flex;
+  align-items: center;
+  margin-top: 22px;
+}
+main .component-list .component .workspace .workspace-top-container .option-container h3 {
+  width: 120px;
+  font-size: 12px;
+}
+main .component-list .component .workspace .workspace-top-container .option-container label.option-list {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  letter-spacing: 0.1rem;
+  cursor: pointer;
+}
+main .component-list .component .workspace .workspace-top-container .option-container label.option-list.active {
+  border: 1px solid #333;
+}
+main .component-list .component .workspace .workspace-top-container .option-container label.option-list input[type=radio] {
+  display: none;
+}
+main .component-list .component .workspace .workspace-top-container .option-container label.option-list:hover {
+  background: #e2e2e2;
+}
+main .component-list .component .workspace .workspace-top-container .option-container label.option-list + label.option-list {
+  margin-left: 24px;
+}
+main .component-list .component .workspace .workspace-top-container .option-container + .option-container {
+  margin-top: 16px;
 }
 main .component-list .component .workspace .workspace-top-container .info {
   position: relative;
@@ -209,7 +241,7 @@ main .component-list .component .workspace .shape-list ul li div {
   width: 30px;
   height: 30px;
 }
-main .component-list .component .workspace .shape-list ul li #color-picker {
+main .component-list .component .workspace .shape-list ul li .color-picker {
   width: 96px;
   height: 96px;
   position: absolute;
@@ -232,7 +264,7 @@ main .component-list .component .workspace .shape-list ul li p {
   pointer-events: none;
 }
 
-/* ----- main case ----- */
+/* ----- colors ----- */
 .gold-color {
   background: linear-gradient(rgb(238, 215, 71), rgb(255, 252, 245));
 }
@@ -243,6 +275,18 @@ main .component-list .component .workspace .shape-list ul li p {
 
 .pink-gold-color {
   background: linear-gradient(rgb(220, 170, 119), rgb(255, 239, 230));
+}
+
+.black-color {
+  background: black;
+}
+
+.brown-color {
+  background: brown;
+}
+
+.gray-color {
+  background: gray;
 }
 
 .custom-color {
