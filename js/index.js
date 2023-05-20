@@ -154,6 +154,7 @@ document.getElementById('case-size').addEventListener('input', () => {
     }
   }
   // ベルト再描画
+  // ベルトを描画する関数内で、ステッチとベルト穴を描画する関数も呼ばれる
   if (upperStrapObject !== undefined) {
     drawUpperStrap();
   }
@@ -205,6 +206,7 @@ document.getElementById('lug-width').addEventListener('input', () => {
       break;
   }
   // ベルト再描画
+  // ベルトを描画する関数内で、ステッチとベルト穴を描画する関数も呼ばれる
   if (upperStrapObject !== undefined) {
     drawUpperStrap();
   }
@@ -427,6 +429,23 @@ function stackingOrder() {
   if (dialObject !== undefined) {
     dialObject.moveTo(7);
   }
+  if (upperStrapObject !== undefined) {
+    upperStrapObject.moveTo(8);
+  }
+  if (lowerStrapObject !== undefined) {
+    lowerStrapObject.moveTo(9);
+  }
+  if (upperStrapStitchObject !== undefined) {
+    upperStrapObject.moveTo(10);
+  }
+  if (lowerStrapStitchObject !== undefined) {
+    lowerStrapObject.moveTo(11);
+  }
+  if (strapHoleObjects !== undefined) {
+    strapHoleObjects.forEach(strapHoleObject => {
+      strapHoleObject.moveTo(12);
+    });
+  }
 }
 
 // ベルト ----------------
@@ -436,8 +455,6 @@ let lowerStrapObject;
 const defaultStrapWidth = mmToPixel(16); //用意したSVGのベルト幅
 const defaultUpperStrapLength = mmToPixel(70); //用意したSVGのベルト長さ
 const defaultLowerStrapLength = mmToPixel(110); //用意したSVGのベルト長さ
-
-
 
 document.getElementById('upper-strap-length').addEventListener('input', () => {
   drawUpperStrap();
@@ -466,6 +483,16 @@ function drawUpperStrap() {
     });
     mainCanvas.add(upperStrapObject);
   });
+  // ベルト穴再描画
+  if (strapHoleObjects !== undefined) {
+    drawStrapHoles();
+  }
+  // ステッチ再描画
+  if (upperStrapStitchObject !== undefined || lowerStrapStitchObject !== undefined) {
+    drawStitch();
+  }
+  // 重なり順を直す
+  stackingOrder();
 }
 
 function drawLowerStrap() {
@@ -486,6 +513,16 @@ function drawLowerStrap() {
     });
     mainCanvas.add(lowerStrapObject);
   });
+  // ベルト穴再描画
+  if (strapHoleObjects !== undefined) {
+    drawStrapHoles();
+  }
+  // ステッチ再描画
+  if (upperStrapStitchObject !== undefined || lowerStrapStitchObject !== undefined) {
+    drawStitch();
+  }
+  // 重なり順を直す
+  stackingOrder();
 }
 
 // ベルト穴を描く ---------------- 
@@ -516,8 +553,6 @@ holeDistanceInputs.forEach(holeDistanceInput => {
 });
 
 // ベルト穴を描く関数
-
-
 function drawStrapHoles() {
   // canvasから前回のオブジェクトを取り除く
   strapHoleObjects.forEach(strapHoleObject => {
@@ -527,7 +562,6 @@ function drawStrapHoles() {
   // 前回分もあわせた、例えば14個のオブジェクトが描画されてしまう
   // よってここで配列を空にしておく
   strapHoleObjects = [];
-
   
   for(let i = 0; i < strapHoleQuantity ; i++) {
     const strapHoleObject = new fabric.Circle({
@@ -545,6 +579,8 @@ function drawStrapHoles() {
   strapHoleObjects.forEach(strapHoleObject => {
     mainCanvas.add(strapHoleObject);
   });
+  // 重なり順を直す
+  stackingOrder();
 }
 
 // ステッチを描く
@@ -557,8 +593,7 @@ stitchInputs.forEach(stitchInput => {
   });
 });
 
-
-
+// ステッチを描く関数
 function drawStitch() {
   mainCanvas.remove(upperStrapStitchObject);
   mainCanvas.remove(lowerStrapStitchObject);
@@ -602,7 +637,8 @@ function drawStitch() {
     });
     mainCanvas.add(lowerStrapStitchObject);
   });
-  
+  // 重なり順を直す
+  stackingOrder();
 }
 
 // テスト用
