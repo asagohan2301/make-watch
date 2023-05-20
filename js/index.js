@@ -491,8 +491,12 @@ function drawLowerStrap() {
 // ベルト穴を描く ---------------- 
 
 // 変数定義
+let strapHoleObjects = [];
 let strapHoleQuantity = 6; // 初期値
 let strapHoleDistance = mmToPixel(7); // 初期値
+let upperStrapStitchObject;
+let lowerStrapStitchObject;
+let countDistance = 0; // 一番下の穴からどれくらい移動するかを保持する変数
 
 // inputで関数呼び出し
 const strapHoleQuantityInputs = document.querySelectorAll('input[name="hole-quantity"]');
@@ -512,7 +516,7 @@ holeDistanceInputs.forEach(holeDistanceInput => {
 });
 
 // ベルト穴を描く関数
-let strapHoleObjects = [];
+
 
 function drawStrapHoles() {
   // canvasから前回のオブジェクトを取り除く
@@ -524,19 +528,19 @@ function drawStrapHoles() {
   // よってここで配列を空にしておく
   strapHoleObjects = [];
 
-  let distance = 0;
+  
   for(let i = 0; i < strapHoleQuantity ; i++) {
     const strapHoleObject = new fabric.Circle({
       radius: mmToPixel(0.75),
       originX: 'center',
       originY: 'center',
       left: mainCanvasHalfWidth,
-      top: lowerStrapObject.top + (lowerStrapObject.height * inputValueToPixel('lower-strap-length') / defaultLowerStrapLength) - mmToPixel(25) - distance,
+      top: lowerStrapObject.top + (lowerStrapObject.height * inputValueToPixel('lower-strap-length') / defaultLowerStrapLength) - mmToPixel(25) - countDistance,
       stroke: 'black',
       fill: 'white',
     });
     strapHoleObjects.push(strapHoleObject);
-    distance += strapHoleDistance;
+    countDistance += strapHoleDistance;
   }
   strapHoleObjects.forEach(strapHoleObject => {
     mainCanvas.add(strapHoleObject);
@@ -553,9 +557,33 @@ stitchInputs.forEach(stitchInput => {
   });
 });
 
+
+
 function drawStitch() {
+  mainCanvas.remove(upperStrapStitchObject);
   mainCanvas.remove(lowerStrapStitchObject);
   // 基本はlowerStrapObjectと同じで、位置の調整と点線に変更
+  // upper
+  fabric.loadSVGFromURL('./images/upper-strap-stitch.svg', (objects, options) =>{
+    upperStrapStitchObject = fabric.util.groupSVGElements(objects, options);
+    strapWidth = lugWidth;
+    upperStrapStitchObject.set({
+      originX: 'center',
+      originY: 'bottom',
+      left: mainCanvasHalfWidth,
+      // strapを描く位置(高さ)を、ケースの位置から取得する 3mm上に移動する
+      top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
+      // 入力値にあわせて幅と長さを拡大縮小
+      scaleX: strapWidth / defaultStrapWidth,
+      scaleY: inputValueToPixel('upper-strap-length') / defaultUpperStrapLength,
+      // 線幅を保つ
+      strokeUniform: true,
+      // 点線に
+      strokeDashArray: [8, 2],
+    });
+    mainCanvas.add(upperStrapStitchObject);
+  });
+  // lower
   fabric.loadSVGFromURL('./images/lower-strap-stitch.svg', (objects, options) =>{
     lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
     strapWidth = lugWidth;
@@ -574,15 +602,15 @@ function drawStitch() {
     });
     mainCanvas.add(lowerStrapStitchObject);
   });
+  
 }
 
 // テスト用
 //* widthとheightを指定しても、余白がその分増えるだけで線を書いた部分のwidth/heightが指定できるわけではない。
 //* SVGを読み込んでFabric.jsオブジェクトに変換した場合、SVG内の要素はパスやシェイプとして解釈されます。このため、線のある部分を単独で拡大するという操作は、SVG要素の構造的な変更を伴うため、単純には行えません。
 // *SVG読み込み時には、周りに余白があっても無視されているようだ。
-let lowerStrapStitchObject;
-document.getElementById('button-for-test').addEventListener('click', () => {
 
+document.getElementById('button-for-test').addEventListener('click', () => {
 
 });
 
