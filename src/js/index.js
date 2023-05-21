@@ -445,7 +445,7 @@ function stackingOrder() {
   if (lowerStrapStitchObject !== undefined) {
     lowerStrapObject.moveTo(11);
   }
-  if (strapHoleObjects !== undefined) {
+  if (strapHoleObjects.length !== 0) {
     strapHoleObjects.forEach(strapHoleObject => {
       strapHoleObject.moveTo(12);
     });
@@ -486,6 +486,9 @@ function drawUpperStrap() {
       strokeUniform: true,
     });
     mainCanvas.add(upperStrapObject);
+    // 重なり順を直す
+    //* stackingOrderはここで呼ばないとだめ!{}外だと効かない
+    stackingOrder();
   });
   // ベルト穴再描画
   if (strapHoleObjects.length !== 0) {
@@ -495,8 +498,6 @@ function drawUpperStrap() {
   if (upperStrapStitchObject !== undefined || lowerStrapStitchObject !== undefined) {
     drawStitch();
   }
-  // 重なり順を直す
-  stackingOrder();
 }
 
 function drawLowerStrap() {
@@ -516,6 +517,9 @@ function drawLowerStrap() {
       strokeUniform: true,
     });
     mainCanvas.add(lowerStrapObject);
+    // 重なり順を直す
+    //* stackingOrderはここで呼ばないとだめ!{}外だと効かない
+    stackingOrder();
   });
   // ベルト穴再描画
   if (strapHoleObjects.length !== 0) {
@@ -525,8 +529,6 @@ function drawLowerStrap() {
   if (upperStrapStitchObject !== undefined || lowerStrapStitchObject !== undefined) {
     drawStitch();
   }
-  // 重なり順を直す
-  stackingOrder();
 }
 
 // ベルト穴を描く ---------------- 
@@ -583,8 +585,6 @@ function drawStrapHoles() {
   strapHoleObjects.forEach(strapHoleObject => {
     mainCanvas.add(strapHoleObject);
   });
-  // 重なり順を直す
-  stackingOrder();
   // 一番下の穴からどれくらい移動するかを保持する変数を0に戻す
   countDistance = 0;
 }
@@ -643,8 +643,6 @@ function drawStitch() {
     });
     mainCanvas.add(lowerStrapStitchObject);
   });
-  // 重なり順を直す
-  stackingOrder();
 }
 
 // テスト用
