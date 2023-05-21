@@ -776,7 +776,7 @@ const textBoxLug = document.getElementById('lug-width');
 const comment = {
   default: '入力するパーツの説明が表示されますよよよ',
   caseSize: 'ケースの直径をmm単位で入力してくださいののの',
-  openingSize: 'ケース見切りの直径をmm単位で入力してください',
+  openingSize: 'ケース見切りの直径をmm単位で入力してくださいわわわ',
   dialSize: '文字盤の直径をmm単位で入力してください',
   lugWidth: 'ラグの間の距離をmm単位で入力してください',
   lugShape: 'ラグの形状を選択してください',
