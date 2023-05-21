@@ -488,7 +488,7 @@ function drawUpperStrap() {
     mainCanvas.add(upperStrapObject);
   });
   // ベルト穴再描画
-  if (strapHoleObjects !== undefined) {
+  if (strapHoleObjects.length !== 0) {
     drawStrapHoles();
   }
   // ステッチ再描画
@@ -518,7 +518,7 @@ function drawLowerStrap() {
     mainCanvas.add(lowerStrapObject);
   });
   // ベルト穴再描画
-  if (strapHoleObjects !== undefined) {
+  if (strapHoleObjects.length !== 0) {
     drawStrapHoles();
   }
   // ステッチ再描画
@@ -585,6 +585,8 @@ function drawStrapHoles() {
   });
   // 重なり順を直す
   stackingOrder();
+  // 一番下の穴からどれくらい移動するかを保持する変数を0に戻す
+  countDistance = 0;
 }
 
 // ステッチを描く
@@ -774,9 +776,9 @@ const textBoxOpening = document.getElementById('opening-size');
 const textBoxDial = document.getElementById('dial-size');
 const textBoxLug = document.getElementById('lug-width');
 const comment = {
-  default: '入力するパーツの説明が表示されますよよよ',
-  caseSize: 'ケースの直径をmm単位で入力してくださいののの',
-  openingSize: 'ケース見切りの直径をmm単位で入力してくださいわわわ',
+  default: '入力するパーツの説明が表示されます',
+  caseSize: 'ケースの直径をmm単位で入力してください',
+  openingSize: 'ケース見切りの直径をmm単位で入力してください',
   dialSize: '文字盤の直径をmm単位で入力してください',
   lugWidth: 'ラグの間の距離をmm単位で入力してください',
   lugShape: 'ラグの形状を選択してください',
