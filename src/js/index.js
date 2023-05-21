@@ -1,9 +1,13 @@
 'use strict';
 
+import '../css/style.css';
+import { fabric } from "fabric";
 
 //* mmへの変換をいつするか。ダウンロード時にまとめてするという手もあり？
 //* SVGへの変換だけをfabric.js機能を使って、描画は純粋なcanvasでできないかな？
 //* できないなーcanvasで書いたものはfabric.jsでdlできない。空になっちゃってる
+
+console.log('webserver');
 
 // common ----------------------------------------------------------------
 
@@ -267,8 +271,8 @@ class WatchLug {
 }
 
 // memo: roundLugはオブジェクトではなく、インスタンスが持つメソッドdrawLugで生成したlugArrayがオブジェクト？
-const roundLug = new WatchLug('./images/lug-round.svg');
-const squareLug = new WatchLug('./images/lug-square.svg');
+const roundLug = new WatchLug('./assets/lug-round.svg');
+const squareLug = new WatchLug('./assets/lug-square.svg');
 
 // リュウズを描く ----------------
 const crowns = document.querySelectorAll('input[name="crown-shape"]');
@@ -305,8 +309,8 @@ class WatchCrown {
   }
 }
 // リュウズのインスタンス生成
-const roundCrown = new WatchCrown('./images/crown-round_re.svg');
-const squareCrown = new WatchCrown('./images/crown-square_re.svg');
+const roundCrown = new WatchCrown('./assets/crown-round_re.svg');
+const squareCrown = new WatchCrown('./assets/crown-square_re.svg');
 
 // 金属色 ----------------
 // グラデーションクラス
@@ -466,7 +470,7 @@ document.getElementById('lower-strap-length').addEventListener('input', () => {
 // ベルトを描く ----------------
 function drawUpperStrap() {
   mainCanvas.remove(upperStrapObject);
-  fabric.loadSVGFromURL('./images/upper-strap.svg', (objects, options) =>{
+  fabric.loadSVGFromURL('./assets/upper-strap.svg', (objects, options) =>{
     upperStrapObject = fabric.util.groupSVGElements(objects, options);
     strapWidth = lugWidth;
     upperStrapObject.set({
@@ -497,7 +501,7 @@ function drawUpperStrap() {
 
 function drawLowerStrap() {
   mainCanvas.remove(lowerStrapObject);
-  fabric.loadSVGFromURL('./images/lower-strap.svg', (objects, options) =>{
+  fabric.loadSVGFromURL('./assets/lower-strap.svg', (objects, options) =>{
     lowerStrapObject = fabric.util.groupSVGElements(objects, options);
     strapWidth = lugWidth;
     lowerStrapObject.set({
@@ -599,7 +603,7 @@ function drawStitch() {
   mainCanvas.remove(lowerStrapStitchObject);
   // 基本はlowerStrapObjectと同じで、位置の調整と点線に変更
   // upper
-  fabric.loadSVGFromURL('./images/upper-strap-stitch.svg', (objects, options) =>{
+  fabric.loadSVGFromURL('./assets/upper-strap-stitch.svg', (objects, options) =>{
     upperStrapStitchObject = fabric.util.groupSVGElements(objects, options);
     strapWidth = lugWidth;
     upperStrapStitchObject.set({
@@ -619,7 +623,7 @@ function drawStitch() {
     mainCanvas.add(upperStrapStitchObject);
   });
   // lower
-  fabric.loadSVGFromURL('./images/lower-strap-stitch.svg', (objects, options) =>{
+  fabric.loadSVGFromURL('./assets/lower-strap-stitch.svg', (objects, options) =>{
     lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
     strapWidth = lugWidth;
     lowerStrapStitchObject.set({
@@ -688,7 +692,7 @@ caseInfoCanvas.add(caseInfoCanvasCase, caseInfoCanvasOpening, caseInfoCanvasDial
 // ラグ
 const infoLugArray = [];
 for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
-  fabric.loadSVGFromURL('./images/lug-round.svg', (objects, options) => {
+  fabric.loadSVGFromURL('./assets/lug-round.svg', (objects, options) => {
     infoLugArray[i] = fabric.util.groupSVGElements(objects, options);
     infoLugArray[i].set({
       originX: 'center',
@@ -714,7 +718,7 @@ for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
 mainCanvas.renderAll();
 // リュウズ
 let caseInfoCanvasCrown;
-fabric.loadSVGFromURL('./images/crown-round_re.svg', (objects, options) => {
+fabric.loadSVGFromURL('./assets/crown-round_re.svg', (objects, options) => {
   caseInfoCanvasCrown = fabric.util.groupSVGElements(objects, options);
   caseInfoCanvasCrown.set({
     originY: 'center',
@@ -770,8 +774,8 @@ const textBoxOpening = document.getElementById('opening-size');
 const textBoxDial = document.getElementById('dial-size');
 const textBoxLug = document.getElementById('lug-width');
 const comment = {
-  default: '入力するパーツの説明が表示されます',
-  caseSize: 'ケースの直径をmm単位で入力してください',
+  default: '入力するパーツの説明が表示されますよよよ',
+  caseSize: 'ケースの直径をmm単位で入力してくださいののの',
   openingSize: 'ケース見切りの直径をmm単位で入力してください',
   dialSize: '文字盤の直径をmm単位で入力してください',
   lugWidth: 'ラグの間の距離をmm単位で入力してください',

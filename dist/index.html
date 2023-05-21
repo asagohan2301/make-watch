@@ -8,12 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
   <!---------- header ---------->
   <header>
-    <img src="./images/logo.png" width="40" height="40" alt="ロゴ">
+    <img src="./assets/logo.png" width="40" height="40" alt="ロゴ">
     <h1>Watch Design Maker</h1>
   </header>
   <main>
@@ -68,14 +67,14 @@
                   <label class="radio-label">
                     <input type="radio" name="lug-shape" value="round">
                   </label>
-                  <img src="./images/lug-round.svg" alt="丸い形状のラグ" width="8" height="32">
+                  <img src="./assets/lug-round.svg" alt="丸い形状のラグ" width="8" height="32">
                   <p>丸型</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="lug-shape" value="square">
                   </label>
-                  <img src="./images/lug-square.svg" alt="四角い形状のラグ" width="8" height="32">
+                  <img src="./assets/lug-square.svg" alt="四角い形状のラグ" width="8" height="32">
                   <p>角型</p>
                 </li>
               </ul>
@@ -87,14 +86,14 @@
                   <label class="radio-label">
                     <input type="radio" name="crown-shape" value="round">
                   </label>
-                  <img src="./images/crown-round.svg" alt="丸い形状のリュウズ" width="15" height="18">
+                  <img src="./assets/crown-round.svg" alt="丸い形状のリュウズ" width="15" height="18">
                   <p>丸型</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="crown-shape" value="square">
                   </label>
-                  <img src="./images/crown-square.svg" alt="四角い形状のリュウズ" width="12" height="18">
+                  <img src="./assets/crown-square.svg" alt="四角い形状のリュウズ" width="12" height="18">
                   <p>角型</p>
                 </li>
               </ul>
@@ -206,14 +205,14 @@
                   <label class="radio-label">
                     <input type="radio" name="strap-shape" value="straight">
                   </label>
-                  <img src="./images/buckle.svg" alt="丸い形状のラグ" width="80" height="32">
+                  <img src="./assets/buckle.svg" alt="丸い形状のラグ" width="80" height="32">
                   <p>ストレート</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="strap-shape" value="taper">
                   </label>
-                  <img src="./images/buckle.svg" alt="四角い形状のラグ" width="80" height="32">
+                  <img src="./assets/buckle.svg" alt="四角い形状のラグ" width="80" height="32">
                   <p>テーパー</p>
                 </li>
               </ul>
@@ -259,14 +258,14 @@
                   <label class="radio-label">
                     <input type="radio" name="buckle-shape" value="round">
                   </label>
-                  <img src="./images/buckle.svg" alt="丸い形状のラグ" width="80" height="32">
+                  <img src="./assets/buckle.svg" alt="丸い形状のラグ" width="80" height="32">
                   <p>丸型</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="buckle-shape" value="square">
                   </label>
-                  <img src="./images/buckle.svg" alt="四角い形状のラグ" width="80" height="32">
+                  <img src="./assets/buckle.svg" alt="四角い形状のラグ" width="80" height="32">
                   <p>角型</p>
                 </li>
               </ul>
@@ -294,11 +293,7 @@
     </ul>
     <div class="scroll_bar">::-webkit-scrollbar-trackと::-webkit-scrollbar-thumbではそれぞれborderプロパティやborder-radiusプロパティなどを使ったりして装飾できます。やりすぎると微妙かもしれませんが色々試してみるといいかもしれません。Firefoxはサポートされていませんが、Firefoxのデザインも変更する方法もこの記事で解説しています。</div>
     <canvas id="test-canvas"></canvas>
-    <!-- test -------------------------------------------->
-  <script src="./node_modules/fabric/dist/fabric.min.js"></script>
-  <script type="module" src="./js/index.js"></script>
-  <!-- test -->
-  <!-- <script type="module" src="./js/test.js"></script> -->
-  <!-- test -->
+  <!-- <script src="./node_modules/fabric/dist/fabric.min.js"></script> -->
+  <script type="module" src="./bundle.js"></script>
 </body>
 </html>
