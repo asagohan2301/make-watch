@@ -44,23 +44,23 @@ function stackingOrder() {
   if (dialObject !== undefined) {
     dialObject.moveTo(7);
   }
-  if (upperStrapObject !== undefined) {
-    upperStrapObject.moveTo(8);
-  }
-  if (lowerStrapObject !== undefined) {
-    lowerStrapObject.moveTo(9);
-  }
-  if (upperStrapStitchObject !== undefined) {
-    upperStrapObject.moveTo(10);
-  }
-  if (lowerStrapStitchObject !== undefined) {
-    lowerStrapObject.moveTo(11);
-  }
-  if (strapHoleObjects.length !== 0) {
-    strapHoleObjects.forEach(strapHoleObject => {
-      strapHoleObject.moveTo(12);
-    });
-  }
+  // if (upperStrapObject !== undefined) {
+  //   upperStrapObject.moveTo(8);
+  // }
+  // if (lowerStrapObject !== undefined) {
+  //   lowerStrapObject.moveTo(9);
+  // }
+  // if (upperStrapStitchObject !== undefined) {
+  //   upperStrapObject.moveTo(10);
+  // }
+  // if (lowerStrapStitchObject !== undefined) {
+  //   lowerStrapObject.moveTo(11);
+  // }
+  // if (strapHoleObjects.length !== 0) {
+  //   strapHoleObjects.forEach(strapHoleObject => {
+  //     strapHoleObject.moveTo(12);
+  //   });
+  // }
 }
 
 // style --------------------------------------------------------------------------------
@@ -192,7 +192,7 @@ document.getElementById('case-size').addEventListener('input', () => {
     }
   }
   // ベルト再描画
-  //* ベルトを描画する関数内で、ステッチとベルト穴を描画する関数も呼ばれるはずだが...いや呼ばれないか
+  //* ベルトを描画する関数内で、ステッチとベルト穴を描画する関数も呼ばれるはずだが...いや呼ばれないかいや呼ばれる
   if (upperStrapObject !== undefined) {
     drawUpperStrap();
   }
@@ -370,6 +370,7 @@ let countDistance = 0; // 一番下の穴からどれくらい移動するかを
 // ステッチ
 let upperStrapStitchObject;
 let lowerStrapStitchObject;
+let topStitchObject;
 let strapStitchExist = false; // ストラップ有無 初期値はfalse
 
 // ベルト本体 --------------------------------
@@ -409,12 +410,9 @@ function drawUpperStrap() {
     // ステッチ(再)描画
     //* もしすでにステッチが存在していたら書き直すし、
     //* 初めて描かれる場合も初期値のfalseで描画する
-    //! false用の関数後で作る
     if (strapStitchExist === true) {
       drawStitch();
     }
-    // 重なり順を直す
-    stackingOrder();
   });
 }
 // 下ベルト本体 ----
@@ -445,12 +443,9 @@ function drawLowerStrap() {
     // ステッチ(再)描画
     //* もしすでにステッチが存在していたら書き直すし、
     //* 初めて描かれる場合も初期値のfalseで描画する
-    //! false用の関数後で作る
     if (strapStitchExist === true) {
       drawStitch();
     }
-    // 重なり順を直す
-    stackingOrder();
   });
   //! loadSVGFromURLは非同期処理である事に注意
   // {}外はloadSVGFromURLのコールバック関数外なので、SVGの読み込みより前に実行される可能性がある
@@ -530,7 +525,6 @@ function drawStrapHoles() {
 const stitchInputs = document.querySelectorAll('input[name="stitch"]');
 stitchInputs.forEach(stitchInput => {
   stitchInput.addEventListener('input', () => {
-    //* test
     // ステッチの有無を変数に代入 inputする前の初期値はfalse
     strapStitchExist = stitchInput.value;
     if (strapStitchExist === 'true') {
@@ -538,13 +532,18 @@ stitchInputs.forEach(stitchInput => {
     } else {
       strapStitchExist = false;
     }
-    /// 下ストラップがまだ無い場合はここでリターン
-    if(lowerStrapObject === undefined) {
-      alert('下ストラップの長さを入力してください');
+    // 上下両方もしくはどちらかのストラップがまだ無い場合はここでリターン
+    if (upperStrapObject === undefined || lowerStrapObject === undefined) {
+      alert('ストラップの長さを入力してください');
       return;
     }
+    // ステッチの有無がfalseならcanvasから削除
+    if (strapStitchExist === false) {
+      mainCanvas.remove(upperStrapStitchObject);
+      mainCanvas.remove(lowerStrapStitchObject);
+      mainCanvas.remove(topStitchObject);
+    }
     // ステッチの有無がtrueならステッチを描く関数呼び出し
-    //! false用の関数後で作る
     if (strapStitchExist === true) {
       drawStitch();
     }
@@ -553,8 +552,10 @@ stitchInputs.forEach(stitchInput => {
 
 // ステッチを描く関数 --------
 function drawStitch() {
+  // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(upperStrapStitchObject);
   mainCanvas.remove(lowerStrapStitchObject);
+  mainCanvas.remove(topStitchObject);
   // 基本はlowerStrapObjectと同じで、位置の調整と点線に変更
   // 上ベルトステッチ
   fabric.loadSVGFromURL('./assets/upper-strap-stitch.svg', (objects, options) =>{
@@ -595,6 +596,22 @@ function drawStitch() {
     });
     mainCanvas.add(lowerStrapStitchObject);
   });
+  // バックル近くのステッチ
+  topStitchObject = new fabric.Polyline([
+    {
+      x: mainCanvasHalfWidth - strapWidth / 2 + mmToPixel(2.5),
+      y: upperStrapObject.top - inputValueToPixel('upper-strap-length') + mmToPixel(6)
+    },
+    {
+      x: mainCanvasHalfWidth + strapWidth / 2 - mmToPixel(2.5),
+      y: upperStrapObject.top - inputValueToPixel('upper-strap-length') + mmToPixel(6)
+    }],
+    {
+      stroke: 'black',
+      strokeDashArray: [8, 2],
+    }
+  );
+  mainCanvas.add(topStitchObject);
 }
 
 // テスト用
@@ -604,12 +621,20 @@ function drawStitch() {
 
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
-  console.log('テストボタン' + lowerStrapObject);
-});
+  //* test
+  
+
+
+  });
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
+
+
 });
+
+//* test
+
 
 
 // ケース色 ----------------
