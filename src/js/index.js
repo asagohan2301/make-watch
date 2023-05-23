@@ -61,6 +61,12 @@ function stackingOrder() {
   //     strapHoleObject.moveTo(12);
   //   });
   // }
+  if (fixedStrapLoopObject !== undefined) {
+    fixedStrapLoopObject.bringToFront();
+  }
+  if (moveableStrapLoopObject !== undefined) {
+    moveableStrapLoopObject.bringToFront();
+  }
 }
 
 // style --------------------------------------------------------------------------------
@@ -362,6 +368,9 @@ let inputStrapColor = 'white'; // 初期値
 const defaultStrapWidth = mmToPixel(16); // 用意したSVGのベルト幅
 const defaultUpperStrapLength = mmToPixel(70); // 用意したSVGのベルト長さ
 const defaultLowerStrapLength = mmToPixel(110); // 用意したSVGのベルト長さ
+// ベルトループ
+let fixedStrapLoopObject;
+let moveableStrapLoopObject;
 // ベルト穴
 let strapHoleObjects = [];
 let strapHoleQuantity = 6; // ベルト穴の個数 初期値
@@ -408,11 +417,11 @@ function drawUpperStrap() {
     // canvasに描画
     mainCanvas.add(upperStrapObject);
     // ステッチ(再)描画
-    //* もしすでにステッチが存在していたら書き直すし、
-    //* 初めて描かれる場合も初期値のfalseで描画する
     if (strapStitchExist === true) {
       drawStitch();
     }
+    // ループ(再)描画
+    drawStrapLoop();
   });
 }
 // 下ベルト本体 ----
@@ -436,21 +445,46 @@ function drawLowerStrap() {
     });
     // canvasに描画
     mainCanvas.add(lowerStrapObject);
-    // ベルト穴(再)描画
-    //* もしすでにベルト穴が存在していたら書き直すし、
-    //* 初めて描かれる場合でも、仮の個数と間隔で描画する
-    drawStrapHoles();
     // ステッチ(再)描画
-    //* もしすでにステッチが存在していたら書き直すし、
-    //* 初めて描かれる場合も初期値のfalseで描画する
     if (strapStitchExist === true) {
       drawStitch();
     }
+    // ベルト穴(再)描画
+    //* もしすでにベルト穴が存在していたら書き直す
+    //* 初めて描かれる場合でも、仮の個数と間隔で描画する
+    drawStrapHoles();
   });
   //! loadSVGFromURLは非同期処理である事に注意
   // {}外はloadSVGFromURLのコールバック関数外なので、SVGの読み込みより前に実行される可能性がある
   // そのためここに書いた処理が行われるとき、まだlowerStrapObjectは存在していない
   // よってlowerStrapObjectを使うような処理は{}内に書くこと
+}
+
+// ループ --------------------------------
+
+// ループを描く関数 --------
+function drawStrapLoop() {
+  // すでにオブジェクトが描かれていたらcanvasから削除
+  mainCanvas.remove(fixedStrapLoopObject);
+  mainCanvas.remove(moveableStrapLoopObject);
+  // ループオブジェクトを生成
+  // 固定ループ
+  fixedStrapLoopObject = new fabric.Rect({
+    width: strapWidth + mmToPixel(2),
+    height: mmToPixel(5),
+    originX: 'center',
+    left: mainCanvasHalfWidth,
+    top: upperStrapObject.top - inputValueToPixel('upper-strap-length') + mmToPixel(8),
+    stroke: 'black',
+    fill: inputStrapColor,
+  });
+  mainCanvas.add(fixedStrapLoopObject);
+  // 可動ループ 固定ループの深いコピーで作る
+  moveableStrapLoopObject = fabric.util.object.clone(fixedStrapLoopObject);
+  moveableStrapLoopObject.set({
+    top: fixedStrapLoopObject.top + mmToPixel(5) + mmToPixel(10),
+  });
+  mainCanvas.add(moveableStrapLoopObject);
 }
 
 // ベルト穴 --------------------------------
@@ -576,6 +610,8 @@ function drawStitch() {
       strokeDashArray: [8, 2],
     });
     mainCanvas.add(upperStrapStitchObject);
+    // 重なり順を直す ステッチよりループが上にくるように
+    stackingOrder();
   });
   // 下ベルトステッチ
   fabric.loadSVGFromURL('./assets/lower-strap-stitch.svg', (objects, options) =>{
@@ -612,6 +648,7 @@ function drawStitch() {
     }
   );
   mainCanvas.add(topStitchObject);
+  
 }
 
 // テスト用
@@ -622,6 +659,7 @@ function drawStitch() {
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
   //* test
+  //* ループを描く
   
 
 
