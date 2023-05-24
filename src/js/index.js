@@ -651,32 +651,46 @@ function drawStitch() {
   
 }
 
-// テスト用
+// memo
 //* widthとheightを指定しても、余白がその分増えるだけで線を書いた部分のwidth/heightが指定できるわけではない。
 //* SVGを読み込んでFabric.jsオブジェクトに変換した場合、SVG内の要素はパスやシェイプとして解釈されます。このため、線のある部分を単独で拡大するという操作は、SVG要素の構造的な変更を伴うため、単純には行えません。
 // *SVG読み込み時には、周りに余白があっても無視されているようだ。
 
-const testButton1 = document.getElementById('button-for-test');
-testButton1.addEventListener('click', () => {
-  //* test
-  //* ループを描く
-  
-
-
-  });
-
-document.getElementById('button-for-test2').addEventListener('click', () => {
-
-
-
+// カラーピッカー --------------------------------
+// ケース
+const caseColorPicker = document.getElementById('case-color-picker');
+caseColorPicker.addEventListener('input', () => {
+  // ボタンの色を変える
+  caseColorPicker.previousElementSibling.style.backgroundColor = caseColorPicker.value;
+  // inputCaseColorに値を入れておく
+  inputCaseColor = caseColorPicker.value;
+  // オブジェクトに色をつける
+  applyCaseColor();
+});
+// ベルト
+const strapColorPicker = document.getElementById('strap-color-picker');
+strapColorPicker.addEventListener('input', () => {
+  // ボタンの色を変える
+  strapColorPicker.previousElementSibling.style.backgroundColor = strapColorPicker.value;
+  // inputStrapColorに値を入れておく
+  inputStrapColor = strapColorPicker.value;
+  // オブジェクトに色をつける
+  applyStrapColor(strapColorChangeLists);
 });
 
-//* test
+// カラーピッカーをクリックしたときにも、radioをクリックしたことにする
+caseColorPicker.addEventListener('click', () => {
+  console.log('case');
+  caseColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
+});
+strapColorPicker.addEventListener('click', () => {
+  console.log('strap');
+  strapColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
+});
 
+// ケース色 --------------------------------
 
-
-// ケース色 ----------------
-// グラデーションクラス
+// グラデーションクラス --------
 class Gradation extends fabric.Gradient {
   constructor(options) {
     super(options);
@@ -707,39 +721,14 @@ const pinkGoldGradation = new Gradation({
   ]
 });
 
-// カラーピッカー
-const caseColorPicker = document.getElementById('case-color-picker');
-const strapColorPicker = document.getElementById('strap-color-picker');
-caseColorPicker.addEventListener('input', () => {
-  // ボタンの色を変える
-  caseColorPicker.previousElementSibling.style.backgroundColor = caseColorPicker.value;
-  // inputCaseColorに値を入れておく
-  inputCaseColor = caseColorPicker.value;
-  // オブジェクトに色をつける
-  applyCaseColor();
-  // colorPicker(caseColorPicker, inputCaseColor)
-});
-strapColorPicker.addEventListener('input', () => {
-  // ボタンの色を変える
-  strapColorPicker.previousElementSibling.style.backgroundColor = strapColorPicker.value;
-  // inputCaseColorに値を入れておく
-  inputStrapColor = strapColorPicker.value;
-  // オブジェクトに色をつける
-  applyStrapColor();
-  // colorPicker(caseColorPicker, inputCaseColor)
-});
-// カラーピッカーをクリックしたときにも、radioをクリックしたことにする
-caseColorPicker.addEventListener('click', () => {
-  caseColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
-});
-
-// オブジェクトがすでにあれば色を付ける
+// inputでケースに色をつける関数呼び出し --------
+// inputしたときオブジェクトがすでにあれば色を付ける
 // オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色を付ける
-const metalColors = document.querySelectorAll('input[name="case-color"]');
-metalColors.forEach(metalColor => {
-  metalColor.addEventListener('input', () => {
+const caseColorInputs = document.querySelectorAll('input[name="case-color"]');
+caseColorInputs.forEach(caseColorInput => {
+  caseColorInput.addEventListener('input', () => {
     // 色のラジオボタンを押した時点で、inputCaseColorに値を入れておく
-    switch(metalColor.value) {
+    switch(caseColorInput.value) {
       case 'gold':
         inputCaseColor = goldGradation;
         break;
@@ -758,7 +747,7 @@ metalColors.forEach(metalColor => {
   });
 });
 
-// オブジェクトに色をつける関数 
+// ケースに色をつける関数 --------
 function applyCaseColor() {
   if (caseObject !== undefined) {
     caseObject.set({
@@ -780,10 +769,71 @@ function applyCaseColor() {
   mainCanvas.renderAll();
 }
 
+// ベルト色 --------------------------------
+
+// 変数定義 --------
+let strapColorChangeLists;
+
+// inputでベルトに色をつける関数呼び出し --------
+const strapColorInputs = document.querySelectorAll('input[name="strap-color"]');
+strapColorInputs.forEach(strapColorInput => {
+  strapColorInput.addEventListener('input', () => {
+    // 色を変えたいオブジェクトを配列にまとめておく
+    // オブジェクトを生成してから配列に入れないとundefinedが入ってしまうので、色が選択された時点で入れる
+    strapColorChangeLists = [upperStrapObject, lowerStrapObject, fixedStrapLoopObject, moveableStrapLoopObject];
+    // 色のラジオボタンを押した時点で、(オブジェクトがまだなくても)値を入れておく
+    switch(strapColorInput.value) {
+      case 'black':
+        inputStrapColor = 'black';
+        break;
+      case 'brown':
+        inputStrapColor = 'brown';
+        break;
+      case 'gray':
+        inputStrapColor = 'gray';
+        break;
+      case 'custom-color':
+        inputStrapColor = strapColorPicker.value;
+        break;
+    }
+    // オブジェクトに色をつける
+    applyStrapColor(strapColorChangeLists);
+  });
+});
+
+// ベルトに色をつける関数 --------
+function applyStrapColor(array) {
+  console.log(array);
+  array.forEach(object => {
+    if (object !== undefined) {
+      object.set({
+        fill: inputStrapColor,
+      });
+    }
+  });
+  mainCanvas.renderAll();
+}
 
 
 
-// info canvas ----------------------------------------------------------------
+// テスト用
+const testButton1 = document.getElementById('button-for-test');
+testButton1.addEventListener('click', () => {
+  //* test
+  
+  
+
+  });
+
+document.getElementById('button-for-test2').addEventListener('click', () => {
+
+
+
+});
+
+
+
+// case info --------------------------------------------------------------------------------
 
 // fabricインスタンス ----------------
 const caseInfoCanvas = new fabric.StaticCanvas('case-info-canvas');
@@ -795,18 +845,20 @@ const caseInfoCanvasOpeningRadius = 39;
 const caseInfoCanvasDialRadius = 36;
 const caseInfoCanvasLugHalfDistance = 26;
 
-// 時計の図を生成 ----------------
-// ケースなど
+// 時計の図を生成 --------------------------------
+// ケース
 const caseInfoCanvasCase = new WatchCircle({
   radius: caseInfoCanvasCaseRadius,
   left: caseInfoCanvasHalfWidth,
   top: caseInfoCanvasCenterHeight,
 });
+// 見切り
 const caseInfoCanvasOpening = new WatchCircle({
   radius: caseInfoCanvasOpeningRadius,
   left: caseInfoCanvasHalfWidth,
   top: caseInfoCanvasCenterHeight,
 });
+// 文字盤
 const caseInfoCanvasDial = new WatchCircle({
   radius: caseInfoCanvasDialRadius,
   left: caseInfoCanvasHalfWidth,
@@ -905,7 +957,7 @@ const comment = {
   lugWidth: 'ラグの間の距離をmm単位で入力してください',
   lugShape: 'ラグの形状を選択してください',
   crownShape: 'りゅうずの形状を選択してください',
-  metalColor: 'ケース、ラグ、りゅうずにつける色を選択してください',
+  caseColor: 'ケース、ラグ、りゅうずにつける色を選択してください',
 }
 // イベントで関数呼び出し
 // case
@@ -999,6 +1051,7 @@ crownLists.forEach(list => {
 let colorChangeLists;
 window.addEventListener('load', () => {
   // 色を変えたいオブジェクトを配列にまとめておく
+  //* 読み込む前にホバーしちゃうとエラーが出てる？
   colorChangeLists = [caseInfoCanvasCase, caseInfoCanvasCrown, ...infoLugArray];
 });
 const colorLists = document.querySelectorAll('.shape-list-color li');
@@ -1010,7 +1063,7 @@ colorLists.forEach(list => {
       });
     });
     caseInfoCanvas.renderAll();
-    infoIntroduction.textContent = comment.metalColor;
+    infoIntroduction.textContent = comment.caseColor;
   });
   list.addEventListener('mouseleave', () => {
     colorChangeLists.forEach(colorChangeList => {
