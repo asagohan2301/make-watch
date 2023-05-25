@@ -46,6 +46,42 @@ function caseStackingOrder() {
   }
 }
 
+// カラーピッカー ----------------
+// カラーピッカーで色を選択したときの処理 ----
+// ケース
+const caseColorPicker = document.getElementById('case-color-picker');
+caseColorPicker.addEventListener('input', () => {
+  // ボタンの色を変える
+  caseColorPicker.previousElementSibling.style.backgroundColor = caseColorPicker.value;
+  // inputCaseColorに値を入れておく
+  inputCaseColor = caseColorPicker.value;
+  // オブジェクトに色をつける
+  applyCaseColor();
+});
+// ベルト
+const strapColorPicker = document.getElementById('strap-color-picker');
+strapColorPicker.addEventListener('input', () => {
+  strapColorChangeLists = [upperStrapObject, lowerStrapObject, fixedStrapLoopObject, moveableStrapLoopObject];
+  // ボタンの色を変える
+  strapColorPicker.previousElementSibling.style.backgroundColor = strapColorPicker.value;
+  // inputStrapColorに値を入れておく
+  //* このへん
+  //* 色を選択するとinputStrapColorにその値は入っているはず
+  inputStrapColor = strapColorPicker.value;
+  console.log(inputStrapColor);
+  // オブジェクトに色をつける
+  applyStrapColor(strapColorChangeLists);
+});
+
+// カラーピッカー(input type="color")をクリックしたときにも、radioをクリックしたことにする ----
+// ゴールドなど他の色にした後も、その他の色のボタンをクリックしただけで、その色にするための処理
+caseColorPicker.addEventListener('click', () => {
+  caseColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
+});
+strapColorPicker.addEventListener('click', () => {
+  strapColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
+});
+
 //* style --------------------------------------------------------------------------------
 
 // 選択されたラジオボタンに枠線をつける ----------------------------------------
@@ -101,7 +137,7 @@ tabs.forEach(tab => {
   });
 });
 
-//* main canvas -----------------------------------------------------------------------------------
+//* main canvas ----------------------------------------------------------------------------------
 
 // fabricインスタンス ----------------------------------------
 
@@ -112,7 +148,7 @@ const mainCanvas = new fabric.Canvas('main-canvas');
 const mainCanvasHalfWidth = 192;
 const mainCanvasCenterHeight = mmToPixel(125);
 
-//* main case -------------------------------------------------------------------------------------
+//* main case ------------------------------------------------------------------------------------
 
 // 変数定義 ----------------------------------------
 
@@ -143,7 +179,7 @@ class WatchCircle extends fabric.Circle {
   }
 }
 
-// main ケース ----------------------------------------
+//* main ケース ----------------------------------------
 
 // ケースサイズが入力されたらcanvasに描画 ----------------
 document.getElementById('case-size').addEventListener('input', () => {
@@ -162,8 +198,6 @@ document.getElementById('case-size').addEventListener('input', () => {
   // canvasに描画
   mainCanvas.add(caseObject);
   // ラグ再描画
-  //* ラグを描画する関数のなかでさらにベルトを描く関数が呼ばれるからダブるのか
-  //* いやラグを描画する関数内ではベルトを描く関数は呼んでいない
   if (lugObjects.length !== 0) {
     switch(inputLugValue) { // 初期値は'round'
       case 'round':
@@ -186,9 +220,6 @@ document.getElementById('case-size').addEventListener('input', () => {
     }
   }
   // ベルト再描画
-  //* ベルトを描画する関数内で、ステッチとベルト穴を描画する関数も呼ばれるはずだが
-  //* この辺おかしい
-  //* ケースの直径変えるとステッチがたくさんできてしまう
   // すでに上ベルトが描かれていたら、再描画する
   if (upperStrapObject !== undefined) {
     drawUpperStrap();
@@ -200,7 +231,7 @@ document.getElementById('case-size').addEventListener('input', () => {
   caseStackingOrder();
 });
 
-// main ケース見切り ----------------------------------------
+//* main ケース見切り ----------------------------------------
 
 document.getElementById('opening-size').addEventListener('input', () => {
   mainCanvas.remove(caseOpeningObject);
@@ -213,7 +244,7 @@ document.getElementById('opening-size').addEventListener('input', () => {
   caseStackingOrder();
 });
 
-// main ダイヤル見切 ----------------------------------------
+//* main ダイヤル見切 ----------------------------------------
 
 document.getElementById('dial-size').addEventListener('input', () => {
   mainCanvas.remove(dialOpeningObject);
@@ -226,7 +257,7 @@ document.getElementById('dial-size').addEventListener('input', () => {
   caseStackingOrder();
 });
 
-// main ラグ ----------------------------------------
+//* main ラグ ----------------------------------------
 
 // ラグ幅が入力されたらcanvasに描画 ----------------
 const lugShapeInputs = document.querySelectorAll('input[name="lug-shape"]');
@@ -250,10 +281,7 @@ document.getElementById('lug-width').addEventListener('input', () => {
       break;
   }
   // ベルト再描画
-  // ラグ幅が変更されたら、ベルトの幅も変わる
-  //* ベルトを描画する関数内で、ステッチとベルト穴を描画する関数も呼ばれるはずだが
-  //* この辺おかしい
-  //* ケースの直径変えるとステッチがたくさんできてしまう
+  // ラグ幅が変更されたらベルトの幅も変わるので
   if (upperStrapObject !== undefined) {
     drawUpperStrap();
   }
@@ -315,7 +343,6 @@ class WatchLug {
         caseStackingOrder();
       });
     }
-    //* renderAllを書かない場合、再描画したときにラグがどんどん増えてしまう？→そんなこともなかった
     //* renderAllは必要なのかどうか
     // mainCanvas.renderAll();
   }
@@ -325,7 +352,7 @@ class WatchLug {
 const roundLug = new WatchLug('./assets/lug-round.svg');
 const squareLug = new WatchLug('./assets/lug-square.svg');
 
-// main リュウズ ----------------------------------------
+//* main リュウズ ----------------------------------------
 
 const crownShapeInputs = document.querySelectorAll('input[name="crown-shape"]');
 crownShapeInputs.forEach(crownShapeInput => {
@@ -365,6 +392,90 @@ class WatchCrown {
 const roundCrown = new WatchCrown('./assets/crown-round_re.svg');
 const squareCrown = new WatchCrown('./assets/crown-square_re.svg');
 
+//* main ケース色 ----------------------------------------
+
+// グラデーションクラス ----------------
+class Gradation extends fabric.Gradient {
+  constructor(options) {
+    super(options);
+    this.type = 'linear';
+    this.gradientUnits = 'percentage';
+    this.coords = { x1: 0, y1: 0, x2: 1, y2: 0 };
+  }
+}
+const goldGradation = new Gradation({
+  colorStops:[
+    { offset: 0, color: 'rgb(238,215,71)'},
+    { offset: .5, color: '#fff'},
+    { offset: 1, color: 'rgb(238,215,71)'},
+  ]
+});
+const silverGradation = new Gradation({
+  colorStops:[
+    { offset: 0, color: 'rgb(211,211,211)'},
+    { offset: .5, color: 'rgb(247,247,247)'},
+    { offset: 1, color: 'rgb(211,211,211)'},
+  ]
+});
+const pinkGoldGradation = new Gradation({
+  colorStops:[
+    { offset: 0, color: 'rgb(220,170,119)'},
+    { offset: .5, color: 'rgb(255,239,230)'},
+    { offset: 1, color: 'rgb(220,170,119)'},
+  ]
+});
+
+// 色が選択されたら、ケース(とラグとリュウズ)に色をつける関数呼び出し ----------------
+// 色が選択されたとき、オブジェクトがすでにあれば色を付ける
+// オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色を付ける
+// オブジェクトの有無は呼び出し先の関数で判定
+const caseColorInputs = document.querySelectorAll('input[name="case-color"]');
+caseColorInputs.forEach(caseColorInput => {
+  caseColorInput.addEventListener('input', () => {
+    // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
+    switch(caseColorInput.value) {
+      case 'gold':
+        inputCaseColor = goldGradation;
+        break;
+      case 'silver':
+        inputCaseColor = silverGradation;
+        break;
+      case 'pink-gold':
+        inputCaseColor = pinkGoldGradation;
+        break;
+      case 'custom-color':
+        inputCaseColor = caseColorPicker.value;
+        break;
+    }
+    // オブジェクトに色をつける
+    applyCaseColor();
+  });
+});
+
+// ケースに色をつける関数 ----------------
+function applyCaseColor() {
+  if (caseObject !== undefined) {
+    caseObject.set({
+      fill: inputCaseColor,
+    });
+  }
+  if (crownObject !== undefined) {
+    crownObject.set({
+      fill: inputCaseColor,
+    });
+  }
+  if (lugObjects !== undefined) {
+    lugObjects.forEach(lugObject => {
+      lugObject.set({
+        fill: inputCaseColor,
+      });
+    });
+  }
+  //* ここでrenderAllを書かないと、オブジェクトを生成し直さないと色が変わらない
+  //* setで値を変更したとき、オブジェクトにすぐに反映させたい場合はrenderAllが必要てことかな
+  mainCanvas.renderAll();
+}
+
 //* main strap -----------------------------------------------------------------------------------
 
 // 変数定義 ----------------------------------------
@@ -392,9 +503,9 @@ let lowerStrapStitchObject;
 let topStitchObject;
 let strapStitchExist = false; // ストラップ有無 初期値はfalse
 
-// main ベルト本体 ----------------------------------------
+//* main ベルト本体 ----------------------------------------
 
-// inputでベルト本体を描く関数呼び出し ----------------
+// ベルトの長さが入力されたら、ベルト本体を描く関数呼び出し ----------------
 // 上ベルト本体
 document.getElementById('upper-strap-length').addEventListener('input', () => {
   drawUpperStrap();
@@ -405,7 +516,7 @@ document.getElementById('lower-strap-length').addEventListener('input', () => {
 });
 
 // ベルト本体を描く関数 ----------------
-// 上ベルト本体 --------
+// 上ベルト本体 ----
 function drawUpperStrap() {
   // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(upperStrapObject);
@@ -416,6 +527,7 @@ function drawUpperStrap() {
     upperStrapObject.set({
       originX: 'center',
       originY: 'bottom',
+      fill: inputStrapColor,
       left: mainCanvasHalfWidth,
       // strapを描く位置(高さ)を、ケースの位置から取得する
       top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
@@ -433,9 +545,12 @@ function drawUpperStrap() {
     }
     // ループ(再)描画
     drawStrapLoop();
+    //* test
+    console.log(inputStrapColor);
+    // mainCanvas.renderAll();
   });
 }
-// 下ベルト本体 --------
+// 下ベルト本体 ----
 function drawLowerStrap() {
   // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(lowerStrapObject);
@@ -445,6 +560,7 @@ function drawLowerStrap() {
     strapWidth = lugWidth;
     lowerStrapObject.set({
       originX: 'center',
+      fill: inputStrapColor,
       left: mainCanvasHalfWidth,
       // strapを描く位置(高さ)を、ケースの位置から取得する
       top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
@@ -461,8 +577,8 @@ function drawLowerStrap() {
       drawLowerStitch();
     }
     // ベルト穴(再)描画
-    //* もしすでにベルト穴が存在していたら書き直す
-    //* 初めて描かれる場合でも、仮の個数と間隔で描画する
+    // もしすでにベルト穴が存在していたら書き直す
+    // 初めて描かれる場合でも、仮の個数と間隔で描画する
     drawStrapHoles();
   });
   //! loadSVGFromURLは非同期処理である事に注意
@@ -471,9 +587,9 @@ function drawLowerStrap() {
   // よってlowerStrapObjectを使うような処理は{}内に書くこと
 }
 
-// main ループ ----------------------------------------
+//* main ベルトループ ----------------------------------------
 
-// ループを描く関数 --------
+// ループを描く関数 ----------------
 function drawStrapLoop() {
   // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(fixedStrapLoopObject);
@@ -484,10 +600,10 @@ function drawStrapLoop() {
     width: strapWidth + mmToPixel(2),
     height: mmToPixel(5),
     originX: 'center',
+    fill: inputStrapColor,
     left: mainCanvasHalfWidth,
     top: upperStrapObject.top - inputValueToPixel('upper-strap-length') + mmToPixel(8),
     stroke: 'black',
-    fill: inputStrapColor,
   });
   mainCanvas.add(fixedStrapLoopObject);
   // 可動ループ 固定ループの深いコピーで作る
@@ -498,7 +614,7 @@ function drawStrapLoop() {
   mainCanvas.add(moveableStrapLoopObject);
 }
 
-// main ベルト穴 ----------------------------------------
+//* main ベルト穴 ----------------------------------------
 
 // ベルト穴個数が選択されたら、ベルト穴を描く関数を呼び出し ----------------
 const strapHoleQuantityInputs = document.querySelectorAll('input[name="hole-quantity"]');
@@ -564,7 +680,7 @@ function drawStrapHoles() {
   countDistance = 0;
 }
 
-// main ベルトステッチ ----------------------------------------
+//* main ベルトステッチ ----------------------------------------
 
 // ステッチの有無が選択されたら、ステッチを描く関数を呼び出し ----------------
 const stitchInputs = document.querySelectorAll('input[name="stitch"]');
@@ -597,14 +713,13 @@ stitchInputs.forEach(stitchInput => {
 });
 
 // ステッチを描く関数 ----------------
-//* test
-//* ステッチを描く関数を上下で分ける
+// 上ベルトステッチ ----
 function drawUpperStitch() {
   // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(upperStrapStitchObject);
   mainCanvas.remove(topStitchObject);
+  // 上ベルトステッチ生成
   // 基本はlowerStrapObjectと同じで、位置の調整と点線に変更
-  // 上ベルトステッチ
   fabric.loadSVGFromURL('./assets/upper-strap-stitch.svg', (objects, options) =>{
     upperStrapStitchObject = fabric.util.groupSVGElements(objects, options);
     strapWidth = lugWidth;
@@ -622,6 +737,7 @@ function drawUpperStitch() {
       // 点線に
       strokeDashArray: [8, 2],
     });
+    // canvasに描画
     mainCanvas.add(upperStrapStitchObject);
     // 重なり順を直す ステッチよりループが上にくるように
     if (fixedStrapLoopObject !== undefined) {
@@ -631,7 +747,7 @@ function drawUpperStitch() {
       moveableStrapLoopObject.bringToFront();
     }
   });
-  // バックル近くのステッチ
+  // バックル近くのステッチ生成
   topStitchObject = new fabric.Polyline([
     {
       x: mainCanvasHalfWidth - strapWidth / 2 + mmToPixel(2.5),
@@ -646,12 +762,14 @@ function drawUpperStitch() {
       strokeDashArray: [8, 2],
     }
   );
+  // canvasに描画
   mainCanvas.add(topStitchObject);
 }
-
+// 下ベルトステッチ ----
 function drawLowerStitch() {
+  // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(lowerStrapStitchObject);
-  // 下ベルトステッチ
+  // 下ベルトステッチ生成
   fabric.loadSVGFromURL('./assets/lower-strap-stitch.svg', (objects, options) =>{
     lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
     strapWidth = lugWidth;
@@ -668,151 +786,26 @@ function drawLowerStitch() {
       // 点線に
       strokeDashArray: [8, 2],
     });
+    // canvasに描画
     mainCanvas.add(lowerStrapStitchObject);
   });
 }
 
-// memo
-//* widthとheightを指定しても、余白がその分増えるだけで線を書いた部分のwidth/heightが指定できるわけではない。
-//* SVGを読み込んでFabric.jsオブジェクトに変換した場合、SVG内の要素はパスやシェイプとして解釈されます。このため、線のある部分を単独で拡大するという操作は、SVG要素の構造的な変更を伴うため、単純には行えません。
-// *SVG読み込み時には、周りに余白があっても無視されているようだ。
+//* main ベルト色 ----------------------------------------
 
-
-
-
-
-
-
-
-
-
-
-// カラーピッカー --------------------------------
-// ケース
-const caseColorPicker = document.getElementById('case-color-picker');
-caseColorPicker.addEventListener('input', () => {
-  // ボタンの色を変える
-  caseColorPicker.previousElementSibling.style.backgroundColor = caseColorPicker.value;
-  // inputCaseColorに値を入れておく
-  inputCaseColor = caseColorPicker.value;
-  // オブジェクトに色をつける
-  applyCaseColor();
-});
-// ベルト
-const strapColorPicker = document.getElementById('strap-color-picker');
-strapColorPicker.addEventListener('input', () => {
-  // ボタンの色を変える
-  strapColorPicker.previousElementSibling.style.backgroundColor = strapColorPicker.value;
-  // inputStrapColorに値を入れておく
-  inputStrapColor = strapColorPicker.value;
-  // オブジェクトに色をつける
-  applyStrapColor(strapColorChangeLists);
-});
-
-// カラーピッカーをクリックしたときにも、radioをクリックしたことにする
-caseColorPicker.addEventListener('click', () => {
-  console.log('case');
-  caseColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
-});
-strapColorPicker.addEventListener('click', () => {
-  console.log('strap');
-  strapColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
-});
-
-// ケース色 --------------------------------
-
-// グラデーションクラス --------
-class Gradation extends fabric.Gradient {
-  constructor(options) {
-    super(options);
-    this.type = 'linear';
-    this.gradientUnits = 'percentage';
-    this.coords = { x1: 0, y1: 0, x2: 1, y2: 0 };
-  }
-}
-const goldGradation = new Gradation({
-  colorStops:[
-    { offset: 0, color: 'rgb(238,215,71)'},
-    { offset: .5, color: '#fff'},
-    { offset: 1, color: 'rgb(238,215,71)'},
-  ]
-});
-const silverGradation = new Gradation({
-  colorStops:[
-    { offset: 0, color: 'rgb(211,211,211)'},
-    { offset: .5, color: 'rgb(247,247,247)'},
-    { offset: 1, color: 'rgb(211,211,211)'},
-  ]
-});
-const pinkGoldGradation = new Gradation({
-  colorStops:[
-    { offset: 0, color: 'rgb(220,170,119)'},
-    { offset: .5, color: 'rgb(255,239,230)'},
-    { offset: 1, color: 'rgb(220,170,119)'},
-  ]
-});
-
-// inputでケースに色をつける関数呼び出し --------
-// inputしたときオブジェクトがすでにあれば色を付ける
-// オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色を付ける
-const caseColorInputs = document.querySelectorAll('input[name="case-color"]');
-caseColorInputs.forEach(caseColorInput => {
-  caseColorInput.addEventListener('input', () => {
-    // 色のラジオボタンを押した時点で、inputCaseColorに値を入れておく
-    switch(caseColorInput.value) {
-      case 'gold':
-        inputCaseColor = goldGradation;
-        break;
-      case 'silver':
-        inputCaseColor = silverGradation;
-        break;
-      case 'pink-gold':
-        inputCaseColor = pinkGoldGradation;
-        break;
-      case 'custom-color':
-        inputCaseColor = caseColorPicker.value;
-        break;
-    }
-    // オブジェクトに色をつける
-    applyCaseColor();
-  });
-});
-
-// ケースに色をつける関数 --------
-function applyCaseColor() {
-  if (caseObject !== undefined) {
-    caseObject.set({
-      fill: inputCaseColor,
-    });
-  }
-  if (crownObject !== undefined) {
-    crownObject.set({
-      fill: inputCaseColor,
-    });
-  }
-  if (lugObjects !== undefined) {
-    lugObjects.forEach(lugObject => {
-      lugObject.set({
-        fill: inputCaseColor,
-      });
-    });
-  }
-  mainCanvas.renderAll();
-}
-
-// ベルト色 --------------------------------
-
-// 変数定義 --------
+// 色を変えたいオブジェクトをまとめるための配列を準備
 let strapColorChangeLists;
-
-// inputでベルトに色をつける関数呼び出し --------
+// 色が選択されたら、ベルトに色をつける関数呼び出し ----------------
+// もとから用意している色、もしくはカスタムカラー
 const strapColorInputs = document.querySelectorAll('input[name="strap-color"]');
 strapColorInputs.forEach(strapColorInput => {
   strapColorInput.addEventListener('input', () => {
-    // 色を変えたいオブジェクトを配列にまとめておく
-    // オブジェクトを生成してから配列に入れないとundefinedが入ってしまうので、色が選択された時点で入れる
+    // オブジェクトを生成してから配列に入れないとundefinedが入ってエラーが出てしまうので、
+    // 色が選択された時点で配列にオブジェクトを入れる
+    //* ここがよくないのかも
     strapColorChangeLists = [upperStrapObject, lowerStrapObject, fixedStrapLoopObject, moveableStrapLoopObject];
-    // 色のラジオボタンを押した時点で、(オブジェクトがまだなくても)値を入れておく
+    console.log(strapColorChangeLists);
+    // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
     switch(strapColorInput.value) {
       case 'black':
         inputStrapColor = 'black';
@@ -834,16 +827,44 @@ strapColorInputs.forEach(strapColorInput => {
 
 // ベルトに色をつける関数 --------
 function applyStrapColor(array) {
-  console.log(array);
+  // console.log(array);
   array.forEach(object => {
     if (object !== undefined) {
       object.set({
         fill: inputStrapColor,
       });
+      mainCanvas.renderAll();
     }
   });
-  mainCanvas.renderAll();
 }
+
+
+
+
+
+
+
+
+
+// memo
+//* widthとheightを指定しても、余白がその分増えるだけで線を書いた部分のwidth/heightが指定できるわけではない。
+//* SVGを読み込んでFabric.jsオブジェクトに変換した場合、SVG内の要素はパスやシェイプとして解釈されます。このため、線のある部分を単独で拡大するという操作は、SVG要素の構造的な変更を伴うため、単純には行えません。
+// *SVG読み込み時には、周りに余白があっても無視されているようだ。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
