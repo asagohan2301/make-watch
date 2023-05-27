@@ -184,7 +184,7 @@ main .component-list .component .workspace .workspace-top-container .option-cont
 main .component-list .component .workspace .workspace-top-container .info {
   position: relative;
 }
-main .component-list .component .workspace .workspace-top-container .info .info-introduction {
+main .component-list .component .workspace .workspace-top-container .info .info-comment {
   width: -moz-fit-content;
   width: fit-content;
   max-width: 240px;
