@@ -184,7 +184,8 @@ main .component-list .component .workspace .workspace-top-container .option-cont
 main .component-list .component .workspace .workspace-top-container .info {
   position: relative;
 }
-main .component-list .component .workspace .workspace-top-container .info .info-introduction {
+main .component-list .component .workspace .workspace-top-container .info .info-comment {
+  width: -moz-fit-content;
   width: fit-content;
   max-width: 240px;
   position: absolute;
@@ -351,6 +352,7 @@ main .component-list .component .workspace .shape-list ul li p {
   bottom: 58px;
   left: 50%;
   transform: translateX(-50%);
+  width: -moz-max-content;
   width: max-content;
   padding: 6px 12px;
   border-radius: 6px;
@@ -518,6 +520,4 @@ label.active {
 
 .scroll_bar::-webkit-scrollbar-thumb {
   background-color: #17585d;
-}
-
-/*# sourceMappingURL=style.css.map */
+}/*# sourceMappingURL=style.css.map */

@@ -1,21 +1,18 @@
 'use strict';
 
+//* import --------------------------------------------------------------------------------
+
 import '../css/style.css';
 import { fabric } from "fabric";
-
-//* mmへの変換をいつするか。ダウンロード時にまとめてするという手もあり？
-//* SVGへの変換だけをfabric.js機能を使って、描画は純粋なcanvasでできないかな？
-//* できないなーcanvasで書いたものはfabric.jsでdlできない。空になっちゃってる
-
-console.log('webserver');
-
-// common ----------------------------------------------------------------
 
 import { downloadSVG } from './download.js';
 downloadSVG();
 
+//* common --------------------------------------------------------------------------------
+
 // mmからpixelに変換する関数 ----------------
-//? dpiが72で良いのかどうかわからない
+// 引数にmmを受け取って、pixelにして返す
+//! dpiが72で良いのかどうかわからない
 function mmToPixel(mm) {
   const dpi = 72;
   // mmをインチに
@@ -25,17 +22,69 @@ function mmToPixel(mm) {
   return pixel;
 }
 
-// inputの入力値(mm)をpixelにして返す関数 ----------------
-function inputValueToPixel(id) { //引数にinput要素のid名を受け取る
-  const inputValue = document.getElementById(id).value;
-  const pixel = mmToPixel(parseInt(inputValue));
-  return pixel;
+// ケースなどの重なり順を直す関数 ----------------
+function caseStackingOrder() {
+  if (lugObjects !== undefined) {
+    lugObjects.forEach(lugObject => {
+      lugObject.moveTo(1);
+    });
+  }
+  if (caseObject !== undefined) {
+    caseObject.moveTo(5);
+  }
+  if (caseOpeningObject !== undefined) {
+    caseOpeningObject.moveTo(6);
+  }
+  if (dialOpeningObject !== undefined) {
+    dialOpeningObject.moveTo(7);
+  }
 }
 
-// style ----------------------------------------------------------------
+// カラーピッカー ----------------
+// カラーピッカーで色を選択したときの処理 ----
+// ケース
+const caseColorPicker = document.getElementById('case-color-picker');
+caseColorPicker.addEventListener('input', () => {
+  // ボタンの色を変える
+  caseColorPicker.previousElementSibling.style.backgroundColor = caseColorPicker.value;
+  // inputCaseColorに値を入れておく
+  inputCaseColor = caseColorPicker.value;
+  // オブジェクトに色をつける
+  applyCaseColor();
+});
+// ベルト
+const strapColorPicker = document.getElementById('strap-color-picker');
+strapColorPicker.addEventListener('input', () => {
+  // カラーピッカーから色が選択されたら、色を変えたいリスト(strapColorChangeLists)を更新しておく
+  // ここで更新しないと、
+  // 例えば上ベルトの長さを変えた時には、上ベルトは書き直されて新しいオブジェクトになっているのに
+  // strapColorChangeListsの値が更新されていないので、色を変えても前のオブジェクトに色が適用され続けて、
+  // 長さを変えた後の上ベルトには色が適用されないことになる
+  strapColorChangeLists = [upperStrapObject, lowerStrapObject, fixedStrapLoopObject, moveableStrapLoopObject];
+  // ボタンの色を変える
+  strapColorPicker.previousElementSibling.style.backgroundColor = strapColorPicker.value;
+  // inputStrapColorに値を入れておく
+  inputStrapColor = strapColorPicker.value;
+  // オブジェクトに色をつける
+  applyStrapColor(strapColorChangeLists);
+});
 
-// 選択されたラジオボタンに色をつける ----------------
-const radioObjects = [ //ここにラジオボタン要素を追加していく
+// カラーピッカー(input type="color")をクリックしたときにも、radioをクリックしたことにする ----
+// ゴールドなど他の色にした後も、その他の色のボタンをクリックしただけで、その色にするための処理
+caseColorPicker.addEventListener('click', () => {
+  caseColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
+});
+strapColorPicker.addEventListener('click', () => {
+  strapColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
+});
+
+//* style --------------------------------------------------------------------------------
+
+// 選択されたラジオボタンに枠線をつける ----------------------------------------
+
+// 配列を準備 ----------------
+// 配列の中に配列が、さらにその配列にも複数の要素が入っている
+const radioArray = [ //ここにラジオボタン要素を追加していく
 document.querySelectorAll('input[name="lug-shape"]'),
 document.querySelectorAll('input[name="crown-shape"]'),
 document.querySelectorAll('input[name="case-color"]'),
@@ -46,11 +95,11 @@ document.querySelectorAll('input[name="strap-shape"]'),
 document.querySelectorAll('input[name="strap-color"]'),
 document.querySelectorAll('input[name="buckle-shape"]'),
 ];
-
-radioObjects.forEach(radioObject => {
-  selectRadio(radioObject);
+// 配列の各要素(の集まり)から関数を呼び出す ----------------
+radioArray.forEach(radios => {
+  selectRadio(radios);
 });
-
+// ラジオボタンの枠線をつけ外しする関数 ----------------
 function selectRadio(radios) {
   radios.forEach(radio => {
     radio.addEventListener('input', () => {
@@ -62,7 +111,8 @@ function selectRadio(radios) {
   });
 }
 
-// タブを切り替える ----------------
+// タブを切り替える ----------------------------------------
+
 // 一つめのworkspaceを表示させておく
 document.querySelector('.component:first-child .workspace').classList.add('appear');
 // タブ切り替え
@@ -83,9 +133,42 @@ tabs.forEach(tab => {
   });
 });
 
-// canvas common ----------------------------------------------------------------
+//* main canvas ----------------------------------------------------------------------------------
 
-// 円のクラス ----------------
+// fabricインスタンス ----------------------------------------
+
+// オブジェクトを選択できるようにするなら Canvas
+const mainCanvas = new fabric.Canvas('main-canvas');
+// オブジェクトを選択できないようにするなら StaticCanvas
+// const mainCanvas = new fabric.StaticCanvas('main-canvas');
+const mainCanvasHalfWidth = 192;
+const mainCanvasCenterHeight = mmToPixel(125);
+
+//* main case ------------------------------------------------------------------------------------
+
+// 変数定義 ----------------------------------------
+
+// オブジェクト
+let caseObject;
+let caseOpeningObject;
+let dialOpeningObject;
+let crownObject; // 2種類のクラウンで同じ変数名でOK？→OKそう。同時には存在しないから？
+const lugObjects = [];
+// サイズ・形状・色
+let lugWidth;
+let inputLugValue = 'round'; //初期値
+let inputCrownValue = 'round'; //初期値
+const defaultLugThickness = mmToPixel(2);
+const defaultLugLength = mmToPixel(8);
+let inputCaseColor = 'white'; //初期値
+// Node
+const caseSizeInput = document.getElementById('case-size');
+const caseOpeningSizeInput = document.getElementById('case-opening-size');
+const dialOpeningSizeInput = document.getElementById('dial-opening-size');
+const lugWidthInput = document.getElementById('lug-width');
+
+// 円のクラス ----------------------------------------
+
 // インスタンス生成時は radius,left,topなどを指定する
 // オプションは何個でも、継承元のプロパティにあるものならoptionsで受け取ってくれるみたい
 class WatchCircle extends fabric.Circle {
@@ -99,34 +182,15 @@ class WatchCircle extends fabric.Circle {
   }
 }
 
-// main canvas ----------------------------------------------------------------
+//* main ケース ----------------------------------------
 
-// fabricインスタンス ----------------
-const mainCanvas = new fabric.Canvas('main-canvas');
-// const mainCanvas = new fabric.StaticCanvas('main-canvas');
-const mainCanvasHalfWidth = 192;
-const mainCanvasCenterHeight = mmToPixel(125);
-
-// 変数定義 ----------------
-let caseObject;
-let openingObject;
-let dialObject;
-let crownObject; //2種類のクラウンで同じ名前共有できるか？→できたみたい。同時には存在しないから？
-const lugArray = [];
-let lugWidth;
-let checkedLugValue = 'round'; //初期値
-let checkedCrownValue = 'round'; //初期値
-const lugThickness = mmToPixel(2);
-const lugLength = mmToPixel(8);
-let inputCaseColor = 'white'; //初期値
-let inputStrapColor = 'white'; //初期値
-
-// ケース,ケース見切り,文字盤見切りを描く ----------------
-// ケース
-document.getElementById('case-size').addEventListener('input', () => {
+// ケースサイズが入力されたらcanvasに描画 ----------------
+caseSizeInput.addEventListener('input', () => {
+  // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(caseObject);
+  // ケースオブジェクト生成
   caseObject = new WatchCircle({
-    radius: inputValueToPixel('case-size') / 2,
+    radius: mmToPixel(caseSizeInput.value) / 2,
     left: mainCanvasHalfWidth,
     top: mainCanvasCenterHeight,
   });
@@ -134,10 +198,11 @@ document.getElementById('case-size').addEventListener('input', () => {
   caseObject.set({
     fill: inputCaseColor,
   });
+  // canvasに描画
   mainCanvas.add(caseObject);
   // ラグ再描画
-  if (lugArray !== undefined) {
-    switch(checkedLugValue) { // checkedLugValueの初期値は'round'
+  if (lugObjects.length !== 0) {
+    switch(inputLugValue) { // 初期値は'round'
       case 'round':
         roundLug.drawLug();
         break;
@@ -148,7 +213,7 @@ document.getElementById('case-size').addEventListener('input', () => {
   }
   // リュウズ再描画
   if (crownObject !== undefined) {
-    switch(checkedCrownValue) {
+    switch(inputCrownValue) {
       case 'round':
         roundCrown.drawCrown();
         break;
@@ -158,7 +223,7 @@ document.getElementById('case-size').addEventListener('input', () => {
     }
   }
   // ベルト再描画
-  // ベルトを描画する関数内で、ステッチとベルト穴を描画する関数も呼ばれる
+  // すでに上ベルトが描かれていたら、再描画する
   if (upperStrapObject !== undefined) {
     drawUpperStrap();
   }
@@ -166,42 +231,51 @@ document.getElementById('case-size').addEventListener('input', () => {
     drawLowerStrap();
   }
   // 重なり順を直す
-  stackingOrder();
-});
-// ケース見切り
-document.getElementById('opening-size').addEventListener('input', () => {
-  mainCanvas.remove(openingObject);
-  openingObject = new WatchCircle({
-    radius: inputValueToPixel('opening-size') / 2,
-    left: mainCanvasHalfWidth,
-    top: mainCanvasCenterHeight,
-  });
-  mainCanvas.add(openingObject);
-  stackingOrder();
-});
-// ダイヤル見切
-document.getElementById('dial-size').addEventListener('input', () => {
-  mainCanvas.remove(dialObject);
-  dialObject = new WatchCircle({
-    radius: inputValueToPixel('dial-size') / 2,
-    left: mainCanvasHalfWidth,
-    top: mainCanvasCenterHeight,
-  });
-  mainCanvas.add(dialObject);
-  stackingOrder();
+  caseStackingOrder();
 });
 
-// ラグを描く ----------------
-const lugs = document.querySelectorAll('input[name="lug-shape"]');
-// ラグ幅が入力されたらcanvasに描画
-document.getElementById('lug-width').addEventListener('input', () => {
-  lugWidth = inputValueToPixel('lug-width');
-  lugs.forEach(lug => {
-    if(lug.checked){
-      checkedLugValue = lug.value;
+//* main ケース見切り ----------------------------------------
+
+caseOpeningSizeInput.addEventListener('input', () => {
+  mainCanvas.remove(caseOpeningObject);
+  caseOpeningObject = new WatchCircle({
+    radius: mmToPixel(caseOpeningSizeInput.value) / 2,
+    left: mainCanvasHalfWidth,
+    top: mainCanvasCenterHeight,
+  });
+  mainCanvas.add(caseOpeningObject);
+  caseStackingOrder();
+});
+
+//* main ダイヤル見切 ----------------------------------------
+
+dialOpeningSizeInput.addEventListener('input', () => {
+  mainCanvas.remove(dialOpeningObject);
+  dialOpeningObject = new WatchCircle({
+    radius: mmToPixel(dialOpeningSizeInput.value) / 2,
+    left: mainCanvasHalfWidth,
+    top: mainCanvasCenterHeight,
+  });
+  mainCanvas.add(dialOpeningObject);
+  caseStackingOrder();
+});
+
+//* main ラグ ----------------------------------------
+
+// ラグ幅が入力されたらcanvasに描画 ----------------
+const lugShapeInputs = document.querySelectorAll('input[name="lug-shape"]');
+lugWidthInput.addEventListener('input', () => {
+  // lugWidthに値を代入
+  lugWidth = mmToPixel(lugWidthInput.value);
+  // すでにラグの形が選択されていた場合は、inputLugValueに値を代入
+  lugShapeInputs.forEach(lugShapeInput => {
+    if(lugShapeInput.checked){
+      inputLugValue = lugShapeInput.value;
     }
   });
-  switch(checkedLugValue) { // checkedLugValueの初期値は'round'
+  // ラグを描く関数呼び出し
+  // ラグの形がまだ選択されていない場合は、inputLugValueの初期値は'round'で描画されることになる
+  switch(inputLugValue) { 
     case 'round':
       roundLug.drawLug();
       break;
@@ -210,7 +284,7 @@ document.getElementById('lug-width').addEventListener('input', () => {
       break;
   }
   // ベルト再描画
-  // ベルトを描画する関数内で、ステッチとベルト穴を描画する関数も呼ばれる
+  // ラグ幅が変更されたらベルトの幅も変わるので
   if (upperStrapObject !== undefined) {
     drawUpperStrap();
   }
@@ -218,10 +292,11 @@ document.getElementById('lug-width').addEventListener('input', () => {
     drawLowerStrap();
   }
 });
-// ラグの形状が選ばれたらcanvasに描画
-lugs.forEach(lug => {
-  lug.addEventListener('input', () => {
-    switch(lug.value) {
+
+// ラグの形状が選ばれたらcanvasに描画 ----------------
+lugShapeInputs.forEach(lugShapeInput => {
+  lugShapeInput.addEventListener('input', () => {
+    switch(lugShapeInput.value) {
       case 'round':
         roundLug.drawLug();
         break;
@@ -231,55 +306,62 @@ lugs.forEach(lug => {
     }
   });
 });
-// ラグのクラス
-//* ラグ4つをグループ化したい→うまくできない
+
+// ラグのクラス ----------------
+//? ラグ4つをグループ化したいがうまくできない
 class WatchLug {
   constructor(url) {
     this.url = url;
   }
   drawLug() {
     const adjustValue = 1.7; //! 要検討
-    lugArray.forEach(lugObject => {
+    // すでにオブジェクトが描かれていたらcanvasから削除
+    lugObjects.forEach(lugObject => {
       mainCanvas.remove(lugObject);
     });
+    // ラグオブジェクト生成
     for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
       fabric.loadSVGFromURL(this.url, (objects, options) => {
-        lugArray[i] = fabric.util.groupSVGElements(objects, options);
-        lugArray[i].set({
+        lugObjects[i] = fabric.util.groupSVGElements(objects, options);
+        lugObjects[i].set({
           originX: 'center',
-          left: mainCanvasHalfWidth - lugWidth / 2 - lugThickness / 2,
+          left: mainCanvasHalfWidth - lugWidth / 2 - defaultLugThickness / 2,
           top: mainCanvasCenterHeight - caseObject.height / adjustValue,
           fill: inputCaseColor,
         });
         if (i === 1 || i === 3) {
-          lugArray[i].set({
-            left: mainCanvasHalfWidth - lugWidth / 2 - lugThickness / 2 + lugWidth + lugThickness,
+          lugObjects[i].set({
+            left: mainCanvasHalfWidth - lugWidth / 2 - defaultLugThickness / 2 + lugWidth + defaultLugThickness,
           });
         }
         if(i === 2 || i === 3) {
-          lugArray[i].set({
+          lugObjects[i].set({
             flipY: true,
-            top: mainCanvasCenterHeight + caseObject.height / adjustValue - lugLength,
+            top: mainCanvasCenterHeight + caseObject.height / adjustValue - defaultLugLength,
           });
         }
-        mainCanvas.add(lugArray[i]);
-        stackingOrder();
+        // canvasに描画
+        mainCanvas.add(lugObjects[i]);
+        // 重なり順を直す
+        caseStackingOrder();
       });
     }
-    mainCanvas.renderAll();
+    //* renderAllは必要なのかどうか
+    // mainCanvas.renderAll();
   }
 }
 
-// memo: roundLugはオブジェクトではなく、インスタンスが持つメソッドdrawLugで生成したlugArrayがオブジェクト？
+// ラグのインスタンス生成 ----------------
 const roundLug = new WatchLug('./assets/lug-round.svg');
 const squareLug = new WatchLug('./assets/lug-square.svg');
 
-// リュウズを描く ----------------
-const crowns = document.querySelectorAll('input[name="crown-shape"]');
-crowns.forEach(crown => {
-  crown.addEventListener('input', () => {
-    checkedCrownValue = crown.value;
-    switch(checkedCrownValue) {
+//* main リュウズ ----------------------------------------
+
+const crownShapeInputs = document.querySelectorAll('input[name="crown-shape"]');
+crownShapeInputs.forEach(crownShapeInput => {
+  crownShapeInput.addEventListener('input', () => {
+    inputCrownValue = crownShapeInput.value;
+    switch(inputCrownValue) {
       case 'round':
         roundCrown.drawCrown();
         break;
@@ -289,7 +371,8 @@ crowns.forEach(crown => {
     }
   });
 });
-// リュウズのクラス
+
+// リュウズのクラス ----------------
 class WatchCrown {
   constructor(url) {
     this.url = url;
@@ -308,12 +391,13 @@ class WatchCrown {
     });
   }
 }
-// リュウズのインスタンス生成
+// リュウズのインスタンス生成 ----------------
 const roundCrown = new WatchCrown('./assets/crown-round_re.svg');
 const squareCrown = new WatchCrown('./assets/crown-square_re.svg');
 
-// 金属色 ----------------
-// グラデーションクラス
+//* main ケース色 ----------------------------------------
+
+// グラデーションクラス ----------------
 class Gradation extends fabric.Gradient {
   constructor(options) {
     super(options);
@@ -344,39 +428,15 @@ const pinkGoldGradation = new Gradation({
   ]
 });
 
-// カラーピッカー
-const caseColorPicker = document.getElementById('case-color-picker');
-const strapColorPicker = document.getElementById('strap-color-picker');
-caseColorPicker.addEventListener('input', () => {
-  // ボタンの色を変える
-  caseColorPicker.previousElementSibling.style.backgroundColor = caseColorPicker.value;
-  // inputCaseColorに値を入れておく
-  inputCaseColor = caseColorPicker.value;
-  // オブジェクトに色をつける
-  applyCaseColor();
-  // colorPicker(caseColorPicker, inputCaseColor)
-});
-strapColorPicker.addEventListener('input', () => {
-  // ボタンの色を変える
-  strapColorPicker.previousElementSibling.style.backgroundColor = strapColorPicker.value;
-  // inputCaseColorに値を入れておく
-  inputStrapColor = strapColorPicker.value;
-  // オブジェクトに色をつける
-  applyStrapColor();
-  // colorPicker(caseColorPicker, inputCaseColor)
-});
-// カラーピッカーをクリックしたときにも、radioをクリックしたことにする
-caseColorPicker.addEventListener('click', () => {
-  caseColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
-});
-
-// オブジェクトがすでにあれば色を付ける
+// 色が選択されたら、ケース(とラグとリュウズ)に色をつける関数呼び出し ----------------
+// 色が選択されたとき、オブジェクトがすでにあれば色を付ける
 // オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色を付ける
-const metalColors = document.querySelectorAll('input[name="case-color"]');
-metalColors.forEach(metalColor => {
-  metalColor.addEventListener('input', () => {
-    // 色のラジオボタンを押した時点で、inputCaseColorに値を入れておく
-    switch(metalColor.value) {
+// オブジェクトの有無は呼び出し先の関数で判定
+const caseColorInputs = document.querySelectorAll('input[name="case-color"]');
+caseColorInputs.forEach(caseColorInput => {
+  caseColorInput.addEventListener('input', () => {
+    // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
+    switch(caseColorInput.value) {
       case 'gold':
         inputCaseColor = goldGradation;
         break;
@@ -395,7 +455,7 @@ metalColors.forEach(metalColor => {
   });
 });
 
-// オブジェクトに色をつける関数 
+// ケースに色をつける関数 ----------------
 function applyCaseColor() {
   if (caseObject !== undefined) {
     caseObject.set({
@@ -407,158 +467,194 @@ function applyCaseColor() {
       fill: inputCaseColor,
     });
   }
-  if (lugArray !== undefined) {
-    lugArray.forEach(lugObject => {
+  if (lugObjects !== undefined) {
+    lugObjects.forEach(lugObject => {
       lugObject.set({
         fill: inputCaseColor,
       });
     });
   }
+  //* ここでrenderAllを書かないと、オブジェクトを生成し直さないと色が変わらない
+  //* setで値を変更したとき、オブジェクトにすぐに反映させたい場合はrenderAllが必要てことかな
   mainCanvas.renderAll();
 }
 
-// 重なり順を直す関数 ----------------
-function stackingOrder() {
-  if (lugArray !== undefined) {
-    lugArray.forEach(lugObject => {
-      lugObject.moveTo(1);
-    });
-  }
-  if (caseObject !== undefined) {
-    caseObject.moveTo(5);
-  }
-  if (openingObject !== undefined) {
-    openingObject.moveTo(6);
-  }
-  if (dialObject !== undefined) {
-    dialObject.moveTo(7);
-  }
-  if (upperStrapObject !== undefined) {
-    upperStrapObject.moveTo(8);
-  }
-  if (lowerStrapObject !== undefined) {
-    lowerStrapObject.moveTo(9);
-  }
-  if (upperStrapStitchObject !== undefined) {
-    upperStrapObject.moveTo(10);
-  }
-  if (lowerStrapStitchObject !== undefined) {
-    lowerStrapObject.moveTo(11);
-  }
-  if (strapHoleObjects !== undefined) {
-    strapHoleObjects.forEach(strapHoleObject => {
-      strapHoleObject.moveTo(12);
-    });
-  }
-}
+//* main strap -----------------------------------------------------------------------------------
 
-// ベルト ----------------
+// 変数定義 ----------------------------------------
+
+// ベルト本体
 let strapWidth;
 let upperStrapObject;
 let lowerStrapObject;
-const defaultStrapWidth = mmToPixel(16); //用意したSVGのベルト幅
-const defaultUpperStrapLength = mmToPixel(70); //用意したSVGのベルト長さ
-const defaultLowerStrapLength = mmToPixel(110); //用意したSVGのベルト長さ
+let inputStrapColor = 'white'; // 初期値
+// ベルトサイズ
+const defaultStrapWidth = mmToPixel(16); // 用意したSVGのベルト幅
+const defaultUpperStrapLength = mmToPixel(70); // 用意したSVGのベルト長さ
+const defaultLowerStrapLength = mmToPixel(110); // 用意したSVGのベルト長さ
+// ベルトループ
+let fixedStrapLoopObject;
+let moveableStrapLoopObject;
+// ベルト穴
+let strapHoleObjects = [];
+let strapHoleQuantity = 6; // ベルト穴の個数 初期値
+let strapHoleDistance = mmToPixel(7); // ベルト穴の間隔 初期値
+let countDistance = 0; // 一番下の穴からどれくらい移動するかを保持する変数
+// ステッチ
+let upperStrapStitchObject;
+let lowerStrapStitchObject;
+let topStitchObject;
+let strapStitchExist = false; // ストラップ有無 初期値はfalse
 
-document.getElementById('upper-strap-length').addEventListener('input', () => {
+// Node
+const upperStrapLengthInput = document.getElementById('upper-strap-length');
+const lowerStrapLengthInput = document.getElementById('lower-strap-length');
+
+//* main ベルト本体 ----------------------------------------
+
+// ベルトの長さが入力されたら、ベルト本体を描く関数呼び出し ----------------
+// 上ベルト本体
+upperStrapLengthInput.addEventListener('input', () => {
   drawUpperStrap();
 });
-document.getElementById('lower-strap-length').addEventListener('input', () => {
+// 下ベルト本体
+lowerStrapLengthInput.addEventListener('input', () => {
   drawLowerStrap();
 });
 
-// ベルトを描く ----------------
+// ベルト本体を描く関数 ----------------
+// 上ベルト本体 ----
 function drawUpperStrap() {
+  // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(upperStrapObject);
+  // SVGファイル読み込み
   fabric.loadSVGFromURL('./assets/upper-strap.svg', (objects, options) =>{
     upperStrapObject = fabric.util.groupSVGElements(objects, options);
     strapWidth = lugWidth;
     upperStrapObject.set({
       originX: 'center',
       originY: 'bottom',
+      fill: inputStrapColor,
       left: mainCanvasHalfWidth,
       // strapを描く位置(高さ)を、ケースの位置から取得する
       top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
       // 入力値にあわせて幅と長さを拡大縮小
       scaleX: strapWidth / defaultStrapWidth,
-      scaleY: inputValueToPixel('upper-strap-length') / defaultUpperStrapLength,
+      scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
       // 線幅を保つ
       strokeUniform: true,
     });
+    // canvasに描画
     mainCanvas.add(upperStrapObject);
+    // ステッチ(再)描画
+    if (strapStitchExist === true) {
+      drawUpperStitch();
+    }
+    // ループ(再)描画
+    drawStrapLoop();
   });
-  // ベルト穴再描画
-  if (strapHoleObjects !== undefined) {
-    drawStrapHoles();
-  }
-  // ステッチ再描画
-  if (upperStrapStitchObject !== undefined || lowerStrapStitchObject !== undefined) {
-    drawStitch();
-  }
-  // 重なり順を直す
-  stackingOrder();
 }
-
+// 下ベルト本体 ----
 function drawLowerStrap() {
+  // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(lowerStrapObject);
+  // SVGファイル読み込み
   fabric.loadSVGFromURL('./assets/lower-strap.svg', (objects, options) =>{
     lowerStrapObject = fabric.util.groupSVGElements(objects, options);
     strapWidth = lugWidth;
     lowerStrapObject.set({
       originX: 'center',
+      fill: inputStrapColor,
       left: mainCanvasHalfWidth,
       // strapを描く位置(高さ)を、ケースの位置から取得する
       top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
       // 入力値にあわせて幅と長さを拡大縮小
       scaleX: strapWidth / defaultStrapWidth,
-      scaleY: inputValueToPixel('lower-strap-length') / defaultLowerStrapLength,
+      scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
       // 線幅を保つ
       strokeUniform: true,
     });
+    // canvasに描画
     mainCanvas.add(lowerStrapObject);
-  });
-  // ベルト穴再描画
-  if (strapHoleObjects !== undefined) {
+    // ステッチ(再)描画
+    if (strapStitchExist === true) {
+      drawLowerStitch();
+    }
+    // ベルト穴(再)描画
+    // もしすでにベルト穴が存在していたら書き直す
+    // 初めて描かれる場合でも、仮の個数と間隔で描画する
     drawStrapHoles();
-  }
-  // ステッチ再描画
-  if (upperStrapStitchObject !== undefined || lowerStrapStitchObject !== undefined) {
-    drawStitch();
-  }
-  // 重なり順を直す
-  stackingOrder();
+  });
+  //! loadSVGFromURLは非同期処理である事に注意
+  // {}外はloadSVGFromURLのコールバック関数外なので、SVGの読み込みより前に実行される可能性がある
+  // そのためここに書いた処理が行われるとき、まだlowerStrapObjectは存在していない
+  // よってlowerStrapObjectを使うような処理は{}内に書くこと
 }
 
-// ベルト穴を描く ---------------- 
+//* main ベルトループ ----------------------------------------
 
-// 変数定義
-let strapHoleObjects = [];
-let strapHoleQuantity = 6; // 初期値
-let strapHoleDistance = mmToPixel(7); // 初期値
-let upperStrapStitchObject;
-let lowerStrapStitchObject;
-let countDistance = 0; // 一番下の穴からどれくらい移動するかを保持する変数
+// ループを描く関数 ----------------
+function drawStrapLoop() {
+  // すでにオブジェクトが描かれていたらcanvasから削除
+  mainCanvas.remove(fixedStrapLoopObject);
+  mainCanvas.remove(moveableStrapLoopObject);
+  // ループオブジェクトを生成
+  // 固定ループ
+  fixedStrapLoopObject = new fabric.Rect({
+    width: strapWidth + mmToPixel(2),
+    height: mmToPixel(5),
+    originX: 'center',
+    fill: inputStrapColor,
+    left: mainCanvasHalfWidth,
+    top: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(8),
+    stroke: 'black',
+  });
+  mainCanvas.add(fixedStrapLoopObject);
+  // 可動ループ 固定ループの深いコピーで作る
+  moveableStrapLoopObject = fabric.util.object.clone(fixedStrapLoopObject);
+  moveableStrapLoopObject.set({
+    top: fixedStrapLoopObject.top + mmToPixel(5) + mmToPixel(10),
+  });
+  mainCanvas.add(moveableStrapLoopObject);
+}
 
-// inputで関数呼び出し
+//* main ベルト穴 ----------------------------------------
+
+// ベルト穴個数が選択されたら、ベルト穴を描く関数を呼び出し ----------------
 const strapHoleQuantityInputs = document.querySelectorAll('input[name="hole-quantity"]');
 strapHoleQuantityInputs.forEach(strapHoleQuantityInput => {
   strapHoleQuantityInput.addEventListener('input', () => {
+    // 変数に値を代入
     strapHoleQuantity = parseInt(strapHoleQuantityInput.value);
+    // 下ストラップがまだ無い場合はここでリターン
+    if(lowerStrapObject === undefined) {
+      alert('下ストラップの長さを入力してください');
+      return;
+    }
+    // ベルト穴を描く関数呼び出し
     drawStrapHoles();
   });
 });
 
+// ベルト穴間隔が選択されたら、ベルト穴を描く関数を呼び出し ----------------
 const holeDistanceInputs = document.querySelectorAll('input[name="hole-distance"]');
 holeDistanceInputs.forEach(holeDistanceInput => {
   holeDistanceInput.addEventListener('input', () => {
+    // 変数に値を代入
     strapHoleDistance = mmToPixel(parseInt(holeDistanceInput.value));
+    /// 下ストラップがまだ無い場合はここでリターン
+    if(lowerStrapObject === undefined) {
+      alert('下ストラップの長さを入力してください');
+      return;
+    }
+    // ベルト穴を描く関数呼び出し
     drawStrapHoles();
   });
 });
 
-// ベルト穴を描く関数
+// ベルト穴を描く関数 ----------------
 function drawStrapHoles() {
-  // canvasから前回のオブジェクトを取り除く
+  // すでにオブジェクトが描かれていたらcanvasから削除
   strapHoleObjects.forEach(strapHoleObject => {
     mainCanvas.remove(strapHoleObject);
   });
@@ -566,43 +662,68 @@ function drawStrapHoles() {
   // 前回分もあわせた、例えば14個のオブジェクトが描画されてしまう
   // よってここで配列を空にしておく
   strapHoleObjects = [];
-  
+  // ベルト穴オブジェクトを生成
   for(let i = 0; i < strapHoleQuantity ; i++) {
     const strapHoleObject = new fabric.Circle({
       radius: mmToPixel(0.75),
       originX: 'center',
       originY: 'center',
       left: mainCanvasHalfWidth,
-      top: lowerStrapObject.top + (lowerStrapObject.height * inputValueToPixel('lower-strap-length') / defaultLowerStrapLength) - mmToPixel(25) - countDistance,
+      top: lowerStrapObject.top + (lowerStrapObject.height * mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength) - mmToPixel(25) - countDistance,
       stroke: 'black',
       fill: 'white',
     });
     strapHoleObjects.push(strapHoleObject);
     countDistance += strapHoleDistance;
   }
+  // ベルト穴オブジェクトを描画
   strapHoleObjects.forEach(strapHoleObject => {
     mainCanvas.add(strapHoleObject);
   });
-  // 重なり順を直す
-  stackingOrder();
+  // 一番下の穴からどれくらい移動するかを保持する変数を0に戻す
+  countDistance = 0;
 }
 
-// ステッチを描く
+//* main ベルトステッチ ----------------------------------------
+
+// ステッチの有無が選択されたら、ステッチを描く関数を呼び出し ----------------
 const stitchInputs = document.querySelectorAll('input[name="stitch"]');
 stitchInputs.forEach(stitchInput => {
   stitchInput.addEventListener('input', () => {
-    if (stitchInput.value === 'with-stitch') {
-      drawStitch();
+    // ステッチの有無を変数に代入 inputする前の初期値はfalse
+    strapStitchExist = stitchInput.value;
+    if (strapStitchExist === 'true') {
+      strapStitchExist = true;
+    } else {
+      strapStitchExist = false;
+    }
+    // 上下両方もしくはどちらかのストラップがまだ無い場合はここでリターン
+    if (upperStrapObject === undefined || lowerStrapObject === undefined) {
+      alert('ストラップの長さを入力してください');
+      return;
+    }
+    // ステッチの有無がfalseならcanvasから削除
+    if (strapStitchExist === false) {
+      mainCanvas.remove(upperStrapStitchObject);
+      mainCanvas.remove(lowerStrapStitchObject);
+      mainCanvas.remove(topStitchObject);
+    }
+    // ステッチの有無がtrueならステッチを描く関数呼び出し
+    if (strapStitchExist === true) {
+      drawUpperStitch();
+      drawLowerStitch();
     }
   });
 });
 
-// ステッチを描く関数
-function drawStitch() {
+// ステッチを描く関数 ----------------
+// 上ベルトステッチ ----
+function drawUpperStitch() {
+  // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(upperStrapStitchObject);
-  mainCanvas.remove(lowerStrapStitchObject);
+  mainCanvas.remove(topStitchObject);
+  // 上ベルトステッチ生成
   // 基本はlowerStrapObjectと同じで、位置の調整と点線に変更
-  // upper
   fabric.loadSVGFromURL('./assets/upper-strap-stitch.svg', (objects, options) =>{
     upperStrapStitchObject = fabric.util.groupSVGElements(objects, options);
     strapWidth = lugWidth;
@@ -614,15 +735,45 @@ function drawStitch() {
       top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
       // 入力値にあわせて幅と長さを拡大縮小
       scaleX: strapWidth / defaultStrapWidth,
-      scaleY: inputValueToPixel('upper-strap-length') / defaultUpperStrapLength,
+      scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
       // 線幅を保つ
       strokeUniform: true,
       // 点線に
       strokeDashArray: [8, 2],
     });
+    // canvasに描画
     mainCanvas.add(upperStrapStitchObject);
+    // 重なり順を直す ステッチよりループが上にくるように
+    if (fixedStrapLoopObject !== undefined) {
+      fixedStrapLoopObject.bringToFront();
+    }
+    if (moveableStrapLoopObject !== undefined) {
+      moveableStrapLoopObject.bringToFront();
+    }
   });
-  // lower
+  // バックル近くのステッチ生成
+  topStitchObject = new fabric.Polyline([
+    {
+      x: mainCanvasHalfWidth - strapWidth / 2 + mmToPixel(2.5),
+      y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
+    },
+    {
+      x: mainCanvasHalfWidth + strapWidth / 2 - mmToPixel(2.5),
+      y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
+    }],
+    {
+      stroke: 'black',
+      strokeDashArray: [8, 2],
+    }
+  );
+  // canvasに描画
+  mainCanvas.add(topStitchObject);
+}
+// 下ベルトステッチ ----
+function drawLowerStitch() {
+  // すでにオブジェクトが描かれていたらcanvasから削除
+  mainCanvas.remove(lowerStrapStitchObject);
+  // 下ベルトステッチ生成
   fabric.loadSVGFromURL('./assets/lower-strap-stitch.svg', (objects, options) =>{
     lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
     strapWidth = lugWidth;
@@ -633,104 +784,148 @@ function drawStitch() {
       top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
       // 入力値にあわせて幅と長さを拡大縮小
       scaleX: strapWidth / defaultStrapWidth,
-      scaleY: inputValueToPixel('lower-strap-length') / defaultLowerStrapLength,
+      scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
       // 線幅を保つ
       strokeUniform: true,
       // 点線に
       strokeDashArray: [8, 2],
     });
+    // canvasに描画
     mainCanvas.add(lowerStrapStitchObject);
   });
-  // 重なり順を直す
-  stackingOrder();
 }
 
-// テスト用
-//* widthとheightを指定しても、余白がその分増えるだけで線を書いた部分のwidth/heightが指定できるわけではない。
-//* SVGを読み込んでFabric.jsオブジェクトに変換した場合、SVG内の要素はパスやシェイプとして解釈されます。このため、線のある部分を単独で拡大するという操作は、SVG要素の構造的な変更を伴うため、単純には行えません。
-// *SVG読み込み時には、周りに余白があっても無視されているようだ。
+//* main ベルト色 ----------------------------------------
 
-document.getElementById('button-for-test').addEventListener('click', () => {
-
+// 色を変えたいオブジェクトをまとめるための配列を準備
+let strapColorChangeLists;
+// 色が選択されたら、ベルトに色をつける関数呼び出し ----------------
+// もとから用意している色、もしくはカスタムカラー
+const strapColorInputs = document.querySelectorAll('input[name="strap-color"]');
+strapColorInputs.forEach(strapColorInput => {
+  strapColorInput.addEventListener('input', () => {
+    // オブジェクトを生成してから配列に入れないとundefinedが入ってエラーが出てしまうので、
+    // 色が選択された時点で配列にオブジェクトを入れる
+    strapColorChangeLists = [upperStrapObject, lowerStrapObject, fixedStrapLoopObject, moveableStrapLoopObject];
+    // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
+    switch(strapColorInput.value) {
+      case 'black':
+        inputStrapColor = 'black';
+        break;
+      case 'brown':
+        inputStrapColor = 'brown';
+        break;
+      case 'gray':
+        inputStrapColor = 'gray';
+        break;
+      case 'custom-color':
+        inputStrapColor = strapColorPicker.value;
+        break;
+    }
+    // オブジェクトに色をつける
+    applyStrapColor(strapColorChangeLists);
+  });
 });
 
-document.getElementById('button-for-test2').addEventListener('click', () => {
+// ベルトに色をつける関数 --------
+function applyStrapColor(array) {
+  array.forEach(object => {
+    if (object !== undefined) {
+      object.set({
+        fill: inputStrapColor,
+      });
+      mainCanvas.renderAll();
+    }
+  });
+}
 
-});
+//* case info canvas ---------------------------------------------------------------------------
 
+// fabricインスタンス ----------------------------------------
 
-// info canvas ----------------------------------------------------------------
-
-// fabricインスタンス ----------------
 const caseInfoCanvas = new fabric.StaticCanvas('case-info-canvas');
-// const caseInfoCanvas = new fabric.Canvas('case-info-canvas');
+
+// 変数定義 ----------------------------------------
+// サイズ ----
 const caseInfoCanvasCenterHeight = 118;
 const caseInfoCanvasHalfWidth = 130;
 const caseInfoCanvasCaseRadius = 45;
-const caseInfoCanvasOpeningRadius = 39;
-const caseInfoCanvasDialRadius = 36;
+const caseInfoCanvasCaseOpeningRadius = 39;
+const caseInfoCanvasDialOpeningRadius = 36;
 const caseInfoCanvasLugHalfDistance = 26;
+// オブジェクト ----
+const infoLugObjects = [];
+let infoCrownObject;
+let infoColorChangeLists;
+// Node ----
+const caseInfoComment = document.querySelector('.case-info-comment');
 
-// 時計の図を生成 ----------------
-// ケースなど
-const caseInfoCanvasCase = new WatchCircle({
+// case info canvas に時計の図を描画 ----------------------------------------
+
+// info ケース ----------------
+const infoCaseObject = new WatchCircle({
   radius: caseInfoCanvasCaseRadius,
   left: caseInfoCanvasHalfWidth,
   top: caseInfoCanvasCenterHeight,
 });
-const caseInfoCanvasOpening = new WatchCircle({
-  radius: caseInfoCanvasOpeningRadius,
+
+// info 見切り ----------------
+const infoCaseOpeningObject = new WatchCircle({
+  radius: caseInfoCanvasCaseOpeningRadius,
   left: caseInfoCanvasHalfWidth,
   top: caseInfoCanvasCenterHeight,
 });
-const caseInfoCanvasDial = new WatchCircle({
-  radius: caseInfoCanvasDialRadius,
+
+// info 文字盤 ----------------
+const infoDialOpeningObject = new WatchCircle({
+  radius: caseInfoCanvasDialOpeningRadius,
   left: caseInfoCanvasHalfWidth,
   top: caseInfoCanvasCenterHeight,
 });
-caseInfoCanvas.add(caseInfoCanvasCase, caseInfoCanvasOpening, caseInfoCanvasDial);
-// ラグ
-const infoLugArray = [];
-for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
+caseInfoCanvas.add(infoCaseObject, infoCaseOpeningObject, infoDialOpeningObject);
+
+// info ラグ ----------------
+for (let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
   fabric.loadSVGFromURL('./assets/lug-round.svg', (objects, options) => {
-    infoLugArray[i] = fabric.util.groupSVGElements(objects, options);
-    infoLugArray[i].set({
+    infoLugObjects[i] = fabric.util.groupSVGElements(objects, options);
+    infoLugObjects[i].set({
       originX: 'center',
       originY: 'center',
       left: caseInfoCanvasHalfWidth - caseInfoCanvasLugHalfDistance,
       top: caseInfoCanvasCenterHeight - 44,
     });
     if (i === 1 || i === 3) {
-      infoLugArray[i].set({
+      infoLugObjects[i].set({
         left: caseInfoCanvasHalfWidth + caseInfoCanvasLugHalfDistance,
       });
     }
     if(i === 2 || i === 3) {
-      infoLugArray[i].set({
+      infoLugObjects[i].set({
         flipY: true,
         top: caseInfoCanvasCenterHeight + 44,
       });
     }
-    caseInfoCanvas.add(infoLugArray[i]);
-    infoLugArray[i].sendToBack();
+    caseInfoCanvas.add(infoLugObjects[i]);
+    infoLugObjects[i].sendToBack();
   });
 }
-mainCanvas.renderAll();
-// リュウズ
-let caseInfoCanvasCrown;
+
+// info リュウズ ----------------
 fabric.loadSVGFromURL('./assets/crown-round_re.svg', (objects, options) => {
-  caseInfoCanvasCrown = fabric.util.groupSVGElements(objects, options);
-  caseInfoCanvasCrown.set({
+  infoCrownObject = fabric.util.groupSVGElements(objects, options);
+  infoCrownObject.set({
     originY: 'center',
     top: caseInfoCanvasCenterHeight,
     left: caseInfoCanvasHalfWidth + caseInfoCanvasCaseRadius,
   });
-  caseInfoCanvas.add(caseInfoCanvasCrown);
+  caseInfoCanvas.add(infoCrownObject);
 });
 
-// 矢印 ----------------
-// 矢印クラス
+// 矢印の準備 ----------------------------------------
+
+// 矢印クラス ----------------
 class Arrow {
+  // コンストラクタ
   constructor(radius) {
     this.leftMost = caseInfoCanvasHalfWidth - radius;
     this.rightMost = caseInfoCanvasHalfWidth + radius;
@@ -754,6 +949,7 @@ class Arrow {
       fill: 'transparent',
     });
   }
+  // メソッド
   drawArrow() {
     caseInfoCanvas.add(this.line, this.tipLeft, this.tipRight);
   }
@@ -761,73 +957,81 @@ class Arrow {
     caseInfoCanvas.remove(this.line, this.tipLeft, this.tipRight)
   }
 }
-const caseArrow = new Arrow(caseInfoCanvasCaseRadius);
-const openingArrow = new Arrow(caseInfoCanvasOpeningRadius);
-const dialArrow = new Arrow(caseInfoCanvasDialRadius);
-const lugArrow = new Arrow(caseInfoCanvasLugHalfDistance - lugThickness / 2);
 
-// 説明を表示 ----------------
-// 変数定義
-const infoIntroduction = document.querySelector('.info-introduction');
-const textBoxCase = document.getElementById('case-size');
-const textBoxOpening = document.getElementById('opening-size');
-const textBoxDial = document.getElementById('dial-size');
-const textBoxLug = document.getElementById('lug-width');
+// 矢印インスタンス ----------------
+// 円の半径を渡してインスタンスを生成
+const caseArrow = new Arrow(caseInfoCanvasCaseRadius);
+const openingArrow = new Arrow(caseInfoCanvasCaseOpeningRadius);
+const dialArrow = new Arrow(caseInfoCanvasDialOpeningRadius);
+const lugArrow = new Arrow(caseInfoCanvasLugHalfDistance - defaultLugThickness / 2);
+
+// case info canvas に説明を表示 ----------------------------------------
+
+// 表示するコメントの配列を準備 ----------------
 const comment = {
-  default: '入力するパーツの説明が表示されますよよよ',
-  caseSize: 'ケースの直径をmm単位で入力してくださいののの',
-  openingSize: 'ケース見切りの直径をmm単位で入力してください',
-  dialSize: '文字盤の直径をmm単位で入力してください',
+  default: '入力するパーツの説明が表示されます',
+  caseSize: 'ケースの直径をmm単位で入力してください',
+  caseOpeningSize: 'ケース見切りの直径をmm単位で入力してください',
+  dialOpeningSize: '文字盤の直径をmm単位で入力してください',
   lugWidth: 'ラグの間の距離をmm単位で入力してください',
   lugShape: 'ラグの形状を選択してください',
   crownShape: 'りゅうずの形状を選択してください',
-  metalColor: 'ケース、ラグ、りゅうずにつける色を選択してください',
+  caseColor: 'ケース、ラグ、りゅうずにつける色を選択してください',
 }
-// イベントで関数呼び出し
-// case
-textBoxCase.addEventListener('focus', () => {
-  appearArrowInfo(caseInfoCanvasCase, caseArrow);
-  fadeInComment(comment.caseSize);
-});
-textBoxCase.addEventListener('blur', () => {
-  disappearArrowInfo(caseInfoCanvasCase, caseArrow);
-  fadeOutComment();
-});
-textBoxCase.addEventListener('input', () => {
-  disappearArrowInfo(caseInfoCanvasCase, caseArrow);
-  fadeOutComment();
-});
-// opening
-textBoxOpening.addEventListener('focus', () => {
-  appearArrowInfo(caseInfoCanvasOpening, openingArrow);
-  fadeInComment(comment.openingSize);
-});
-textBoxOpening.addEventListener('blur', () => {
-  disappearArrowInfo(caseInfoCanvasOpening, openingArrow);
-  fadeOutComment();
-});
-textBoxOpening.addEventListener('input', () => {
-  disappearArrowInfo(caseInfoCanvasOpening, openingArrow);
-  fadeOutComment();
-});
-// dial
-textBoxDial.addEventListener('focus', () => {
-  appearArrowInfo(caseInfoCanvasDial, dialArrow);
-  fadeInComment(comment.dialSize);
-});
-textBoxDial.addEventListener('blur', () => {
-  disappearArrowInfo(caseInfoCanvasDial, dialArrow);
-  fadeOutComment();
-});
-textBoxDial.addEventListener('input', () => {
-  disappearArrowInfo(caseInfoCanvasDial, dialArrow);
-  fadeOutComment();
-});
-// lug
-textBoxLug.addEventListener('focus', () => {
+
+// ケース・ケース見切り・文字盤見切りの info を表示するための配列を準備 ----------------
+const caseInfoCircleLists = [
+  {
+    node: caseSizeInput,
+    arrow: caseArrow,
+    object: infoCaseObject,
+    comment: comment.caseSize,
+  },
+  {
+    node: caseOpeningSizeInput,
+    arrow: openingArrow,
+    object: infoCaseOpeningObject,
+    comment: comment.caseOpeningSize,
+  },
+  {
+    node: dialOpeningSizeInput,
+    arrow: dialArrow,
+    object: infoDialOpeningObject,
+    comment: comment.dialOpeningSize,
+  },
+];
+
+// ケース・ケース見切り・文字盤見切りの info を表示・非表示 ----------------
+// focus ----
+for(let i = 0; i < caseInfoCircleLists.length; i++) {
+  caseInfoCircleLists[i].node.addEventListener('focus', () => {
+    // 矢印を描画
+    caseInfoCircleLists[i].arrow.drawArrow();
+    // オブジェクトの線の色を変える
+    changeColorToRed(caseInfoCircleLists[i].object);
+    // コメントを表示
+    fadeInComment(caseInfoCircleLists[i].comment);
+  });
+}
+// blur(focusが外れた時) ----
+for(let i = 0; i < caseInfoCircleLists.length; i++) {
+  caseInfoCircleLists[i].node.addEventListener('blur', () => {
+    // 矢印を取り除く
+    caseInfoCircleLists[i].arrow.removeArrow();
+    // オブジェクトの線の色を変える
+    changeColorToBlack(caseInfoCircleLists[i].object);
+    // コメントを戻す
+    fadeOutComment();
+  });
+}
+
+// ラグ幅の info を表示・非表示 ----------------
+// focus ----
+lugWidthInput.addEventListener('focus', () => {
   lugArrow.drawArrow();
-  // 生成したオブジェクトの位置を書き換え
-  // memo: インスタンスのフィールドであるlineなどがfabricオブジェクト？
+  // drawArrow で描いた矢印の top は円の中心なので、位置を書き換える
+  // インスタンスのフィールドであるlineなどがfabricオブジェクトなので、
+  // lugArrow ではなく lugArrow.line に set する
   lugArrow.line.set({
     top: caseInfoCanvasCenterHeight - caseInfoCanvasCaseRadius - 6,
   });
@@ -837,117 +1041,128 @@ textBoxLug.addEventListener('focus', () => {
   lugArrow.tipRight.set({
     top: caseInfoCanvasCenterHeight - caseInfoCanvasCaseRadius - 12,
   });
+  // コメントを表示
   fadeInComment(comment.lugWidth);
 });
-textBoxLug.addEventListener('blur', () => {
+// blur(focusが外れた時) ----
+lugWidthInput.addEventListener('blur', () => {
+  // 矢印を取り除く
   lugArrow.removeArrow();
+  // コメントを戻す
   fadeOutComment();
 });
-textBoxLug.addEventListener('input', () => {
+// input ----
+lugWidthInput.addEventListener('input', () => {
+  // 矢印を取り除く
   lugArrow.removeArrow();
+  // コメントを戻す
   fadeOutComment();
 });
-// lug shape
-const lugLists = document.querySelectorAll('.shape-list-lug li');
-lugLists.forEach(list => {
-  list.addEventListener('mouseover', () => {
-    infoLugArray.forEach(lug => {
-      appearShapeInfo(lug, comment.lugShape);
-    });
-  });
-  list.addEventListener('mouseleave', () => {
-    infoLugArray.forEach(lug => {
-      disappearShapeInfo(lug);
-    });
+
+// ラグ形状の info を表示・非表示 ----------------
+// mouseover ----
+document.querySelector('.shape-list-lug').addEventListener('mouseover', () => {
+  infoLugObjects.forEach(infoLugObject => {
+    // オブジェクトの線の色を変える
+    changeColorToRed(infoLugObject);
+    // コメントを表示
+    fadeInComment(comment.lugShape);
   });
 });
-// crown shape
-const crownLists = document.querySelectorAll('.shape-list-crown li');
-crownLists.forEach(list => {
-  list.addEventListener('mouseover', () => {
-    appearShapeInfo(caseInfoCanvasCrown, comment.crownShape);
-  });
-  list.addEventListener('mouseleave', () => {
-    disappearShapeInfo(caseInfoCanvasCrown);
-  });
-});
-// metal color
-let colorChangeLists;
-window.addEventListener('load', () => {
-  // 色を変えたいオブジェクトを配列にまとめておく
-  colorChangeLists = [caseInfoCanvasCase, caseInfoCanvasCrown, ...infoLugArray];
-});
-const colorLists = document.querySelectorAll('.shape-list-color li');
-colorLists.forEach(list => {
-  list.addEventListener('mouseover', () => {
-    colorChangeLists.forEach(colorChangeList => {
-      colorChangeList.set({
-        fill: '#e2e2e2',
-      });
-    });
-    caseInfoCanvas.renderAll();
-    infoIntroduction.textContent = comment.metalColor;
-  });
-  list.addEventListener('mouseleave', () => {
-    colorChangeLists.forEach(colorChangeList => {
-      colorChangeList.set({
-        fill: 'white',
-      });
-    });
-    caseInfoCanvas.renderAll();
-    infoIntroduction.textContent = comment.default;
+// mouseleave ----
+document.querySelector('.shape-list-lug').addEventListener('mouseleave', () => {
+  infoLugObjects.forEach(infoLugObject => {
+    // オブジェクトの線の色を変える
+    changeColorToBlack(infoLugObject);
+    // コメントを戻す
+    fadeOutComment();
   });
 });
 
-// 説明(矢印つき)を表示,非表示する関数
-function appearArrowInfo(object, arrow) {
-  object.set({
-    stroke: 'red',
-  });
-  arrow.drawArrow();
-}
-function disappearArrowInfo(object, arrow) {
-  object.set({
-    stroke: 'black',
-  });
-  arrow.removeArrow();
-}
+// リュウズ形状の info を表示・非表示 ----------------
+// mouseover ----
+document.querySelector('.shape-list-crown').addEventListener('mouseover', () => {
+  // オブジェクトの線の色を変える
+  changeColorToRed(infoCrownObject);
+  // コメントを表示
+  fadeInComment(comment.crownShape);
+});
+// mouseleave ----
+document.querySelector('.shape-list-crown').addEventListener('mouseleave', () => {
+  // オブジェクトの線の色を変える
+  changeColorToBlack(infoCrownObject);
+  // コメントを戻す
+  fadeOutComment();
+});
 
-// 説明(形)を表示,非表示する関数
-function appearShapeInfo(object, com) {
+// ケース色の info を表示・非表示 ----------------
+// mouseover ----
+document.querySelector('.shape-list-color').addEventListener('mouseover', () => {
+  // mouseoverした時点で配列に値を入れる
+  // loadした時点で配列に値を入れる処理にしていたらエラーが出ることがあったので注意
+  infoColorChangeLists = [infoCaseObject, infoCrownObject, ...infoLugObjects];
+  console.log(infoColorChangeLists);
+  // オブジェクトの色を変える
+  infoColorChangeLists.forEach(colorChangeList => {
+    colorChangeList.set({
+      fill: '#e2e2e2',
+    });
+  });
+  caseInfoCanvas.renderAll();
+  // コメントを表示
+  fadeInComment(comment.caseColor);
+});
+// mouseleave ----
+document.querySelector('.shape-list-color').addEventListener('mouseleave', () => {
+  // オブジェクトの色を変える
+  infoColorChangeLists.forEach(colorChangeList => {
+    colorChangeList.set({
+      fill: 'white',
+    });
+  });
+  caseInfoCanvas.renderAll();
+  // コメントを戻す
+  fadeOutComment();
+});
+
+// オブジェクトの線の色を変更する関数 ----------------
+// 引数に線の色を変えるオブジェクトを受け取る
+// 赤にする ----
+function changeColorToRed(object) {
   object.set({
     stroke: 'red',
   });
   caseInfoCanvas.renderAll();
-  infoIntroduction.textContent = com;
 }
-function disappearShapeInfo(object) {
+// 黒に戻す ----
+function changeColorToBlack(object) {
   object.set({
     stroke: 'black',
   });
   caseInfoCanvas.renderAll();
-  infoIntroduction.textContent = comment.default;
 }
 
-// ふわっとテキストを切り替え
+// ふわっとコメントを切り替える関数 ----------------
+// 引数に表示する文字列を受け取る
+// 表示する ----
 function fadeInComment(com) {
-  infoIntroduction.style.opacity = 0;
-  infoIntroduction.textContent = com;
+  // いったん透明にして
+  caseInfoComment.style.opacity = 0;
+  // コメントを変更して
+  caseInfoComment.textContent = com;
+  // ふわっと表示
   setTimeout(() => {
-    infoIntroduction.style.transition = 'all .5s';
-    infoIntroduction.style.opacity = '1';
+    caseInfoComment.style.transition = 'all .5s';
+    caseInfoComment.style.opacity = '1';
   }, 10);
 }
+// デフォルトに戻す ----
 function fadeOutComment() {
-  infoIntroduction.style.transition = 'none';
-  infoIntroduction.textContent = comment.default;
+  caseInfoComment.style.transition = 'none';
+  caseInfoComment.textContent = comment.default;
 }
 
-
-
-
-
-// 確認用コード ----------------------------------------------------------------
+//* 確認用コード ----------------------------------------------------------------------------------
 
 // canvasの(ページの？)座標をconsoleに表示する ----------------
 const headerHeight = 62;
@@ -955,12 +1170,7 @@ mainCanvas.on('mouse:down', function(options) {
   console.log(`x座標:${options.e.clientX}`, `y座標:${options.e.clientY - headerHeight}`);
 });
 
-
-
-
-
-// test -----------------------------------------------------------------------------------
-
+//* test -----------------------------------------------------------------------------------------
 
 // const text = new fabric.Text('hello', {
 //   left: 100,
@@ -1026,6 +1236,25 @@ canvasRange.addEventListener('input', () => {
 const ctx = document.getElementById('test-canvas').getContext('2d');
 ctx.font = '14px sans-serif';
 ctx.fillText('ケースの直径を入力', 10, 50);
+
+
+
+//* テスト用 -------------------------------------------------------------------------
+const testButton1 = document.getElementById('button-for-test');
+testButton1.addEventListener('click', () => {
+  console.log(roundLug);
+  console.log(typeof(roundLug));
+  });
+
+document.getElementById('button-for-test2').addEventListener('click', () => {
+
+
+});
+//* テスト用 -------------------------------------------------------------------------
+
+
+
+//* export ---------------------------------------------------------------------------------------
 
 export { mainCanvas };
 
