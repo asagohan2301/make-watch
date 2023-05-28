@@ -236,12 +236,27 @@ caseSizeInput.addEventListener('input', () => {
     }
   }
   // ベルト再描画
-  // すでに上ベルトが描かれていたら、再描画する
+  // すでにベルトが描かれていたら、再描画する
+  //* test
   if (upperStrapObject !== undefined) {
-    drawUpperStrap();
+    switch(strapShape) {
+      case 'straight':
+        upperStraightStrap.drawUpperStrap();
+        break;
+      case 'taper':
+        upperTaperStrap.drawUpperStrap();
+        break;
+    }
   }
   if (lowerStrapObject !== undefined) {
-    drawLowerStrap();
+    switch(strapShape) {
+      case 'straight':
+        lowerStraightStrap.drawLowerStrap();
+        break;
+      case 'taper':
+        lowerTaperStrap.drawLowerStrap();
+        break;
+    }
   }
   // 重なり順を直す
   caseStackingOrder();
@@ -298,11 +313,28 @@ lugWidthInput.addEventListener('input', () => {
   }
   // ベルト再描画
   // ラグ幅が変更されたらベルトの幅も変わるので
+  // ベルト再描画
+  // すでにベルトが描かれていたら、再描画する
+  //* test
   if (upperStrapObject !== undefined) {
-    drawUpperStrap();
+    switch(strapShape) {
+      case 'straight':
+        upperStraightStrap.drawUpperStrap();
+        break;
+      case 'taper':
+        upperTaperStrap.drawUpperStrap();
+        break;
+    }
   }
   if (lowerStrapObject !== undefined) {
-    drawLowerStrap();
+    switch(strapShape) {
+      case 'straight':
+        lowerStraightStrap.drawLowerStrap();
+        break;
+      case 'taper':
+        lowerTaperStrap.drawLowerStrap();
+        break;
+    }
   }
 });
 
@@ -930,82 +962,82 @@ const lowerTaperStitch = new WatchLowerStitch('./assets/lower-taper-stitch.svg')
 
 // ステッチを描く関数 ----------------
 // 上ベルトステッチ ----
-function drawUpperStitch() {
-  // すでにオブジェクトが描かれていたらcanvasから削除
-  mainCanvas.remove(upperStrapStitchObject);
-  mainCanvas.remove(topStitchObject);
-  // 上ベルトステッチ生成
-  // 基本はlowerStrapObjectと同じで、位置の調整と点線に変更
-  fabric.loadSVGFromURL('./assets/upper-taper-strap-stitch.svg', (objects, options) =>{
-    upperStrapStitchObject = fabric.util.groupSVGElements(objects, options);
-    strapWidth = lugWidth;
-    upperStrapStitchObject.set({
-      originX: 'center',
-      originY: 'bottom',
-      left: mainCanvasHalfWidth,
-      // strapを描く位置(高さ)を、ケースの位置から取得する 3mm上に移動する
-      top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
-      // 入力値にあわせて幅と長さを拡大縮小
-      scaleX: strapWidth / defaultStrapWidth,
-      scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
-      // 線幅を保つ
-      strokeUniform: true,
-      // 点線に
-      strokeDashArray: [8, 2],
-    });
-    // canvasに描画
-    mainCanvas.add(upperStrapStitchObject);
-    // 重なり順を直す ステッチよりループが上にくるように
-    if (fixedStrapLoopObject !== undefined) {
-      fixedStrapLoopObject.bringToFront();
-    }
-    if (moveableStrapLoopObject !== undefined) {
-      moveableStrapLoopObject.bringToFront();
-    }
-  });
+// function drawUpperStitch() {
+//   // すでにオブジェクトが描かれていたらcanvasから削除
+//   mainCanvas.remove(upperStrapStitchObject);
+//   mainCanvas.remove(topStitchObject);
+//   // 上ベルトステッチ生成
+//   // 基本はlowerStrapObjectと同じで、位置の調整と点線に変更
+//   fabric.loadSVGFromURL('./assets/upper-taper-strap-stitch.svg', (objects, options) =>{
+//     upperStrapStitchObject = fabric.util.groupSVGElements(objects, options);
+//     strapWidth = lugWidth;
+//     upperStrapStitchObject.set({
+//       originX: 'center',
+//       originY: 'bottom',
+//       left: mainCanvasHalfWidth,
+//       // strapを描く位置(高さ)を、ケースの位置から取得する 3mm上に移動する
+//       top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
+//       // 入力値にあわせて幅と長さを拡大縮小
+//       scaleX: strapWidth / defaultStrapWidth,
+//       scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
+//       // 線幅を保つ
+//       strokeUniform: true,
+//       // 点線に
+//       strokeDashArray: [8, 2],
+//     });
+//     // canvasに描画
+//     mainCanvas.add(upperStrapStitchObject);
+//     // 重なり順を直す ステッチよりループが上にくるように
+//     if (fixedStrapLoopObject !== undefined) {
+//       fixedStrapLoopObject.bringToFront();
+//     }
+//     if (moveableStrapLoopObject !== undefined) {
+//       moveableStrapLoopObject.bringToFront();
+//     }
+//   });
   // バックル近くのステッチ生成
-  topStitchObject = new fabric.Polyline([
-    {
-      x: mainCanvasHalfWidth - strapWidth / 2 + mmToPixel(2.5),
-      y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
-    },
-    {
-      x: mainCanvasHalfWidth + strapWidth / 2 - mmToPixel(2.5),
-      y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
-    }],
-    {
-      stroke: 'black',
-      strokeDashArray: [8, 2],
-    }
-  );
-  // canvasに描画
-  mainCanvas.add(topStitchObject);
-}
+//   topStitchObject = new fabric.Polyline([
+//     {
+//       x: mainCanvasHalfWidth - strapWidth / 2 + mmToPixel(2.5),
+//       y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
+//     },
+//     {
+//       x: mainCanvasHalfWidth + strapWidth / 2 - mmToPixel(2.5),
+//       y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
+//     }],
+//     {
+//       stroke: 'black',
+//       strokeDashArray: [8, 2],
+//     }
+//   );
+//   // canvasに描画
+//   mainCanvas.add(topStitchObject);
+// }
 // 下ベルトステッチ ----
-function drawLowerStitch() {
-  // すでにオブジェクトが描かれていたらcanvasから削除
-  mainCanvas.remove(lowerStrapStitchObject);
-  // 下ベルトステッチ生成
-  fabric.loadSVGFromURL('./assets/lower-taper-strap-stitch.svg', (objects, options) =>{
-    lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
-    strapWidth = lugWidth;
-    lowerStrapStitchObject.set({
-      originX: 'center',
-      left: mainCanvasHalfWidth,
-      // strapを描く位置(高さ)を、ケースの位置から取得する 3mm下に移動する
-      top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
-      // 入力値にあわせて幅と長さを拡大縮小
-      scaleX: strapWidth / defaultStrapWidth,
-      scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
-      // 線幅を保つ
-      strokeUniform: true,
-      // 点線に
-      strokeDashArray: [8, 2],
-    });
-    // canvasに描画
-    mainCanvas.add(lowerStrapStitchObject);
-  });
-}
+// function drawLowerStitch() {
+//   // すでにオブジェクトが描かれていたらcanvasから削除
+//   mainCanvas.remove(lowerStrapStitchObject);
+//   // 下ベルトステッチ生成
+//   fabric.loadSVGFromURL('./assets/lower-taper-strap-stitch.svg', (objects, options) =>{
+//     lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
+//     strapWidth = lugWidth;
+//     lowerStrapStitchObject.set({
+//       originX: 'center',
+//       left: mainCanvasHalfWidth,
+//       // strapを描く位置(高さ)を、ケースの位置から取得する 3mm下に移動する
+//       top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
+//       // 入力値にあわせて幅と長さを拡大縮小
+//       scaleX: strapWidth / defaultStrapWidth,
+//       scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
+//       // 線幅を保つ
+//       strokeUniform: true,
+//       // 点線に
+//       strokeDashArray: [8, 2],
+//     });
+//     // canvasに描画
+//     mainCanvas.add(lowerStrapStitchObject);
+//   });
+// }
 
 //* main ベルト色 ----------------------------------------
 
