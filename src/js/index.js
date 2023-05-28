@@ -512,6 +512,14 @@ function applyCaseColor() {
       });
     });
   }
+  //* buckle追加
+  if (buckleObject !== undefined) {
+    buckleObject._objects.forEach(object => {
+      object.set({
+        fill: inputCaseColor,
+      });
+    });
+  }
   //* ここでrenderAllを書かないと、オブジェクトを生成し直さないと色が変わらない
   //* setで値を変更したとき、オブジェクトにすぐに反映させたい場合はrenderAllが必要てことかな
   mainCanvas.renderAll();
@@ -546,6 +554,7 @@ let topStitchObject;
 let strapStitchExist = false; // ストラップ有無 初期値はfalse
 // バックル
 let buckleObject;
+let buckleShape = 'round'; // 初期値
 
 // Node
 const upperStrapLengthInput = document.getElementById('upper-strap-length');
@@ -594,6 +603,19 @@ class WatchUpperStrap {
       }
       // ループ(再)描画
       drawStrapLoop();
+      //* バックル再描画
+      //* まだ形が選ばれていない場合は描画しなくてよいかな
+      //* すでに形が選ばれていた時だけ、描画しなおす
+      if (buckleObject !== undefined) {
+        switch(buckleShape) {
+          case 'round':
+            roundBuckle.drawBuckle();
+            break;
+          case 'square':
+            squareBuckle.drawBuckle();
+            break;
+        }
+      }
     });
   }
 }
@@ -994,47 +1016,75 @@ function applyStrapColor(array) {
 
 //* main バックル ----------------------------------------
 
+// バックルのクラス ----------------
+class WatchBuckle {
+  constructor(url) {
+    this.url = url;
+  }
+  drawBuckle() {
+    // すでにオブジェクトが描かれていたらcanvasから削除
+    mainCanvas.remove(buckleObject);
+    // バックルオブジェクト生成
+    fabric.loadSVGFromURL(this.url, (objects, options) => {
+      buckleObject = fabric.util.groupSVGElements(objects, options);
+      buckleObject.set({
+        originX: 'center',
+        left: mainCanvasHalfWidth,
+        originY:'bottom',
+        // バックルを描く位置(高さ)を、上ベルトの位置から取得する
+        top: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(4),
+        // 幅と長さを拡大縮小
+        //* 調整が必要
+        scaleX: strapWidth / defaultStrapWidth,
+        scaleY: strapWidth / defaultStrapWidth,
+        // 線幅を保つ
+        // strokeUniform: true,
+      });
+      // fabric.util.groupSVGElementsは、複数のSVGパスをグループ化して1つのオブジェクトとして作成する。
+      // この場合、fillなどの属性は直接設定できないが、
+      // グループオブジェクト内の各パスには、_objectsというプロパティでアクセスできる。
+      // このプロパティはパスの配列となっており、個々のパスに対して属性を変更することができる。
+      buckleObject._objects.forEach(object => {
+        object.set({
+          fill: inputCaseColor,
+          // 線幅を保つ
+          strokeUniform: true,
+        });
+      });
+      // canvasに描画
+      mainCanvas.add(buckleObject);
+      //* 重なり順を直す 上ベルトよりバックルが上にくるように
+      //* バックルは上ベルトより後から書かれるからなくてokかな
+      // buckleObject.bringToFront();
+    });
+  }
+}
+
+// バックルインスタンス生成 ----------------
+const roundBuckle = new WatchBuckle('./assets/buckle-round.svg');
+const squareBuckle = new WatchBuckle('./assets/buckle-square.svg');
+
 // バックルの形状が選択されたら、バックルを描く関数を呼び出し ----------------
 buckleShapeInputs.forEach(buckleShapeInput => {
   buckleShapeInput.addEventListener('input', () => {
-    drawBuckle();
+    // 変数に値を代入
+    buckleShape = buckleShapeInput.value;
+    /// 上ストラップがまだ無い場合はここでリターン
+    if(upperStrapObject === undefined) {
+      alert('上ストラップの長さを入力してください');
+      return;
+    }
+    // バックルを描く関数呼び出し
+    switch(buckleShape) {
+      case 'round':
+        roundBuckle.drawBuckle();
+        break;
+      case 'square':
+        squareBuckle.drawBuckle();
+        break;
+    }
   });
 });
-
-// バックルを描く関数 ----------------
-function drawBuckle() {
-  // すでにオブジェクトが描かれていたらcanvasから削除
-  mainCanvas.remove(buckleObject);
-  // バックルオブジェクト生成
-  fabric.loadSVGFromURL('./assets/buckle-square.svg', (objects, options) => {
-    buckleObject = fabric.util.groupSVGElements(objects, options);
-    buckleObject.set({
-      originX: 'center',
-      left: mainCanvasHalfWidth,
-      originY:'bottom',
-      // バックルを描く位置(高さ)を、上ベルトの位置から取得する
-      top: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(4),
-      // 入力値にあわせて幅と長さを拡大縮小
-      //* ここの調整が必要
-      scaleX: strapWidth / defaultStrapWidth,
-      scaleY: strapWidth / defaultStrapWidth,
-      // 線幅を保つ
-      strokeUniform: true,
-    });
-    // fabric.util.groupSVGElementsは、複数のSVGパスをグループ化して1つのオブジェクトとして作成する。
-    // この場合、fillなどの属性は直接設定できないが、
-    // グループオブジェクト内の各パスには、_objectsというプロパティでアクセスできる。
-    // このプロパティはパスの配列となっており、個々のパスに対して属性を変更することができる。
-    buckleObject._objects.forEach(object => {
-      object.set({
-        fill: inputCaseColor,
-      });
-    });
-    // canvasに描画
-    mainCanvas.add(buckleObject);
-  });
-}
-
 
 //* case info canvas ---------------------------------------------------------------------------
 
