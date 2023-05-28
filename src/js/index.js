@@ -237,7 +237,6 @@ caseSizeInput.addEventListener('input', () => {
   }
   // ベルト再描画
   // すでにベルトが描かれていたら、再描画する
-  //* test
   if (upperStrapObject !== undefined) {
     switch(strapShape) {
       case 'straight':
@@ -291,7 +290,6 @@ dialOpeningSizeInput.addEventListener('input', () => {
 //* main ラグ ----------------------------------------
 
 // ラグ幅が入力されたらcanvasに描画 ----------------
-// const lugShapeInputs = document.querySelectorAll('input[name="lug-shape"]');
 lugWidthInput.addEventListener('input', () => {
   // lugWidthに値を代入
   lugWidth = mmToPixel(lugWidthInput.value);
@@ -311,11 +309,8 @@ lugWidthInput.addEventListener('input', () => {
       squareLug.drawLug();
       break;
   }
-  // ベルト再描画
-  // ラグ幅が変更されたらベルトの幅も変わるので
-  // ベルト再描画
-  // すでにベルトが描かれていたら、再描画する
-  //* test
+  // ベルト(再)描画
+  // ラグ幅が変更されたらベルトの幅も変わるので再描画する
   if (upperStrapObject !== undefined) {
     switch(strapShape) {
       case 'straight':
@@ -476,7 +471,6 @@ const pinkGoldGradation = new Gradation({
 // 色が選択されたとき、オブジェクトがすでにあれば色を付ける
 // オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色を付ける
 // オブジェクトの有無は呼び出し先の関数で判定
-// const caseColorInputs = document.querySelectorAll('input[name="case-color"]');
 caseColorInputs.forEach(caseColorInput => {
   caseColorInput.addEventListener('input', () => {
     // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
@@ -550,6 +544,8 @@ let upperStrapStitchObject;
 let lowerStrapStitchObject;
 let topStitchObject;
 let strapStitchExist = false; // ストラップ有無 初期値はfalse
+// バックル
+let buckleObject;
 
 // Node
 const upperStrapLengthInput = document.getElementById('upper-strap-length');
@@ -587,7 +583,6 @@ class WatchUpperStrap {
       mainCanvas.add(upperStrapObject);
       // ステッチ(再)描画
       if (strapStitchExist === true) {
-        //* test
         switch(strapShape) {
           case 'straight':
             upperStraightStitch.drawUpperStitch();
@@ -758,7 +753,6 @@ strapHoleQuantityInputs.forEach(strapHoleQuantityInput => {
 });
 
 // ベルト穴間隔が選択されたら、ベルト穴を描く関数を呼び出し ----------------
-// const holeDistanceInputs = document.querySelectorAll('input[name="hole-distance"]');
 strapHoleDistanceInputs.forEach(holeDistanceInput => {
   holeDistanceInput.addEventListener('input', () => {
     // 変数に値を代入
@@ -817,11 +811,9 @@ strapStitchInputs.forEach(stitchInput => {
     } else {
       strapStitchExist = false;
     }
-    //* test
-    //* ベルトの形状で分ける
     // 上下両方もしくはどちらかのストラップがまだ無い場合はここでリターン
     if (upperStrapObject === undefined || lowerStrapObject === undefined) {
-      alert('ストラップの長さを入力してください');
+      alert('ストラップの長さを上下それぞれ入力してください');
       return;
     }
     // ステッチの有無がfalseならcanvasから削除
@@ -832,7 +824,6 @@ strapStitchInputs.forEach(stitchInput => {
     }
     // ステッチの有無がtrueならステッチを描く関数呼び出し
     if (strapStitchExist === true) {
-      //* test
       switch(strapShape) {
         case 'straight':
           upperStraightStitch.drawUpperStitch();
@@ -843,8 +834,6 @@ strapStitchInputs.forEach(stitchInput => {
           lowerTaperStitch.drawLowerStitch();
           break;
       }
-      // drawUpperStitch();
-      // drawLowerStitch();
     }
   });
 });
@@ -903,7 +892,7 @@ class WatchUpperStitch {
         strokeDashArray: [8, 2],
       }
     );
-    //* test
+    // ベルト形状がストレートの場合、バックル近くのステッチの幅を長くする
     if (strapShape === 'straight') {
       topStitchObject.set({
         points: [
@@ -959,86 +948,6 @@ const upperTaperStitch = new WatchUpperStitch('./assets/upper-taper-stitch.svg')
 const lowerStraightStitch = new WatchLowerStitch('./assets/lower-straight-stitch.svg');
 const lowerTaperStitch = new WatchLowerStitch('./assets/lower-taper-stitch.svg');
 
-
-// ステッチを描く関数 ----------------
-// 上ベルトステッチ ----
-// function drawUpperStitch() {
-//   // すでにオブジェクトが描かれていたらcanvasから削除
-//   mainCanvas.remove(upperStrapStitchObject);
-//   mainCanvas.remove(topStitchObject);
-//   // 上ベルトステッチ生成
-//   // 基本はlowerStrapObjectと同じで、位置の調整と点線に変更
-//   fabric.loadSVGFromURL('./assets/upper-taper-strap-stitch.svg', (objects, options) =>{
-//     upperStrapStitchObject = fabric.util.groupSVGElements(objects, options);
-//     strapWidth = lugWidth;
-//     upperStrapStitchObject.set({
-//       originX: 'center',
-//       originY: 'bottom',
-//       left: mainCanvasHalfWidth,
-//       // strapを描く位置(高さ)を、ケースの位置から取得する 3mm上に移動する
-//       top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
-//       // 入力値にあわせて幅と長さを拡大縮小
-//       scaleX: strapWidth / defaultStrapWidth,
-//       scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
-//       // 線幅を保つ
-//       strokeUniform: true,
-//       // 点線に
-//       strokeDashArray: [8, 2],
-//     });
-//     // canvasに描画
-//     mainCanvas.add(upperStrapStitchObject);
-//     // 重なり順を直す ステッチよりループが上にくるように
-//     if (fixedStrapLoopObject !== undefined) {
-//       fixedStrapLoopObject.bringToFront();
-//     }
-//     if (moveableStrapLoopObject !== undefined) {
-//       moveableStrapLoopObject.bringToFront();
-//     }
-//   });
-  // バックル近くのステッチ生成
-//   topStitchObject = new fabric.Polyline([
-//     {
-//       x: mainCanvasHalfWidth - strapWidth / 2 + mmToPixel(2.5),
-//       y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
-//     },
-//     {
-//       x: mainCanvasHalfWidth + strapWidth / 2 - mmToPixel(2.5),
-//       y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
-//     }],
-//     {
-//       stroke: 'black',
-//       strokeDashArray: [8, 2],
-//     }
-//   );
-//   // canvasに描画
-//   mainCanvas.add(topStitchObject);
-// }
-// 下ベルトステッチ ----
-// function drawLowerStitch() {
-//   // すでにオブジェクトが描かれていたらcanvasから削除
-//   mainCanvas.remove(lowerStrapStitchObject);
-//   // 下ベルトステッチ生成
-//   fabric.loadSVGFromURL('./assets/lower-taper-strap-stitch.svg', (objects, options) =>{
-//     lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
-//     strapWidth = lugWidth;
-//     lowerStrapStitchObject.set({
-//       originX: 'center',
-//       left: mainCanvasHalfWidth,
-//       // strapを描く位置(高さ)を、ケースの位置から取得する 3mm下に移動する
-//       top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
-//       // 入力値にあわせて幅と長さを拡大縮小
-//       scaleX: strapWidth / defaultStrapWidth,
-//       scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
-//       // 線幅を保つ
-//       strokeUniform: true,
-//       // 点線に
-//       strokeDashArray: [8, 2],
-//     });
-//     // canvasに描画
-//     mainCanvas.add(lowerStrapStitchObject);
-//   });
-// }
-
 //* main ベルト色 ----------------------------------------
 
 // 色を変えたいオブジェクトをまとめるための配列を準備
@@ -1082,6 +991,50 @@ function applyStrapColor(array) {
     }
   });
 }
+
+//* main バックル ----------------------------------------
+
+// バックルの形状が選択されたら、バックルを描く関数を呼び出し ----------------
+buckleShapeInputs.forEach(buckleShapeInput => {
+  buckleShapeInput.addEventListener('input', () => {
+    drawBuckle();
+  });
+});
+
+// バックルを描く関数 ----------------
+function drawBuckle() {
+  // すでにオブジェクトが描かれていたらcanvasから削除
+  mainCanvas.remove(buckleObject);
+  // バックルオブジェクト生成
+  fabric.loadSVGFromURL('./assets/buckle-square.svg', (objects, options) => {
+    buckleObject = fabric.util.groupSVGElements(objects, options);
+    buckleObject.set({
+      originX: 'center',
+      left: mainCanvasHalfWidth,
+      originY:'bottom',
+      // バックルを描く位置(高さ)を、上ベルトの位置から取得する
+      top: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(4),
+      // 入力値にあわせて幅と長さを拡大縮小
+      //* ここの調整が必要
+      scaleX: strapWidth / defaultStrapWidth,
+      scaleY: strapWidth / defaultStrapWidth,
+      // 線幅を保つ
+      strokeUniform: true,
+    });
+    // fabric.util.groupSVGElementsは、複数のSVGパスをグループ化して1つのオブジェクトとして作成する。
+    // この場合、fillなどの属性は直接設定できないが、
+    // グループオブジェクト内の各パスには、_objectsというプロパティでアクセスできる。
+    // このプロパティはパスの配列となっており、個々のパスに対して属性を変更することができる。
+    buckleObject._objects.forEach(object => {
+      object.set({
+        fill: inputCaseColor,
+      });
+    });
+    // canvasに描画
+    mainCanvas.add(buckleObject);
+  });
+}
+
 
 //* case info canvas ---------------------------------------------------------------------------
 
@@ -1484,7 +1437,28 @@ ctx.fillText('ケースの直径を入力', 10, 50);
 //* テスト用 -------------------------------------------------------------------------
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
-  straightUpperStrap.drawUpperStrap();
+
+  // ここから試しコードを書く ----------------------------
+  fabric.loadSVGFromURL('./assets/buckle-square.svg', (objects, options) => {
+    const buckle = fabric.util.groupSVGElements(objects, options);
+    buckle.set({
+      top: 200,
+      left: 200,
+    });
+    //fabric.util.groupSVGElementsメソッドは、複数のSVGパスをグループ化して1つのオブジェクトとして作成します。この場合、各パスのfillやstrokeなどの属性は、グループオブジェクトにまとめられるため、直接それぞれのパスに対してfillを設定することはできません。
+    //グループオブジェクト内の各パスには、_objectsというプロパティでアクセスできます。このプロパティはパスの配列となっており、個々のパスに対して属性を変更することができます。
+    console.log(buckle);
+    console.log(buckle._objects);
+    buckle._objects.forEach(object => {
+      object.set({
+        fill: goldGradation,
+      });
+    });
+    mainCanvas.add(buckle);
+
+  });
+  // ここまで試しコードを書く ----------------------------
+
 });
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
