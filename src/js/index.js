@@ -132,32 +132,25 @@ document.querySelector('.component:first-child .workspace').classList.add('appea
 const tabs = document.querySelectorAll('.tab');
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
-
-    //* test
-    //* ベルトタブをクリックしたときにまだケースとラグ幅が入力されていなければクリック禁止
+    // ベルトタブをクリックしたときに、まだケース直径とラグ幅が入力されていなければ return
     if (tab.id === 'strap-tab') {
-      // document.getElementById('strap-tab').addEventListener('click', () => {
-        if (caseObject === undefined && lugObjects.length === 0) {
-          window.alert('先にケース直径とラグ幅を入力してからベルトに進んでね');
-          // document.getElementById('strap-tab').style.pointerEvents = 'none';
-          return;
-        }
-        if (lugObjects.length === 0) {
-          window.alert('ラグ幅を入力してからベルトに進んでね');
-          // document.getElementById('strap-tab').style.pointerEvents = 'none';
-          return;
-        }
-        // });
+      //* 判定をcaseObjectやlugObjectsでするのか、caseSize.valueやlugWidthでするのか検討
+      if (caseObject === undefined && lugWidth === undefined) {
+        window.alert('先にこのページでケース直径とラグ幅を入力してから、ベルトの入力に進んでください');
+        return;
       }
-    if (tab.id === 'dial-tab') {
-      if (caseObject === undefined) {
-        window.alert('先にケース直径を入力してから文字盤に進んでね');
+      if (lugObjects.length === 0) {
+        window.alert('先にこのページでラグ幅を入力してから、ベルトの入力に進んでください');
         return;
       }
     }
-
-
-
+    // 文字盤タブをクリックしたときに、まだケース直径が入力されていなければ return
+    if (tab.id === 'dial-tab') {
+      if (caseObject === undefined) {
+        window.alert('先にこのページでケース直径を入力してから、文字盤の入力に進んでください');
+        return;
+      }
+    }
     // ワークスペースの表示
     const workspaces = document.querySelectorAll('.workspace');
     workspaces.forEach(workspace => {
@@ -196,8 +189,7 @@ const lugObjects = [];
 // サイズ・形状・色
 let lugWidth;
 let lugShape = 'round'; //初期値
-// let crownShape = 'round'; //初期値
-let crownShape; //*初期値なしだと
+let crownShape; //*初期値無しに
 const defaultLugThickness = mmToPixel(2);
 const defaultLugLength = mmToPixel(8);
 let inputCaseColor = 'white'; //初期値
@@ -206,74 +198,6 @@ const caseSizeInput = document.getElementById('case-size');
 const caseOpeningSizeInput = document.getElementById('case-opening-size');
 const dialOpeningSizeInput = document.getElementById('dial-opening-size');
 const lugWidthInput = document.getElementById('lug-width');
-
-// Node
-const upperStrapLengthInput = document.getElementById('upper-strap-length');
-const lowerStrapLengthInput = document.getElementById('lower-strap-length');
-
-//* test
-//* 順番の制御
-
-//* 初期値
-lugWidthInput.disabled = true;
-// document.querySelector('.shape-list-lug').style.opacity = .5;
-
-// upperStrapLengthInput.disabled = true;
-// lowerStrapLengthInput.disabled = true;
-
-// document.getElementById('strap-tab').addEventListener('mouseover', () => {
-//   console.log('先にケースを入力してから');
-//   document.getElementById('strap-tab').style.pointerEvents = 'none';
-// });
-// document.getElementById('strap-tab').addEventListener('mouseleave', () => {
-//   document.getElementById('strap-tab').style.pointerEvents = 'default';
-// });
-
-
-
-// const disabledComment = document.getElementById('disabled-comment');
-
-lugWidthInput.parentElement.addEventListener('click', () => {
-  if (lugWidthInput.disabled === false) {
-    return;
-  }
-  window.alert('先にケース直径を入力してから、ラグ幅を入力してください');
-  // disabledComment.textContent = '先にケース直径を入力してから、ラグ幅を入力してください';
-  // disabledComment.style.display = 'block';
-  // setTimeout(() => {
-  //   disabledComment.style.display = 'none';
-  // }, 1000);
-});
-
-// document.querySelector('.shape-list-lug').addEventListener('mouseover', () => {
-//   disabledComment.textContent = '先に上の項目を入力してね';
-//   disabledComment.style.display = 'block';
-//   setTimeout(() => {
-//     disabledComment.style.display = 'none';
-//   }, 1000);
-// });
-
-
-
-// lugWidthInput.parentElement.addEventListener('mouseover', () => {
-//   appearDisabledComment(lugWidthInput, '先にケース直径を入力してから、ラグ幅を入力してください');
-// });
-// upperStrapLengthInput.parentElement.addEventListener('mouseover', () => {
-//   appearDisabledComment(upperStrapLengthInput, '先にケース直径とラグ幅を入力してから、ベルトの長さを入力してください');
-// });
-
-// function appearDisabledComment(target, comment) {
-//   if (target.disabled === false) {
-//     return;
-//   }
-//   disabledComment.textContent = comment;
-//   disabledComment.style.display = 'block';
-//   setTimeout(() => {
-//     disabledComment.style.display = 'none';
-//   }, 1000);
-// }
-
-//* test
 
 // 円のクラス ----------------------------------------
 
@@ -308,7 +232,10 @@ caseSizeInput.addEventListener('input', () => {
   });
   // canvasに描画
   mainCanvas.add(caseObject);
-  // ラグ再描画
+  // ラグ再描画 ----
+  // すでにラグが描かれていたら、再描画する
+  // まだラグが描かれていないなら、何もしない
+  // ただしラグ幅さえ入力されていれば、ラグ形状がまだ選択されていなくても初期値の round で描画する
   if (lugObjects.length !== 0) {
     switch(lugShape) { // 初期値は'round'
       case 'round':
@@ -319,11 +246,9 @@ caseSizeInput.addEventListener('input', () => {
         break;
     }
   }
-  // リュウズ再描画
-  //* すでにあるなら描くことになっている
-  //* なくても...もし先にラグ形状が選ばれているなら描きたいかな？
-  //* test
-  // if (crownObject !== undefined) {
+  // リュウズ再描画 ----
+  //* リュウズがまだ描かれていなくても、すでにリュウズ形状が選択されているなら描画する
+  //* すでにリュウズが描かれている場合は、条件式に当てはまるので再描画することになる
   if (crownShape !== undefined) {
     switch(crownShape) {
       case 'round':
@@ -334,8 +259,9 @@ caseSizeInput.addEventListener('input', () => {
         break;
     }
   }
-  // ベルト再描画
+  // ベルト再描画 ----
   // すでにベルトが描かれていたら、再描画する
+  // まだベルトが描かれていないなら、何もしない
   if (upperStrapObject !== undefined) {
     switch(strapShape) {
       case 'straight':
@@ -358,8 +284,7 @@ caseSizeInput.addEventListener('input', () => {
   }
   // 重なり順を直す
   caseStackingOrder();
-  //* test
-  //* 順番の制御
+  // ラグ幅を入力できるようにする
   lugWidthInput.disabled = false;
 });
 
@@ -391,18 +316,25 @@ dialOpeningSizeInput.addEventListener('input', () => {
 
 //* main ラグ ----------------------------------------
 
+// ラグ幅の入力の順番を制限 ----------------
+// 初期値は入力不可
+lugWidthInput.disabled = true;
+// ラグ幅の入力部分をクリックしたときの処理
+lugWidthInput.parentElement.addEventListener('click', () => {
+  // すでにケースが描かれていたら、何もしない
+  if (caseObject !== undefined) {
+    return;
+  }
+  // まだケースが描かれていなければアラートを表示
+  window.alert('先にケース直径を入力してから、ラグ幅を入力してください');
+});
+
 // ラグ幅が入力されたらcanvasに描画 ----------------
 lugWidthInput.addEventListener('input', () => {
   // lugWidthに値を代入
   lugWidth = mmToPixel(lugWidthInput.value);
-  // すでにラグの形が選択されていた場合は、lugShapeに値を代入
-  // lugShapeInputs.forEach(lugShapeInput => {
-  //   if(lugShapeInput.checked){
-  //     lugShape = lugShapeInput.value;
-  //   }
-  // });
   // ラグを描く関数呼び出し
-  // ラグの形がまだ選択されていない場合は、lugShapeの初期値は'round'で描画されることになる
+  // ラグの形がまだ選択されていない場合は、lugShapeの初期値 round で描画されることになる
   switch(lugShape) { 
     case 'round':
       roundLug.drawLug();
@@ -413,6 +345,7 @@ lugWidthInput.addEventListener('input', () => {
   }
   // ベルト(再)描画
   // ラグ幅が変更されたらベルトの幅も変わるので再描画する
+  // すでにベルトが描かれているなら再描画、描かれていないなら何もしない
   if (upperStrapObject !== undefined) {
     switch(strapShape) {
       case 'straight':
@@ -438,10 +371,9 @@ lugWidthInput.addEventListener('input', () => {
 // ラグの形状が選ばれたらcanvasに描画 ----------------
 lugShapeInputs.forEach(lugShapeInput => {
   lugShapeInput.addEventListener('input', () => {
-    //* test
     // lugShapeに値を代入
     lugShape = lugShapeInput.value;
-    //* return
+    // アラートを表示
     if (caseObject === undefined && lugWidth === undefined) {
       window.alert('ケース直径とラグ幅を入力するとラグが描かれます');
       return;
@@ -450,7 +382,8 @@ lugShapeInputs.forEach(lugShapeInput => {
       window.alert('ラグ幅を入力するとラグが描かれます');
       return;
     }
-    switch(lugShapeInput.value) {
+    // ラグを描く関数呼び出し
+    switch(lugShape) {
       case 'round':
         roundLug.drawLug();
         break;
@@ -514,13 +447,14 @@ const squareLug = new WatchLug('./assets/lug-square.svg');
 // リュウズの形状が選ばれたらcanvasに描画 ----------------
 crownShapeInputs.forEach(crownShapeInput => {
   crownShapeInput.addEventListener('input', () => {
-    //* crownShapeに値を代入
+    // crownShapeに値を代入
     crownShape = crownShapeInput.value;
-    //* return
+    // アラートを表示
     if (caseObject === undefined) {
       window.alert('ケース直径を入力するとリュウズが描かれます');
       return;
     }
+    // リュウズを描く関数呼び出し
     switch(crownShape) {
       case 'round':
         roundCrown.drawCrown();
@@ -591,7 +525,6 @@ const pinkGoldGradation = new Gradation({
 // 色が選択されたら、ケース(とラグとリュウズとバックル)に色をつける関数呼び出し ----------------
 // 色が選択されたとき、オブジェクトがすでにあれば色を付ける
 // オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色を付ける
-//* オブジェクトの有無は呼び出し先の関数で判定
 caseColorInputs.forEach(caseColorInput => {
   caseColorInput.addEventListener('input', () => {
     // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
@@ -609,23 +542,23 @@ caseColorInputs.forEach(caseColorInput => {
         inputCaseColor = caseColorPicker.value;
         break;
     }
-    //* test
+    //* ケースさえもまだ描かれていない(色を付けるオブジェクトがまだ何もない)場合は、アラートを表示
     if (caseObject === undefined) {
-      window.alert('ケース直径などを入力すると、ここで選択した色がつきます');
+      window.alert('ケース直径などを入力すると、選択した色がつきます');
       return;
     }
-    // オブジェクトに色をつける
+    // オブジェクトに色をつける関数呼び出し
+    // オブジェクトの有無は呼び出し先の関数で判定
     applyCaseColor();
   });
 });
 
 // ケース(とラグとリュウズとバックル)に色をつける関数 ----------------
 function applyCaseColor() {
-  // if (caseObject !== undefined) {
-    caseObject.set({
-      fill: inputCaseColor,
-    });
-  // }
+  // caseObjectの有無は、呼び出し元で判定済みなのでここでは判定不要
+  caseObject.set({
+    fill: inputCaseColor,
+  });
   if (crownObject !== undefined) {
     crownObject.set({
       fill: inputCaseColor,
@@ -638,7 +571,6 @@ function applyCaseColor() {
       });
     });
   }
-  //* buckle追加
   if (buckleObject !== undefined) {
     buckleObject._objects.forEach(object => {
       object.set({
@@ -681,8 +613,9 @@ let strapStitchExist = false; // ストラップ有無 初期値はfalse
 // バックル
 let buckleObject;
 let buckleShape = 'round'; // 初期値
-
-
+// Node
+const upperStrapLengthInput = document.getElementById('upper-strap-length');
+const lowerStrapLengthInput = document.getElementById('lower-strap-length');
 
 //* main ベルト本体 ----------------------------------------
 
@@ -725,12 +658,13 @@ class WatchUpperStrap {
             break;
         }
       }
-      // ループ(再)描画
+      // ループ(再)描画 ----
       drawStrapLoop();
-      //* バックル再描画
-      //* まだ形が選ばれていない場合は描画しなくてよいかな
-      //* すでに形が選ばれていた時だけ、描画しなおす
-      if (buckleObject !== undefined) {
+      //* バックル再描画 ----
+      //* バックルがまだ描かれていなくても、すでにバックル形状が選択されているなら描画する
+      //* すでにバックルが描かれている場合は、条件式に当てはまるので再描画することになる
+      //* バックルがまだ描かれておらず、バックル形状が選択されていないなら何もしない
+      if (buckleShape !== undefined) {
         switch(buckleShape) {
           case 'round':
             roundBuckle.drawBuckle();
@@ -806,7 +740,7 @@ strapShapeInputs.forEach(strapShapeInput => {
     strapShape = strapShapeInput.value;
     // ストラップがまだ無い場合はここでリターン
     if(upperStrapObject === undefined || lowerStrapObject === undefined) {
-      alert('ストラップの長さを入力してください');
+      alert('ベルトの長さを上側下側両方入力すると、選択した形のベルトが描かれます');
       return;
     }
     // ベルトを描く関数呼び出し
@@ -890,7 +824,7 @@ strapHoleQuantityInputs.forEach(strapHoleQuantityInput => {
     strapHoleQuantity = parseInt(strapHoleQuantityInput.value);
     // 下ストラップがまだ無い場合はここでリターン
     if(lowerStrapObject === undefined) {
-      alert('下ストラップの長さを入力してください');
+      alert('ベルト長さ(下側)を入力するとベルト穴が描かれます');
       return;
     }
     // ベルト穴を描く関数呼び出し
@@ -905,7 +839,7 @@ strapHoleDistanceInputs.forEach(holeDistanceInput => {
     strapHoleDistance = mmToPixel(parseInt(holeDistanceInput.value));
     /// 下ストラップがまだ無い場合はここでリターン
     if(lowerStrapObject === undefined) {
-      alert('下ストラップの長さを入力してください');
+      alert('ベルト長さ(下側)を入力するとベルト穴が描かれます');
       return;
     }
     // ベルト穴を描く関数呼び出し
@@ -958,8 +892,9 @@ strapStitchInputs.forEach(stitchInput => {
       strapStitchExist = false;
     }
     // 上下両方もしくはどちらかのストラップがまだ無い場合はここでリターン
+    // 上下両方のストラップがなければ、ステッチを描く関数は呼ばれない
     if (upperStrapObject === undefined || lowerStrapObject === undefined) {
-      alert('ストラップの長さを上下それぞれ入力してください');
+      alert('ベルトの長さを上側下側両方入力すると、ステッチが描かれます');
       return;
     }
     // ステッチの有無がfalseならcanvasから削除
@@ -1121,6 +1056,13 @@ strapColorInputs.forEach(strapColorInput => {
         inputStrapColor = strapColorPicker.value;
         break;
     }
+    //* test
+    //* まだ上下どちらもベルトがなければここでリターン
+    //* 上下どちらかのベルトがあれば、オブジェクトに色を付ける関数呼び出し
+    if (upperStrapObject === undefined && lowerStrapObject === undefined) {
+      alert('ベルトの長さを入力すると、選択した色がつきます');
+      return;
+    }
     // オブジェクトに色をつける
     applyStrapColor(strapColorChangeLists);
   });
@@ -1177,9 +1119,6 @@ class WatchBuckle {
       });
       // canvasに描画
       mainCanvas.add(buckleObject);
-      //* 重なり順を直す 上ベルトよりバックルが上にくるように
-      //* バックルは上ベルトより後から書かれるからなくてokかな
-      // buckleObject.bringToFront();
     });
   }
 }
@@ -1195,7 +1134,7 @@ buckleShapeInputs.forEach(buckleShapeInput => {
     buckleShape = buckleShapeInput.value;
     /// 上ストラップがまだ無い場合はここでリターン
     if(upperStrapObject === undefined) {
-      alert('上ストラップの長さを入力してください');
+      alert('ベルト長さ(上側)を入力するとバックルが描かれます');
       return;
     }
     // バックルを描く関数呼び出し
