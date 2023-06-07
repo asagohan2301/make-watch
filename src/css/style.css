@@ -198,51 +198,51 @@ main .component-list .component .workspace .workspace-top-container .info .info-
   background: #e2e2e2;
   font-size: 11px;
 }
-main .component-list .component .workspace .shape-list {
+main .component-list .component .workspace .design-list {
   height: 132px;
   padding: 0 22px;
   border-bottom: 1px dashed #333;
   display: flex;
   align-items: center;
 }
-main .component-list .component .workspace .shape-list h3 {
+main .component-list .component .workspace .design-list h3 {
   flex: 1;
   font-size: 12px;
   line-height: 80px;
 }
-main .component-list .component .workspace .shape-list ul {
+main .component-list .component .workspace .design-list ul {
   flex: 4;
   display: flex;
   gap: 16px;
 }
-main .component-list .component .workspace .shape-list ul li {
+main .component-list .component .workspace .design-list ul li {
   position: relative;
 }
-main .component-list .component .workspace .shape-list ul li label.radio-label {
+main .component-list .component .workspace .design-list ul li label.radio-label {
   width: 96px;
   height: 96px;
   border-radius: 8px;
   cursor: pointer;
 }
-main .component-list .component .workspace .shape-list ul li label.radio-label input[type=radio] {
+main .component-list .component .workspace .design-list ul li label.radio-label input[type=radio] {
   display: none;
 }
-main .component-list .component .workspace .shape-list ul li:hover label.radio-label {
+main .component-list .component .workspace .design-list ul li:hover label.radio-label {
   background: #e2e2e2;
 }
-main .component-list .component .workspace .shape-list ul li img,
-main .component-list .component .workspace .shape-list ul li div {
+main .component-list .component .workspace .design-list ul li img,
+main .component-list .component .workspace .design-list ul li div {
   position: absolute;
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
-main .component-list .component .workspace .shape-list ul li div {
+main .component-list .component .workspace .design-list ul li div {
   width: 30px;
   height: 30px;
 }
-main .component-list .component .workspace .shape-list ul li .color-picker {
+main .component-list .component .workspace .design-list ul li .color-picker {
   width: 96px;
   height: 96px;
   position: absolute;
@@ -254,7 +254,7 @@ main .component-list .component .workspace .shape-list ul li .color-picker {
   cursor: pointer;
   opacity: 0;
 }
-main .component-list .component .workspace .shape-list ul li p {
+main .component-list .component .workspace .design-list ul li p {
   position: absolute;
   left: 0;
   right: 0;
@@ -280,6 +280,16 @@ main .component-list .component .workspace .shape-list ul li p {
 
 .black-color {
   background: black;
+}
+
+.white-color {
+  background: white;
+  border: 1px solid black;
+}
+
+.ivory-color {
+  background: rgb(250, 250, 240);
+  border: 1px solid black;
 }
 
 .brown-color {

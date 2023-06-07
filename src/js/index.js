@@ -68,6 +68,22 @@ strapColorPicker.addEventListener('input', () => {
   // オブジェクトに色をつける
   applyStrapColor(strapColorChangeLists);
 });
+//* test
+// 文字盤
+const dialColorPicker = document.getElementById('dial-color-picker');
+dialColorPicker.addEventListener('input', () => {
+  // ボタンの色を変える
+  dialColorPicker.previousElementSibling.style.backgroundColor = dialColorPicker.value;
+  // dialColorに値を入れておく
+  dialColor = dialColorPicker.value;
+  // オブジェクトに色をつける
+  if (dialOpeningObject !== undefined) {
+    dialOpeningObject.set({
+      fill: dialColor,
+    });
+  }
+  mainCanvas.renderAll();
+});
 
 // カラーピッカー(input type="color")をクリックしたときにも、radioをクリックしたことにする ----
 // ゴールドなど他の色にした後も、その他の色のボタンをクリックしただけで、その色にするための処理
@@ -76,6 +92,9 @@ caseColorPicker.addEventListener('click', () => {
 });
 strapColorPicker.addEventListener('click', () => {
   strapColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
+});
+dialColorPicker.addEventListener('click', () => {
+  dialColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
 });
 
 //* style --------------------------------------------------------------------------------
@@ -93,6 +112,9 @@ const strapStitchInputs = document.querySelectorAll('input[name="stitch"]');
 const strapShapeInputs = document.querySelectorAll('input[name="strap-shape"]');
 const strapColorInputs = document.querySelectorAll('input[name="strap-color"]');
 const buckleShapeInputs = document.querySelectorAll('input[name="buckle-shape"]');
+const dialColorInputs = document.querySelectorAll('input[name="dial-color"]');
+const numberLayoutInputs = document.querySelectorAll('input[name="number-layout"]');
+const numberFontInputs = document.querySelectorAll('input[name="number-font"]');
 
 // 配列 radioArray の中に、複数の要素が配列のようになった lugShapeInputs などが入っている
 // lugShapeInputs などの中に、個々の input 要素が入っている
@@ -106,6 +128,9 @@ const radioArray = [
   strapShapeInputs,
   strapColorInputs,
   buckleShapeInputs,
+  dialColorInputs,
+  numberLayoutInputs,
+  numberFontInputs,
 ];
 
 // 配列の各要素(の集まり)から関数を呼び出す ----------------
@@ -173,7 +198,7 @@ tabs.forEach(tab => {
 const mainCanvas = new fabric.Canvas('main-canvas');
 // オブジェクトを選択できないようにするなら StaticCanvas
 // const mainCanvas = new fabric.StaticCanvas('main-canvas');
-const mainCanvasHalfWidth = 192;
+const mainCanvasCenterWidth = 192;
 const mainCanvasCenterHeight = mmToPixel(125);
 
 //* main case ------------------------------------------------------------------------------------
@@ -199,6 +224,10 @@ const caseOpeningSizeInput = document.getElementById('case-opening-size');
 const dialOpeningSizeInput = document.getElementById('dial-opening-size');
 const lugWidthInput = document.getElementById('lug-width');
 
+//*test
+let dialColor = 'white';
+let dialSize;
+
 // 円のクラス ----------------------------------------
 
 // インスタンス生成時は radius,left,topなどを指定する
@@ -223,7 +252,7 @@ caseSizeInput.addEventListener('input', () => {
   // ケースオブジェクト生成
   caseObject = new WatchCircle({
     radius: mmToPixel(caseSizeInput.value) / 2,
-    left: mainCanvasHalfWidth,
+    left: mainCanvasCenterWidth,
     top: mainCanvasCenterHeight,
   });
   // すでに色が選ばれていた場合はその色にする
@@ -294,25 +323,82 @@ caseOpeningSizeInput.addEventListener('input', () => {
   mainCanvas.remove(caseOpeningObject);
   caseOpeningObject = new WatchCircle({
     radius: mmToPixel(caseOpeningSizeInput.value) / 2,
-    left: mainCanvasHalfWidth,
+    left: mainCanvasCenterWidth,
     top: mainCanvasCenterHeight,
   });
   mainCanvas.add(caseOpeningObject);
   caseStackingOrder();
 });
 
-//* main ダイヤル見切 ----------------------------------------
-
+//* main 文字盤見切り ----------------------------------------
+// 文字盤見切りサイズが入力されたらcanvasに描画 ----------------
 dialOpeningSizeInput.addEventListener('input', () => {
+  // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(dialOpeningObject);
+  // dialSizeに値を代入
+  dialSize = mmToPixel(dialOpeningSizeInput.value);
+  // オブジェクト生成
   dialOpeningObject = new WatchCircle({
-    radius: mmToPixel(dialOpeningSizeInput.value) / 2,
-    left: mainCanvasHalfWidth,
+    radius: dialSize / 2,
+    left: mainCanvasCenterWidth,
     top: mainCanvasCenterHeight,
+  });
+  //* test
+  // すでに色が選ばれていた場合はその色にする
+  dialOpeningObject.set({
+    fill: dialColor,
   });
   mainCanvas.add(dialOpeningObject);
   caseStackingOrder();
 });
+
+//* test
+// 文字盤ベース色が選択されたら、色を付ける ----------------
+dialColorInputs.forEach(dialColorInput => {
+  dialColorInput.addEventListener('input', () => {
+    // dialColorに値を代入
+    dialColor = dialColorInput.value;
+    // アラートを表示
+    if (dialOpeningObject === undefined) {
+      alert('ダイヤル見切りを入力してね');
+      return;
+    }
+    // 文字盤に色をつける
+    dialOpeningObject.set({
+      fill: dialColor,
+    });
+    mainCanvas.renderAll();
+  });
+});
+
+//* test
+// 数字の配置が選択されたら描画する ----------------
+numberLayoutInputs.forEach(numberLayoutInput => {
+  numberLayoutInput.addEventListener('input', () => {
+    drawNumber();
+  });
+});
+
+//* test
+// 数字を描く関数 ----------------
+let numberObject;
+const defaultDialSize = mmToPixel(30);
+function drawNumber() {
+  mainCanvas.remove(numberObject);
+  fabric.loadSVGFromURL('./assets/number-all.svg', (objects, options) => {
+    numberObject = fabric.util.groupSVGElements(objects, options);
+    numberObject.set({
+      originX: 'center',
+      originY: 'center',
+      left: mainCanvasCenterWidth,
+      top: mainCanvasCenterHeight,
+      scaleX: dialSize / defaultDialSize,
+      scaleY: dialSize / defaultDialSize,
+    });
+    mainCanvas.add(numberObject);
+  });
+}
+
 
 //* main ラグ ----------------------------------------
 
@@ -412,13 +498,13 @@ class WatchLug {
         lugObjects[i] = fabric.util.groupSVGElements(objects, options);
         lugObjects[i].set({
           originX: 'center',
-          left: mainCanvasHalfWidth - lugWidth / 2 - defaultLugThickness / 2,
+          left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2,
           top: mainCanvasCenterHeight - caseObject.height / adjustValue,
           fill: inputCaseColor,
         });
         if (i === 1 || i === 3) {
           lugObjects[i].set({
-            left: mainCanvasHalfWidth - lugWidth / 2 - defaultLugThickness / 2 + lugWidth + defaultLugThickness,
+            left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2 + lugWidth + defaultLugThickness,
           });
         }
         if(i === 2 || i === 3) {
@@ -602,8 +688,10 @@ let fixedStrapLoopObject;
 let moveableStrapLoopObject;
 // ベルト穴
 let strapHoleObjects = [];
-let strapHoleQuantity = 6; // ベルト穴の個数 初期値
-let strapHoleDistance = mmToPixel(7); // ベルト穴の間隔 初期値
+let strapHoleQuantity; // ベルト穴の個数 初期値
+// let strapHoleQuantity = 6; // ベルト穴の個数 初期値
+let strapHoleDistance; // ベルト穴の間隔 初期値
+// let strapHoleDistance = mmToPixel(7); // ベルト穴の間隔 初期値
 let countDistance = 0; // 一番下の穴からどれくらい移動するかを保持する変数
 // ステッチ
 let upperStrapStitchObject;
@@ -612,7 +700,8 @@ let topStitchObject;
 let strapStitchExist = false; // ストラップ有無 初期値はfalse
 // バックル
 let buckleObject;
-let buckleShape = 'round'; // 初期値
+// let buckleShape = 'round'; // 初期値
+let buckleShape;
 // Node
 const upperStrapLengthInput = document.getElementById('upper-strap-length');
 const lowerStrapLengthInput = document.getElementById('lower-strap-length');
@@ -636,7 +725,7 @@ class WatchUpperStrap {
         originX: 'center',
         originY: 'bottom',
         fill: inputStrapColor,
-        left: mainCanvasHalfWidth,
+        left: mainCanvasCenterWidth,
         // strapを描く位置(高さ)を、ケースの位置から取得する
         top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
         // 入力値にあわせて幅と長さを拡大縮小
@@ -692,7 +781,7 @@ class WatchLowerStrap {
       lowerStrapObject.set({
         originX: 'center',
         fill: inputStrapColor,
-        left: mainCanvasHalfWidth,
+        left: mainCanvasCenterWidth,
         // strapを描く位置(高さ)を、ケースの位置から取得する
         top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
         // 入力値にあわせて幅と長さを拡大縮小
@@ -715,10 +804,16 @@ class WatchLowerStrap {
             break;
         }
       }
+      //* test!!
       // ベルト穴(再)描画
       // もしすでにベルト穴が存在していたら書き直す
-      // 初めて描かれる場合でも、仮の個数と間隔で描画する
-      drawStrapHoles();
+      //// 初めて描かれる場合でも、仮の個数と間隔で描画する
+      //* ベルト穴がまだ描かれていなくても、すでにベルト穴個数と間隔が両方選択されているなら描画する
+      //* すでにベルト穴が描かれている場合は、条件式に当てはまるので再描画することになる
+      //* ベルト穴がまだ描かれておらず、ベルト穴個数と間隔どちらかが選択されていないなら何もしない
+      if (strapHoleQuantity !== undefined && strapHoleDistance !== undefined) {
+        drawStrapHoles();
+      }
     });
     //! loadSVGFromURLは非同期処理である事に注意
     // {}外はloadSVGFromURLのコールバック関数外なので、SVGの読み込みより前に実行される可能性がある
@@ -795,7 +890,7 @@ function drawStrapLoop() {
     height: mmToPixel(5),
     originX: 'center',
     fill: inputStrapColor,
-    left: mainCanvasHalfWidth,
+    left: mainCanvasCenterWidth,
     top: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(8),
     stroke: 'black',
   });
@@ -827,6 +922,11 @@ strapHoleQuantityInputs.forEach(strapHoleQuantityInput => {
       alert('ベルト長さ(下側)を入力するとベルト穴が描かれます');
       return;
     }
+    //* test
+    //* ベルト穴間隔がまだにゅうりょくされていないとき
+    if (strapHoleDistance === undefined) {
+      alert('ベルト穴間隔も入力するとベルト穴が描かれます');
+    }
     // ベルト穴を描く関数呼び出し
     drawStrapHoles();
   });
@@ -841,6 +941,11 @@ strapHoleDistanceInputs.forEach(holeDistanceInput => {
     if(lowerStrapObject === undefined) {
       alert('ベルト長さ(下側)を入力するとベルト穴が描かれます');
       return;
+    }
+    //* test
+    //* ベルト穴個数がまだ入力されていないとき
+    if (strapHoleQuantity === undefined) {
+      alert('ベルト穴個数も入力するとベルト穴が描かれます');
     }
     // ベルト穴を描く関数呼び出し
     drawStrapHoles();
@@ -863,7 +968,7 @@ function drawStrapHoles() {
       radius: mmToPixel(0.75),
       originX: 'center',
       originY: 'center',
-      left: mainCanvasHalfWidth,
+      left: mainCanvasCenterWidth,
       top: lowerStrapObject.top + (lowerStrapObject.height * mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength) - mmToPixel(25) - countDistance,
       stroke: 'black',
       fill: 'white',
@@ -937,7 +1042,7 @@ class WatchUpperStitch {
       upperStrapStitchObject.set({
         originX: 'center',
         originY: 'bottom',
-        left: mainCanvasHalfWidth,
+        left: mainCanvasCenterWidth,
         // strapを描く位置(高さ)を、ケースの位置から取得する 3mm上に移動する
         top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
         // 入力値にあわせて幅と長さを拡大縮小
@@ -961,11 +1066,11 @@ class WatchUpperStitch {
     // バックル近くのステッチ生成
     topStitchObject = new fabric.Polyline([
       {
-        x: mainCanvasHalfWidth - strapWidth / 2 + mmToPixel(2.5),
+        x: mainCanvasCenterWidth - strapWidth / 2 + mmToPixel(2.5),
         y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
       },
       {
-        x: mainCanvasHalfWidth + strapWidth / 2 - mmToPixel(2.5),
+        x: mainCanvasCenterWidth + strapWidth / 2 - mmToPixel(2.5),
         y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
       }],
       {
@@ -978,11 +1083,11 @@ class WatchUpperStitch {
       topStitchObject.set({
         points: [
           {
-            x: mainCanvasHalfWidth - strapWidth / 2 + mmToPixel(1.5),
+            x: mainCanvasCenterWidth - strapWidth / 2 + mmToPixel(1.5),
             y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
           },
           {
-            x: mainCanvasHalfWidth + strapWidth / 2 - mmToPixel(1.5),
+            x: mainCanvasCenterWidth + strapWidth / 2 - mmToPixel(1.5),
             y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
           }
         ]
@@ -1006,7 +1111,7 @@ class WatchLowerStitch {
       strapWidth = lugWidth;
       lowerStrapStitchObject.set({
         originX: 'center',
-        left: mainCanvasHalfWidth,
+        left: mainCanvasCenterWidth,
         // strapを描く位置(高さ)を、ケースの位置から取得する 3mm下に移動する
         top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
         // 入力値にあわせて幅と長さを拡大縮小
@@ -1095,7 +1200,7 @@ class WatchBuckle {
       buckleObject = fabric.util.groupSVGElements(objects, options);
       buckleObject.set({
         originX: 'center',
-        left: mainCanvasHalfWidth,
+        left: mainCanvasCenterWidth,
         originY:'bottom',
         // バックルを描く位置(高さ)を、上ベルトの位置から取得する
         top: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(4),
@@ -1148,6 +1253,9 @@ buckleShapeInputs.forEach(buckleShapeInput => {
     }
   });
 });
+
+//* main dial ----------------------------------------------------------------------------------
+
 
 //* case info canvas ---------------------------------------------------------------------------
 
@@ -1371,7 +1479,7 @@ lugWidthInput.addEventListener('input', () => {
 
 // ラグ形状の info を表示・非表示 ----------------
 // mouseover ----
-document.querySelector('.shape-list-lug').addEventListener('mouseover', () => {
+document.querySelector('.design-list-lug').addEventListener('mouseover', () => {
   infoLugObjects.forEach(infoLugObject => {
     // オブジェクトの線の色を変える
     changeColorToRed(infoLugObject);
@@ -1380,7 +1488,7 @@ document.querySelector('.shape-list-lug').addEventListener('mouseover', () => {
   });
 });
 // mouseleave ----
-document.querySelector('.shape-list-lug').addEventListener('mouseleave', () => {
+document.querySelector('.design-list-lug').addEventListener('mouseleave', () => {
   infoLugObjects.forEach(infoLugObject => {
     // オブジェクトの線の色を変える
     changeColorToBlack(infoLugObject);
@@ -1391,14 +1499,14 @@ document.querySelector('.shape-list-lug').addEventListener('mouseleave', () => {
 
 // リュウズ形状の info を表示・非表示 ----------------
 // mouseover ----
-document.querySelector('.shape-list-crown').addEventListener('mouseover', () => {
+document.querySelector('.design-list-crown').addEventListener('mouseover', () => {
   // オブジェクトの線の色を変える
   changeColorToRed(infoCrownObject);
   // コメントを表示
   fadeInComment(comment.crownShape);
 });
 // mouseleave ----
-document.querySelector('.shape-list-crown').addEventListener('mouseleave', () => {
+document.querySelector('.design-list-crown').addEventListener('mouseleave', () => {
   // オブジェクトの線の色を変える
   changeColorToBlack(infoCrownObject);
   // コメントを戻す
@@ -1407,7 +1515,7 @@ document.querySelector('.shape-list-crown').addEventListener('mouseleave', () =>
 
 // ケース色の info を表示・非表示 ----------------
 // mouseover ----
-document.querySelector('.shape-list-color').addEventListener('mouseover', () => {
+document.querySelector('.design-list-case-color').addEventListener('mouseover', () => {
   // mouseoverした時点で配列に値を入れる
   // loadした時点で配列に値を入れる処理にしていたらエラーが出ることがあったので注意
   infoColorChangeLists = [infoCaseObject, infoCrownObject, ...infoLugObjects];
@@ -1422,7 +1530,7 @@ document.querySelector('.shape-list-color').addEventListener('mouseover', () => 
   fadeInComment(comment.caseColor);
 });
 // mouseleave ----
-document.querySelector('.shape-list-color').addEventListener('mouseleave', () => {
+document.querySelector('.design-list-case-color').addEventListener('mouseleave', () => {
   // オブジェクトの色を変える
   infoColorChangeLists.forEach(colorChangeList => {
     colorChangeList.set({
@@ -1508,17 +1616,39 @@ mainCanvas.on('mouse:down', function(options) {
 // });
 // mainCanvas.add(group);
 
+
+//* test
 const range = document.getElementById('test-range');
+
 range.addEventListener('input', () => {
   const rangeValue = parseInt(range.value);
-  group.set({
+  number6.set({
     scaleX: rangeValue / 10,
     scaleY: rangeValue / 10,
-    strokeWidth: 1 / rangeValue,
+    // 線幅を保つ
+    strokeUniform: true,
   });
-  group.item(0).set(
-    'text', 'good'
-  );
+  number12.set({
+    scaleX: rangeValue / 10,
+    scaleY: rangeValue / 10,
+    // 線幅を保つ
+    strokeUniform: true,
+  });
+  number1.set({
+    scaleX: rangeValue / 10,
+    scaleY: rangeValue / 10,
+    // 線幅を保つ
+    strokeUniform: true,
+  });
+  number2.set({
+    scaleX: rangeValue / 10,
+    scaleY: rangeValue / 10,
+    // 線幅を保つ
+    strokeUniform: true,
+  });
+  // group.item(0).set(
+  //   'text', 'good'
+  // );
   mainCanvas.renderAll();
 });
 
@@ -1548,34 +1678,78 @@ ctx.fillText('ケースの直径を入力', 10, 50);
 
 
 //* テスト用 -------------------------------------------------------------------------
+
+let number6;
+let number12;
+let number2;
+let number1;
+
+const sin30 = Math.sin(30 * Math.PI / 180);
+const cos30 = Math.cos(30 * Math.PI / 180);
+const sin60 = Math.sin(60 * Math.PI / 180);
+const cos60 = Math.cos(60 * Math.PI / 180);
+
+const numbers = [];
+for (let i = 1; i <= 12; i++) {
+  numbers.push(i);
+}
+console.log(numbers);
+console.log(numbers[3]);
+
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
-  fabric.loadSVGFromURL('./assets/buckle-square.svg', (objects, options) => {
-    const buckle = fabric.util.groupSVGElements(objects, options);
-    buckle.set({
-      top: 200,
-      left: 200,
-    });
-    //fabric.util.groupSVGElementsメソッドは、複数のSVGパスをグループ化して1つのオブジェクトとして作成します。この場合、各パスのfillやstrokeなどの属性は、グループオブジェクトにまとめられるため、直接それぞれのパスに対してfillを設定することはできません。
-    //グループオブジェクト内の各パスには、_objectsというプロパティでアクセスできます。このプロパティはパスの配列となっており、個々のパスに対して属性を変更することができます。
-    console.log(buckle);
-    console.log(buckle._objects);
-    buckle._objects.forEach(object => {
-      object.set({
-        fill: goldGradation,
-      });
-    });
-    mainCanvas.add(buckle);
 
-  });
+number12 = new fabric.Text(String(numbers[11]), { //11 は 12
+  left: mainCanvasCenterWidth,
+  top: mainCanvasCenterHeight - dialSize / 2 + 8, // 8 は 自身のfontSizeの半分
+  originX: 'center',
+  originY: 'center',
+  fill: 'black',
+  fontFamily: 'cursive',
+  fontSize: 16,
+});
+number6 = new fabric.Text(String(numbers[5]), {
+  left: mainCanvasCenterWidth,
+  top: mainCanvasCenterHeight + dialSize / 2 - 8, // 8 は 自身のfontSizeの半分
+  originX: 'center',
+  originY: 'center',
+  fill: 'black',
+  fontFamily: 'cursive',
+  fontSize: 16,
+});
+number2 = new fabric.Text(String(numbers[1]), {
+  left: mainCanvasCenterWidth + (dialSize / 2 - 8) * cos30, // 8 は 自身のfontSizeの半分
+  top: mainCanvasCenterHeight - (dialSize / 2 - 8) * sin30, // 8 は 自身のfontSizeの半分
+  originX: 'center',
+  originY: 'center',
+  fill: 'black',
+  fontFamily: 'cursive',
+  fontSize: 16,
+});
+number1 = new fabric.Text(String(numbers[0]), {
+  left: mainCanvasCenterWidth + (dialSize / 2 - 8) * cos60, // 8 は 自身のfontSizeの半分
+  top: mainCanvasCenterHeight - (dialSize / 2 - 8) * sin60, // 8 は 自身のfontSizeの半分
+  originX: 'center',
+  originY: 'center',
+  fill: 'black',
+  fontFamily: 'cursive',
+  fontSize: 16,
+});
+mainCanvas.add(number6, number12, number2, number1);
+
+
+
+
   // ここまで試しコードを書く ----------------------------
 
 });
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
+console.log("PI"+ Math.PI);
+console.log(Math.cos(30 * Math.PI / 180));
 
 });
 //* テスト用 -------------------------------------------------------------------------
