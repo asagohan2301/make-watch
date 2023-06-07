@@ -214,7 +214,7 @@ main {
         }
         
         /* ----- shape radio ----- */
-        .shape-list {
+        .design-list {
           height: 132px;
           padding: 0 22px;
           border-bottom: $dashedBorder;
@@ -291,6 +291,14 @@ main {
 }
 .black-color {
   background: black;
+}
+.white-color {
+  background: white;
+  border: 1px solid black;
+}
+.ivory-color {
+  background: rgb(250, 250, 240);
+  border: 1px solid black;
 }
 .brown-color {
   background: brown;
