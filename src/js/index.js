@@ -1622,30 +1622,45 @@ const range = document.getElementById('test-range');
 
 range.addEventListener('input', () => {
   const rangeValue = parseInt(range.value);
-  number6.set({
+  nums.forEach(num => {
+    // num.set({
+    //   scaleX: rangeValue / 10,
+    //   scaleY: rangeValue / 10,
+    //   // 線幅を保つ
+    //   strokeUniform: true,
+    // });
+    console.log(num);
+  });
+  numObject.set({
     scaleX: rangeValue / 10,
     scaleY: rangeValue / 10,
     // 線幅を保つ
     strokeUniform: true,
   });
-  number12.set({
-    scaleX: rangeValue / 10,
-    scaleY: rangeValue / 10,
-    // 線幅を保つ
-    strokeUniform: true,
-  });
-  number1.set({
-    scaleX: rangeValue / 10,
-    scaleY: rangeValue / 10,
-    // 線幅を保つ
-    strokeUniform: true,
-  });
-  number2.set({
-    scaleX: rangeValue / 10,
-    scaleY: rangeValue / 10,
-    // 線幅を保つ
-    strokeUniform: true,
-  });
+  // number6.set({
+  //   scaleX: rangeValue / 10,
+  //   scaleY: rangeValue / 10,
+  //   // 線幅を保つ
+  //   strokeUniform: true,
+  // });
+  // number12.set({
+  //   scaleX: rangeValue / 10,
+  //   scaleY: rangeValue / 10,
+  //   // 線幅を保つ
+  //   strokeUniform: true,
+  // });
+  // number1.set({
+  //   scaleX: rangeValue / 10,
+  //   scaleY: rangeValue / 10,
+  //   // 線幅を保つ
+  //   strokeUniform: true,
+  // });
+  // number2.set({
+  //   scaleX: rangeValue / 10,
+  //   scaleY: rangeValue / 10,
+  //   // 線幅を保つ
+  //   strokeUniform: true,
+  // });
   // group.item(0).set(
   //   'text', 'good'
   // );
@@ -1679,22 +1694,121 @@ ctx.fillText('ケースの直径を入力', 10, 50);
 
 //* テスト用 -------------------------------------------------------------------------
 
-let number6;
-let number12;
-let number2;
-let number1;
+// let number6;
+// let number12;
+// let number2;
+// let number1;
 
+// 数字の位置を計算するための数値
 const sin30 = Math.sin(30 * Math.PI / 180);
 const cos30 = Math.cos(30 * Math.PI / 180);
 const sin60 = Math.sin(60 * Math.PI / 180);
 const cos60 = Math.cos(60 * Math.PI / 180);
 
+// 文字盤に描く1から12までの数字
 const numbers = [];
 for (let i = 1; i <= 12; i++) {
-  numbers.push(i);
+  // numbers.push(i);
+  numbers.push(new fabric.Text(String(i),{
+    originX: 'center',
+    originY: 'center',
+    fill: 'black',
+    fontFamily: 'cursive',
+    fontSize: 16,
+  })
+  )
 }
-console.log(numbers);
-console.log(numbers[3]);
+// const numbers = [];
+// for (let i = 1; i <= 12; i++) {
+//   // numbers.push(i);
+//   mainCanvas.add(new fabric.Text(String(i), {
+//     originX: 'center',
+//     originY: 'center',
+//     fill: 'black',
+//     fontFamily: 'cursive',
+//     fontSize: 16,
+//   })
+//   )
+// }
+
+let numberFontSize = 12;
+
+// class Number extends fabric.Text {
+//   constructor(options) {
+//     super(options);
+//     this.text = 'test';
+//     this.originX = 'center';
+//     this.originY = 'center';
+//     this.fill = 'black';
+//     this.fontFamily = 'cursive';
+//     this.fontSize = fontSize;
+//   }
+// }
+
+let numObject;
+let nums = [];
+
+class NumberRe {
+  constructor(left, top, text) {
+    this.left = left;
+    this.top = top;
+    this.text = text;
+  }
+  drawNumber() {
+    numObject = new fabric.Text(this.text, {
+      originX: 'center',
+      originY: 'center',
+      fill: 'black',
+      fontFamily: 'cursive',
+      fontSize: numberFontSize,
+      left: this.left,
+      top: this.top,
+    });
+    mainCanvas.add(numObject);
+  }
+}
+
+
+
+for (let i = 1; i <= 12; i++) {
+  const num = new NumberRe(100, 100, i + '番目');
+  num.drawNumber();
+  if (i === 3) {
+    numObject.set({
+      fill: 'red',
+    });
+  }
+  mainCanvas.renderAll();
+}
+
+console.log(numObject);
+
+// class WatchCrown {
+//   constructor(url) {
+//     this.url = url;
+//   }
+//   drawCrown() {
+//     mainCanvas.remove(crownObject);
+//     fabric.loadSVGFromURL(this.url, (objects, options) => {
+//       crownObject = fabric.util.groupSVGElements(objects, options);
+//       crownObject.set({
+//         originY: 'center',
+//         left: caseObject.left + caseObject.width / 2,
+//         top: mainCanvasCenterHeight,
+//         fill: inputCaseColor,
+//       });
+//       mainCanvas.add(crownObject);
+//     });
+//   }
+// }
+
+// インスタンス
+// const newNum = new Number();
+// newNum.set({
+//   text: 'test',
+//   left: mainCanvasCenterWidth,
+// });
+// mainCanvas.add(newNum);
 
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
@@ -1703,7 +1817,7 @@ testButton1.addEventListener('click', () => {
 
 number12 = new fabric.Text(String(numbers[11]), { //11 は 12
   left: mainCanvasCenterWidth,
-  top: mainCanvasCenterHeight - dialSize / 2 + 8, // 8 は 自身のfontSizeの半分
+  top: mainCanvasCenterHeight - dialSize / 2 + numberFontSize / 2, // 自身のfontSizeの半分ぶん移動
   originX: 'center',
   originY: 'center',
   fill: 'black',
@@ -1712,12 +1826,15 @@ number12 = new fabric.Text(String(numbers[11]), { //11 は 12
 });
 number6 = new fabric.Text(String(numbers[5]), {
   left: mainCanvasCenterWidth,
-  top: mainCanvasCenterHeight + dialSize / 2 - 8, // 8 は 自身のfontSizeの半分
+  top: mainCanvasCenterHeight + dialSize / 2 - numberFontSize / 2, // 自身のfontSizeの半分ぶん移動
   originX: 'center',
   originY: 'center',
   fill: 'black',
   fontFamily: 'cursive',
   fontSize: 16,
+});
+number6.set({
+  text: 'change',
 });
 number2 = new fabric.Text(String(numbers[1]), {
   left: mainCanvasCenterWidth + (dialSize / 2 - 8) * cos30, // 8 は 自身のfontSizeの半分
@@ -1746,10 +1863,38 @@ mainCanvas.add(number6, number12, number2, number1);
 
 });
 
+let num12;
+let num1;
+let num2;
+
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
-console.log("PI"+ Math.PI);
-console.log(Math.cos(30 * Math.PI / 180));
+  num12 = new NumberRe(
+    mainCanvasCenterWidth,
+    mainCanvasCenterHeight - dialSize / 2 + numberFontSize / 2, // 8 は 自身のfontSizeの半分,
+    '12'
+  );
+  num12.drawNumber();
+
+  num1 = new NumberRe(
+    mainCanvasCenterWidth + (dialSize / 2 - numberFontSize / 2) * cos60, // 8 は 自身のfontSizeの半分
+    mainCanvasCenterHeight - (dialSize / 2 - numberFontSize / 2) * sin60, // 8 は 自身のfontSizeの半
+    '1'
+  );
+  num1.drawNumber();
+  
+  num2 = new NumberRe(
+    mainCanvasCenterWidth + (dialSize / 2 - numberFontSize / 2) * cos30, // 8 は 自身のfontSizeの半分
+    mainCanvasCenterHeight - (dialSize / 2 - numberFontSize / 2) * sin30, // 8 は 自身のfontSizeの半分
+    '2'
+  );
+
+  
+  nums.push(num1, num2, num12);
+  nums.forEach(num => {
+    num.drawNumber();
+  });
+  
 
 });
 //* テスト用 -------------------------------------------------------------------------
