@@ -38,6 +38,12 @@ function caseStackingOrder() {
   if (dialObject !== undefined) {
     dialObject.moveTo(7);
   }
+  //*test
+  if (hourObjects.length !== 0) {
+    hourObjects.forEach(hourObject => {
+      hourObject.moveTo(8);
+    });
+  }
 }
 
 // カラーピッカー ----------------
@@ -113,7 +119,7 @@ const strapColorInputs = document.querySelectorAll('input[name="strap-color"]');
 const buckleShapeInputs = document.querySelectorAll('input[name="buckle-shape"]');
 const dialColorInputs = document.querySelectorAll('input[name="dial-color"]');
 const hourLayoutInputs = document.querySelectorAll('input[name="hour-layout"]');
-const numberFontInputs = document.querySelectorAll('input[name="hour-font"]');
+const hourFontFamilyInputs = document.querySelectorAll('input[name="hour-font"]');
 
 // 配列 radioArray の中に、複数の要素が配列のようになった lugShapeInputs などが入っている
 // lugShapeInputs などの中に、個々の input 要素が入っている
@@ -129,7 +135,7 @@ const radioArray = [
   buckleShapeInputs,
   dialColorInputs,
   hourLayoutInputs,
-  numberFontInputs,
+  hourFontFamilyInputs,
 ];
 
 // 配列の各要素(の集まり)から関数を呼び出す ----------------
@@ -354,6 +360,13 @@ dialSizeInput.addEventListener('input', () => {
   //   fill: dialColor,
   // });
   mainCanvas.add(dialObject);
+  //*test
+  //* 数字再描画 ----
+  //* すでに数字が描かれていたら、再描画する
+  if (hourObjects.length !== 0) {
+    drawHours();
+  }
+  // 重なり順を直す
   caseStackingOrder();
 });
 
@@ -1236,6 +1249,8 @@ const cos60 = Math.cos(60 * Math.PI / 180);
 // サイズなど
 let hourFontSize = 12; // 初期値12
 let hourLayout; // 全数字 or 4ポイント or 2ポイント
+let hourLayoutCircleRadius; // 数字を配置する時に、各数字の中心となる弧を持つ円の半径
+let hourFontFamily = 'sans-serif'; // 初期値
 
 //* main 文字盤色 ----------------------------------------
 
@@ -1278,7 +1293,7 @@ class Hour {
       originX: 'center',
       originY: 'center',
       fill: 'black',
-      fontFamily: 'cursive',
+      fontFamily: hourFontFamily,
       fontSize: hourFontSize,
       left: this.left,
       top: this.top,
@@ -1288,131 +1303,156 @@ class Hour {
   }
 }
 
-// 数字の配置が選択されたら描画する ----------------
+// 数字の配置が選択されたらcanvasに描画する ----------------
 hourLayoutInputs.forEach(hourLayoutInput => {
   hourLayoutInput.addEventListener('input', () => {
-    //* test
     // hourLayout に値を代入
     hourLayout = hourLayoutInput.value;
-    // 数字の位置を計算する式は何度も書くことになるのでここで変数に入れておく
-    // 4種類の距離で、全ての数字の位置を計算できる
-    // 1, 5, 7, 11 用 ----
-    // X = x + r * cosΘ の r * cosΘ の部分
-    const distanceX1 = (dialSize / 2 - hourFontSize / 2) * cos60;
-    // Y = y + r * sinΘ の r * sinΘ の部分
-    const distanceY1 = (dialSize / 2 - hourFontSize / 2) * sin60;
-    // 2, 4, 8, 10 用 ----
-    const distanceX2 = (dialSize / 2 - hourFontSize / 2) * cos30;
-    const distanceY2 = (dialSize / 2 - hourFontSize / 2) * sin30;
-
-    //*test すでに描かれていたら canvas から削除
-    if (hourObjects.length !== 0) {
-      hourObjects.forEach(hourObject => {
-        mainCanvas.remove(hourObject);
-      });
-      hourObjects = [];
-    }
-
-    // Hourインスタンスを生成 ----
-    // 引数は順に left, top, text
-    //*test
-    //* 全数字、4ポイント、2ポイントでわける
-    //* 4ポイントなら 1, 2, 4, 5, 7, 8, 10, 11 を飛ばす
-    //* 2ポイントなら 1, 2, 2, 4, 5, 7, 8, 9, 10, 11 (6 と 12以外) を飛ばす
-
-    //* 全数字、4ポイント、2ポイント ----
-    // 6
-    hour6 = new Hour(
-      mainCanvasCenterWidth,
-      mainCanvasCenterHeight + dialSize / 2 - hourFontSize / 2,
-      '6',
-    );
-    hour6.drawHour();
-    // 12
-    hour12 = new Hour(
-      mainCanvasCenterWidth,
-      mainCanvasCenterHeight - dialSize / 2 + hourFontSize / 2,
-      '12',
-    );
-    hour12.drawHour();
-    //* 全数字、4ポイント ----
-    if (hourLayout === 'all-hour' || hourLayout === 'four-point-hour') {
-      // 3
-      hour3 = new Hour(
-        mainCanvasCenterWidth + dialSize / 2 - hourFontSize / 2,
-        mainCanvasCenterHeight,
-        '3',
-      );
-      hour3.drawHour();
-      // 9
-      hour9 = new Hour(
-        mainCanvasCenterWidth - dialSize / 2 + hourFontSize / 2,
-        mainCanvasCenterHeight,
-        '9',
-      );
-      hour9.drawHour();
-    }
-    //* 全数字 ----
-    if (hourLayout === 'all-hour') {
-      // 1
-      hour1 = new Hour(
-        mainCanvasCenterWidth + distanceX1,
-        mainCanvasCenterHeight - distanceY1,
-        '1',
-      );
-      hour1.drawHour();
-      // 2
-      hour2 = new Hour(
-        mainCanvasCenterWidth + distanceX2,
-        mainCanvasCenterHeight - distanceY2,
-        '2',
-      );
-      hour2.drawHour();
-      // 4
-      hour4 = new Hour(
-        mainCanvasCenterWidth + distanceX2,
-        mainCanvasCenterHeight + distanceY2,
-        '4',
-      );
-      hour4.drawHour();
-      // 5
-      hour5 = new Hour(
-        mainCanvasCenterWidth + distanceX1,
-        mainCanvasCenterHeight + distanceY1,
-        '5',
-      );
-      hour5.drawHour();
-      // 7
-      hour7 = new Hour(
-        mainCanvasCenterWidth - distanceX1,
-        mainCanvasCenterHeight + distanceY1,
-        '7',
-      );
-      hour7.drawHour();
-      // 8
-      hour8 = new Hour(
-        mainCanvasCenterWidth - distanceX2,
-        mainCanvasCenterHeight + distanceY2,
-        '8',
-      );
-      hour8.drawHour();
-      // 10
-      hour10 = new Hour(
-        mainCanvasCenterWidth - distanceX2,
-        mainCanvasCenterHeight - distanceY2,
-        '10',
-      );
-      hour10.drawHour();
-      // 11
-      hour11 = new Hour(
-        mainCanvasCenterWidth - distanceX1,
-        mainCanvasCenterHeight - distanceY1,
-        '11',
-      );
-      hour11.drawHour();
-    }
+    // 数字たちを描く関数呼び出し
+    drawHours();
   });
 });
+
+// 数字のフォントが選択されたらcanvasに描画する ----------------
+hourFontFamilyInputs.forEach(hourFontFamilyInput => {
+  hourFontFamilyInput.addEventListener('input', () => {
+    // hourFontFamily に値を代入
+    hourFontFamily = hourFontFamilyInput.value;
+    //* test
+    //* 数字の配置がまだ選択されていない場合
+    if (hourLayout === undefined) {
+      alert('数字の配置を選択すると、数字が描画されます');
+      return;
+    }
+    // 数字たちを描く関数呼び出し
+    drawHours();
+  });
+});
+
+// 数字たちを描く関数 ----------------
+function drawHours() {
+  //* test
+  // 文字盤半径から数字のフォントサイズの半分を引くと、ちょうど数字の外側が文字盤の円に触れる位置になる
+  // そこから内側に少し調整する
+  hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+  // 数字の位置を計算する式は何度も書くことになるのでここで変数に入れておく
+  // 4種類の距離で、全ての数字の位置を計算できる
+  // 1, 5, 7, 11 用 ----
+  // X = x + r * cosΘ の r * cosΘ の部分
+  const distanceX1 = (hourLayoutCircleRadius) * cos60;
+  // Y = y + r * sinΘ の r * sinΘ の部分
+  const distanceY1 = (hourLayoutCircleRadius) * sin60;
+  // 2, 4, 8, 10 用 ----
+  const distanceX2 = (hourLayoutCircleRadius) * cos30;
+  const distanceY2 = (hourLayoutCircleRadius) * sin30;
+
+  //*test すでに描かれていたら canvas から削除
+  if (hourObjects.length !== 0) {
+    hourObjects.forEach(hourObject => {
+      mainCanvas.remove(hourObject);
+    });
+    hourObjects = [];
+  }
+
+  // Hourインスタンスを生成 ----
+  // 引数は順に left, top, text
+  //*test
+  //* 全数字、4ポイント、2ポイントでわける
+  //* 4ポイントなら 1, 2, 4, 5, 7, 8, 10, 11 を飛ばす
+  //* 2ポイントなら 1, 2, 2, 4, 5, 7, 8, 9, 10, 11 (6 と 12以外) を飛ばす
+
+  //* 全数字、4ポイント、2ポイント ----
+  // 6
+  hour6 = new Hour(
+    mainCanvasCenterWidth,
+    mainCanvasCenterHeight + hourLayoutCircleRadius,
+    '6',
+  );
+  hour6.drawHour();
+  // 12
+  hour12 = new Hour(
+    mainCanvasCenterWidth,
+    mainCanvasCenterHeight - hourLayoutCircleRadius,
+    '12',
+  );
+  hour12.drawHour();
+  //* 全数字、4ポイント ----
+  if (hourLayout === 'all-hour' || hourLayout === 'four-point-hour') {
+    // 3
+    hour3 = new Hour(
+      mainCanvasCenterWidth + hourLayoutCircleRadius,
+      mainCanvasCenterHeight,
+      '3',
+    );
+    hour3.drawHour();
+    // 9
+    hour9 = new Hour(
+      mainCanvasCenterWidth - hourLayoutCircleRadius,
+      mainCanvasCenterHeight,
+      '9',
+    );
+    hour9.drawHour();
+  }
+  //* 全数字 ----
+  if (hourLayout === 'all-hour') {
+    // 1
+    hour1 = new Hour(
+      mainCanvasCenterWidth + distanceX1,
+      mainCanvasCenterHeight - distanceY1,
+      '1',
+    );
+    hour1.drawHour();
+    // 2
+    hour2 = new Hour(
+      mainCanvasCenterWidth + distanceX2,
+      mainCanvasCenterHeight - distanceY2,
+      '2',
+    );
+    hour2.drawHour();
+    // 4
+    hour4 = new Hour(
+      mainCanvasCenterWidth + distanceX2,
+      mainCanvasCenterHeight + distanceY2,
+      '4',
+    );
+    hour4.drawHour();
+    // 5
+    hour5 = new Hour(
+      mainCanvasCenterWidth + distanceX1,
+      mainCanvasCenterHeight + distanceY1,
+      '5',
+    );
+    hour5.drawHour();
+    // 7
+    hour7 = new Hour(
+      mainCanvasCenterWidth - distanceX1,
+      mainCanvasCenterHeight + distanceY1,
+      '7',
+    );
+    hour7.drawHour();
+    // 8
+    hour8 = new Hour(
+      mainCanvasCenterWidth - distanceX2,
+      mainCanvasCenterHeight + distanceY2,
+      '8',
+    );
+    hour8.drawHour();
+    // 10
+    hour10 = new Hour(
+      mainCanvasCenterWidth - distanceX2,
+      mainCanvasCenterHeight - distanceY2,
+      '10',
+    );
+    hour10.drawHour();
+    // 11
+    hour11 = new Hour(
+      mainCanvasCenterWidth - distanceX1,
+      mainCanvasCenterHeight - distanceY1,
+      '11',
+    );
+    hour11.drawHour();
+  }
+}
 
 // 数字のサイズを変えるレンジ ----------------
 const fontSizeRange = document.getElementById('font-size-range');
