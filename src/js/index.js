@@ -35,8 +35,8 @@ function caseStackingOrder() {
   if (caseOpeningObject !== undefined) {
     caseOpeningObject.moveTo(6);
   }
-  if (dialOpeningObject !== undefined) {
-    dialOpeningObject.moveTo(7);
+  if (dialObject !== undefined) {
+    dialObject.moveTo(7);
   }
 }
 
@@ -47,8 +47,8 @@ const caseColorPicker = document.getElementById('case-color-picker');
 caseColorPicker.addEventListener('input', () => {
   // ボタンの色を変える
   caseColorPicker.previousElementSibling.style.backgroundColor = caseColorPicker.value;
-  // inputCaseColorに値を入れておく
-  inputCaseColor = caseColorPicker.value;
+  // caseColorに値を入れておく
+  caseColor = caseColorPicker.value;
   // オブジェクトに色をつける
   applyCaseColor();
 });
@@ -68,7 +68,6 @@ strapColorPicker.addEventListener('input', () => {
   // オブジェクトに色をつける
   applyStrapColor(strapColorChangeLists);
 });
-//* test
 // 文字盤
 const dialColorPicker = document.getElementById('dial-color-picker');
 dialColorPicker.addEventListener('input', () => {
@@ -77,8 +76,8 @@ dialColorPicker.addEventListener('input', () => {
   // dialColorに値を入れておく
   dialColor = dialColorPicker.value;
   // オブジェクトに色をつける
-  if (dialOpeningObject !== undefined) {
-    dialOpeningObject.set({
+  if (dialObject !== undefined) {
+    dialObject.set({
       fill: dialColor,
     });
   }
@@ -113,8 +112,8 @@ const strapShapeInputs = document.querySelectorAll('input[name="strap-shape"]');
 const strapColorInputs = document.querySelectorAll('input[name="strap-color"]');
 const buckleShapeInputs = document.querySelectorAll('input[name="buckle-shape"]');
 const dialColorInputs = document.querySelectorAll('input[name="dial-color"]');
-const numberLayoutInputs = document.querySelectorAll('input[name="number-layout"]');
-const numberFontInputs = document.querySelectorAll('input[name="number-font"]');
+const hourLayoutInputs = document.querySelectorAll('input[name="hour-layout"]');
+const numberFontInputs = document.querySelectorAll('input[name="hour-font"]');
 
 // 配列 radioArray の中に、複数の要素が配列のようになった lugShapeInputs などが入っている
 // lugShapeInputs などの中に、個々の input 要素が入っている
@@ -129,7 +128,7 @@ const radioArray = [
   strapColorInputs,
   buckleShapeInputs,
   dialColorInputs,
-  numberLayoutInputs,
+  hourLayoutInputs,
   numberFontInputs,
 ];
 
@@ -169,10 +168,14 @@ tabs.forEach(tab => {
         return;
       }
     }
-    // 文字盤タブをクリックしたときに、まだケース直径が入力されていなければ return
+    // 文字盤タブをクリックしたときに、まだケース直径と文字盤見切り直径が入力されていなければ return
     if (tab.id === 'dial-tab') {
-      if (caseObject === undefined) {
-        window.alert('先にこのページでケース直径を入力してから、文字盤の入力に進んでください');
+      if (caseObject === undefined && dialObject === undefined) {
+        window.alert('先にこのページでケース直径と文字盤見切り直径を入力してから、文字盤の入力に進んでください');
+        return;
+      }
+      if (dialObject === undefined) {
+        window.alert('先にこのページで文字盤見切り直径を入力してから、文字盤の入力に進んでください');
         return;
       }
     }
@@ -194,7 +197,7 @@ tabs.forEach(tab => {
 
 // fabricインスタンス ----------------------------------------
 
-// オブジェクトを選択できるようにするなら Canvas
+// オブジェクトを選択できるようにするなら ただの Canvas
 const mainCanvas = new fabric.Canvas('main-canvas');
 // オブジェクトを選択できないようにするなら StaticCanvas
 // const mainCanvas = new fabric.StaticCanvas('main-canvas');
@@ -208,24 +211,25 @@ const mainCanvasCenterHeight = mmToPixel(125);
 // オブジェクト
 let caseObject;
 let caseOpeningObject;
-let dialOpeningObject;
+let dialObject;
 let crownObject; // 2種類のクラウンで同じ変数名でOK？→OKそう。同時には存在しないから？
 const lugObjects = [];
 // サイズ・形状・色
 let lugWidth;
 let lugShape = 'round'; //初期値
-let crownShape; //*初期値無しに
+let crownShape; //初期値無し
 const defaultLugThickness = mmToPixel(2);
 const defaultLugLength = mmToPixel(8);
-let inputCaseColor = 'white'; //初期値
+let caseColor = 'white'; //初期値
+let dialColor = 'white'; //初期値
 // Node
 const caseSizeInput = document.getElementById('case-size');
 const caseOpeningSizeInput = document.getElementById('case-opening-size');
-const dialOpeningSizeInput = document.getElementById('dial-opening-size');
+const dialSizeInput = document.getElementById('dial-size');
 const lugWidthInput = document.getElementById('lug-width');
 
 //*test
-let dialColor = 'white';
+//*このように入力値を変数に入れておいて使うのか、dialObjectのradiusなどを使う方が良いか要検討
 let dialSize;
 
 // 円のクラス ----------------------------------------
@@ -257,7 +261,7 @@ caseSizeInput.addEventListener('input', () => {
   });
   // すでに色が選ばれていた場合はその色にする
   caseObject.set({
-    fill: inputCaseColor,
+    fill: caseColor,
   });
   // canvasに描画
   mainCanvas.add(caseObject);
@@ -330,75 +334,28 @@ caseOpeningSizeInput.addEventListener('input', () => {
   caseStackingOrder();
 });
 
-//* main 文字盤見切り ----------------------------------------
-// 文字盤見切りサイズが入力されたらcanvasに描画 ----------------
-dialOpeningSizeInput.addEventListener('input', () => {
+//* main 文字盤 ----------------------------------------
+// 文字盤サイズが入力されたらcanvasに描画 ----------------
+dialSizeInput.addEventListener('input', () => {
   // すでにオブジェクトが描かれていたらcanvasから削除
-  mainCanvas.remove(dialOpeningObject);
+  mainCanvas.remove(dialObject);
   // dialSizeに値を代入
-  dialSize = mmToPixel(dialOpeningSizeInput.value);
+  dialSize = mmToPixel(dialSizeInput.value);
   // オブジェクト生成
-  dialOpeningObject = new WatchCircle({
+  dialObject = new WatchCircle({
     radius: dialSize / 2,
     left: mainCanvasCenterWidth,
     top: mainCanvasCenterHeight,
-  });
-  //* test
-  // すでに色が選ばれていた場合はその色にする
-  dialOpeningObject.set({
     fill: dialColor,
   });
-  mainCanvas.add(dialOpeningObject);
+  // すでに色が選ばれていた場合はその色にする
+  // 文字盤サイズを入力せずにタブ移動は不可能なのでここ不要
+  // dialObject.set({
+  //   fill: dialColor,
+  // });
+  mainCanvas.add(dialObject);
   caseStackingOrder();
 });
-
-//* test
-// 文字盤ベース色が選択されたら、色を付ける ----------------
-dialColorInputs.forEach(dialColorInput => {
-  dialColorInput.addEventListener('input', () => {
-    // dialColorに値を代入
-    dialColor = dialColorInput.value;
-    // アラートを表示
-    if (dialOpeningObject === undefined) {
-      alert('ダイヤル見切りを入力してね');
-      return;
-    }
-    // 文字盤に色をつける
-    dialOpeningObject.set({
-      fill: dialColor,
-    });
-    mainCanvas.renderAll();
-  });
-});
-
-//* test
-// 数字の配置が選択されたら描画する ----------------
-numberLayoutInputs.forEach(numberLayoutInput => {
-  numberLayoutInput.addEventListener('input', () => {
-    drawNumber();
-  });
-});
-
-//* test
-// 数字を描く関数 ----------------
-let numberObject;
-const defaultDialSize = mmToPixel(30);
-function drawNumber() {
-  mainCanvas.remove(numberObject);
-  fabric.loadSVGFromURL('./assets/number-all.svg', (objects, options) => {
-    numberObject = fabric.util.groupSVGElements(objects, options);
-    numberObject.set({
-      originX: 'center',
-      originY: 'center',
-      left: mainCanvasCenterWidth,
-      top: mainCanvasCenterHeight,
-      scaleX: dialSize / defaultDialSize,
-      scaleY: dialSize / defaultDialSize,
-    });
-    mainCanvas.add(numberObject);
-  });
-}
-
 
 //* main ラグ ----------------------------------------
 
@@ -493,6 +450,9 @@ class WatchLug {
       mainCanvas.remove(lugObject);
     });
     // ラグオブジェクト生成
+    //* memo 位置を計算するときに、入力値を使うのか、それともケースオブジェクトのheightなどを使うのか
+    //* ここではケースオブジェクトのプロパティを使っているが
+    //* heightやradiusなどがあるしどれを使うべきかとか今のところ混在してごちゃごちゃしてるかも
     for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
       fabric.loadSVGFromURL(this.url, (objects, options) => {
         lugObjects[i] = fabric.util.groupSVGElements(objects, options);
@@ -500,7 +460,7 @@ class WatchLug {
           originX: 'center',
           left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2,
           top: mainCanvasCenterHeight - caseObject.height / adjustValue,
-          fill: inputCaseColor,
+          fill: caseColor,
         });
         if (i === 1 || i === 3) {
           lugObjects[i].set({
@@ -565,7 +525,7 @@ class WatchCrown {
         originY: 'center',
         left: caseObject.left + caseObject.width / 2,
         top: mainCanvasCenterHeight,
-        fill: inputCaseColor,
+        fill: caseColor,
       });
       mainCanvas.add(crownObject);
     });
@@ -616,16 +576,16 @@ caseColorInputs.forEach(caseColorInput => {
     // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
     switch(caseColorInput.value) {
       case 'gold':
-        inputCaseColor = goldGradation;
+        caseColor = goldGradation;
         break;
       case 'silver':
-        inputCaseColor = silverGradation;
+        caseColor = silverGradation;
         break;
       case 'pink-gold':
-        inputCaseColor = pinkGoldGradation;
+        caseColor = pinkGoldGradation;
         break;
       case 'custom-color':
-        inputCaseColor = caseColorPicker.value;
+        caseColor = caseColorPicker.value;
         break;
     }
     //* ケースさえもまだ描かれていない(色を付けるオブジェクトがまだ何もない)場合は、アラートを表示
@@ -643,24 +603,24 @@ caseColorInputs.forEach(caseColorInput => {
 function applyCaseColor() {
   // caseObjectの有無は、呼び出し元で判定済みなのでここでは判定不要
   caseObject.set({
-    fill: inputCaseColor,
+    fill: caseColor,
   });
   if (crownObject !== undefined) {
     crownObject.set({
-      fill: inputCaseColor,
+      fill: caseColor,
     });
   }
   if (lugObjects !== undefined) {
     lugObjects.forEach(lugObject => {
       lugObject.set({
-        fill: inputCaseColor,
+        fill: caseColor,
       });
     });
   }
   if (buckleObject !== undefined) {
     buckleObject._objects.forEach(object => {
       object.set({
-        fill: inputCaseColor,
+        fill: caseColor,
       });
     });
   }
@@ -700,7 +660,6 @@ let topStitchObject;
 let strapStitchExist = false; // ストラップ有無 初期値はfalse
 // バックル
 let buckleObject;
-// let buckleShape = 'round'; // 初期値
 let buckleShape;
 // Node
 const upperStrapLengthInput = document.getElementById('upper-strap-length');
@@ -1217,7 +1176,7 @@ class WatchBuckle {
       // このプロパティはパスの配列となっており、個々のパスに対して属性を変更することができる。
       buckleObject._objects.forEach(object => {
         object.set({
-          fill: inputCaseColor,
+          fill: caseColor,
           // 線幅を保つ
           strokeUniform: true,
         });
@@ -1256,6 +1215,218 @@ buckleShapeInputs.forEach(buckleShapeInput => {
 
 //* main dial ----------------------------------------------------------------------------------
 
+// memo: dialObject の描画は、caseのところで定義してある
+
+// 変数定義 ----------------------------------------
+
+// hourObject(実際には hourObject という名前はなく名もなきオブジェクト) を入れていくための配列
+let hourObjects = [];
+
+// インスタンス用の変数
+// これらはcanvasに描かれるオブジェクトではなく、これらのインスタンスから呼び出したメソッドの中で、
+// hourObjects 配列に追加されていく名もなきオブジェクトたちが fabric オブジェクト
+let hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12;
+
+// 数字の位置を計算するための数値
+const sin30 = Math.sin(30 * Math.PI / 180);
+const cos30 = Math.cos(30 * Math.PI / 180);
+const sin60 = Math.sin(60 * Math.PI / 180);
+const cos60 = Math.cos(60 * Math.PI / 180);
+
+// サイズなど
+let hourFontSize = 12; // 初期値12
+let hourLayout; // 全数字 or 4ポイント or 2ポイント
+
+//* main 文字盤色 ----------------------------------------
+
+// 文字盤ベース色が選択されたら、色を付ける ----------------
+dialColorInputs.forEach(dialColorInput => {
+  dialColorInput.addEventListener('input', () => {
+    // dialColorに値を代入
+    dialColor = dialColorInput.value;
+    // アラートを表示
+    if (dialObject === undefined) {
+      alert('「ケース」タブの「文字盤見切り直径」を入力すると、選択した色がつきます');
+      return;
+    }
+    // 文字盤に色をつける
+    dialObject.set({
+      fill: dialColor,
+    });
+    mainCanvas.renderAll();
+  });
+});
+
+//* main 文字盤数字 ----------------------------------------
+
+// 数字のクラス ----------------
+class Hour {
+  constructor(left, top, text) {
+    this.left = left;
+    this.top = top;
+    this.text = text;
+  }
+  // インスタンスから drawHour を呼び出すと、
+  // canvasに オブジェクトが描かれ、さらに
+  // hourObjects にオブジェクトが入っていく
+  // hourObjects に入れるのは、後から数字の大きさを変えたりするのにループを回すため
+  //// hourObjects に名もなきfabricオブジェクトが入っていく
+  //* 配列に入っているオブジェクトは全てhourObjectという名前だけどだいじょうぶかな
+  //* 実際には名前はついた状態で配列に入ってはいないのかな？
+  drawHour() {
+    const hourObject = new fabric.Text(this.text, {
+      originX: 'center',
+      originY: 'center',
+      fill: 'black',
+      fontFamily: 'cursive',
+      fontSize: hourFontSize,
+      left: this.left,
+      top: this.top,
+    });
+    mainCanvas.add(hourObject);
+    hourObjects.push(hourObject);
+  }
+}
+
+// 数字の配置が選択されたら描画する ----------------
+hourLayoutInputs.forEach(hourLayoutInput => {
+  hourLayoutInput.addEventListener('input', () => {
+    //* test
+    // hourLayout に値を代入
+    hourLayout = hourLayoutInput.value;
+    // 数字の位置を計算する式は何度も書くことになるのでここで変数に入れておく
+    // 4種類の距離で、全ての数字の位置を計算できる
+    // 1, 5, 7, 11 用 ----
+    // X = x + r * cosΘ の r * cosΘ の部分
+    const distanceX1 = (dialSize / 2 - hourFontSize / 2) * cos60;
+    // Y = y + r * sinΘ の r * sinΘ の部分
+    const distanceY1 = (dialSize / 2 - hourFontSize / 2) * sin60;
+    // 2, 4, 8, 10 用 ----
+    const distanceX2 = (dialSize / 2 - hourFontSize / 2) * cos30;
+    const distanceY2 = (dialSize / 2 - hourFontSize / 2) * sin30;
+
+    //*test すでに描かれていたら canvas から削除
+    if (hourObjects.length !== 0) {
+      hourObjects.forEach(hourObject => {
+        mainCanvas.remove(hourObject);
+      });
+      hourObjects = [];
+    }
+
+    // Hourインスタンスを生成 ----
+    // 引数は順に left, top, text
+    //*test
+    //* 全数字、4ポイント、2ポイントでわける
+    //* 4ポイントなら 1, 2, 4, 5, 7, 8, 10, 11 を飛ばす
+    //* 2ポイントなら 1, 2, 2, 4, 5, 7, 8, 9, 10, 11 (6 と 12以外) を飛ばす
+
+    //* 全数字、4ポイント、2ポイント ----
+    // 6
+    hour6 = new Hour(
+      mainCanvasCenterWidth,
+      mainCanvasCenterHeight + dialSize / 2 - hourFontSize / 2,
+      '6',
+    );
+    hour6.drawHour();
+    // 12
+    hour12 = new Hour(
+      mainCanvasCenterWidth,
+      mainCanvasCenterHeight - dialSize / 2 + hourFontSize / 2,
+      '12',
+    );
+    hour12.drawHour();
+    //* 全数字、4ポイント ----
+    if (hourLayout === 'all-hour' || hourLayout === 'four-point-hour') {
+      // 3
+      hour3 = new Hour(
+        mainCanvasCenterWidth + dialSize / 2 - hourFontSize / 2,
+        mainCanvasCenterHeight,
+        '3',
+      );
+      hour3.drawHour();
+      // 9
+      hour9 = new Hour(
+        mainCanvasCenterWidth - dialSize / 2 + hourFontSize / 2,
+        mainCanvasCenterHeight,
+        '9',
+      );
+      hour9.drawHour();
+    }
+    //* 全数字 ----
+    if (hourLayout === 'all-hour') {
+      // 1
+      hour1 = new Hour(
+        mainCanvasCenterWidth + distanceX1,
+        mainCanvasCenterHeight - distanceY1,
+        '1',
+      );
+      hour1.drawHour();
+      // 2
+      hour2 = new Hour(
+        mainCanvasCenterWidth + distanceX2,
+        mainCanvasCenterHeight - distanceY2,
+        '2',
+      );
+      hour2.drawHour();
+      // 4
+      hour4 = new Hour(
+        mainCanvasCenterWidth + distanceX2,
+        mainCanvasCenterHeight + distanceY2,
+        '4',
+      );
+      hour4.drawHour();
+      // 5
+      hour5 = new Hour(
+        mainCanvasCenterWidth + distanceX1,
+        mainCanvasCenterHeight + distanceY1,
+        '5',
+      );
+      hour5.drawHour();
+      // 7
+      hour7 = new Hour(
+        mainCanvasCenterWidth - distanceX1,
+        mainCanvasCenterHeight + distanceY1,
+        '7',
+      );
+      hour7.drawHour();
+      // 8
+      hour8 = new Hour(
+        mainCanvasCenterWidth - distanceX2,
+        mainCanvasCenterHeight + distanceY2,
+        '8',
+      );
+      hour8.drawHour();
+      // 10
+      hour10 = new Hour(
+        mainCanvasCenterWidth - distanceX2,
+        mainCanvasCenterHeight - distanceY2,
+        '10',
+      );
+      hour10.drawHour();
+      // 11
+      hour11 = new Hour(
+        mainCanvasCenterWidth - distanceX1,
+        mainCanvasCenterHeight - distanceY1,
+        '11',
+      );
+      hour11.drawHour();
+    }
+  });
+});
+
+// 数字のサイズを変えるレンジ ----------------
+const fontSizeRange = document.getElementById('font-size-range');
+fontSizeRange.addEventListener('input', () => {
+  // hourFontSizeにレンジの値を代入
+  hourFontSize = parseInt(fontSizeRange.value);
+  // フォントサイズを変更
+  hourObjects.forEach(hourObject => {
+    hourObject.set({
+      fontSize: hourFontSize,
+    });
+  })
+  mainCanvas.renderAll();
+});
 
 //* case info canvas ---------------------------------------------------------------------------
 
@@ -1295,12 +1466,12 @@ const infoCaseOpeningObject = new WatchCircle({
 });
 
 // info 文字盤 ----------------
-const infoDialOpeningObject = new WatchCircle({
+const infoDialObject = new WatchCircle({
   radius: caseInfoCanvasDialOpeningRadius,
   left: caseInfoCanvasHalfWidth,
   top: caseInfoCanvasCenterHeight,
 });
-caseInfoCanvas.add(infoCaseObject, infoCaseOpeningObject, infoDialOpeningObject);
+caseInfoCanvas.add(infoCaseObject, infoCaseOpeningObject, infoDialObject);
 
 // info ラグ ----------------
 for (let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
@@ -1390,7 +1561,7 @@ const comment = {
   default: '入力するパーツの説明が表示されます',
   caseSize: 'ケースの直径をmm単位で入力してください',
   caseOpeningSize: 'ケース見切りの直径をmm単位で入力してください',
-  dialOpeningSize: '文字盤の直径をmm単位で入力してください',
+  dialSize: '文字盤の直径をmm単位で入力してください',
   lugWidth: 'ラグの間の距離をmm単位で入力してください',
   lugShape: 'ラグの形状を選択してください',
   crownShape: 'りゅうずの形状を選択してください',
@@ -1412,10 +1583,10 @@ const caseInfoCircleLists = [
     comment: comment.caseOpeningSize,
   },
   {
-    node: dialOpeningSizeInput,
+    node: dialSizeInput,
     arrow: dialArrow,
-    object: infoDialOpeningObject,
-    comment: comment.dialOpeningSize,
+    object: infoDialObject,
+    comment: comment.dialSize,
   },
 ];
 
@@ -1617,40 +1788,7 @@ mainCanvas.on('mouse:down', function(options) {
 // mainCanvas.add(group);
 
 
-//* test
-const range = document.getElementById('test-range');
 
-range.addEventListener('input', () => {
-  const rangeValue = parseInt(range.value);
-  number6.set({
-    scaleX: rangeValue / 10,
-    scaleY: rangeValue / 10,
-    // 線幅を保つ
-    strokeUniform: true,
-  });
-  number12.set({
-    scaleX: rangeValue / 10,
-    scaleY: rangeValue / 10,
-    // 線幅を保つ
-    strokeUniform: true,
-  });
-  number1.set({
-    scaleX: rangeValue / 10,
-    scaleY: rangeValue / 10,
-    // 線幅を保つ
-    strokeUniform: true,
-  });
-  number2.set({
-    scaleX: rangeValue / 10,
-    scaleY: rangeValue / 10,
-    // 線幅を保つ
-    strokeUniform: true,
-  });
-  // group.item(0).set(
-  //   'text', 'good'
-  // );
-  mainCanvas.renderAll();
-});
 
 // var textPath = new fabric.Text('Text on a path', {
 //   top: 150,
@@ -1679,68 +1817,13 @@ ctx.fillText('ケースの直径を入力', 10, 50);
 
 //* テスト用 -------------------------------------------------------------------------
 
-let number6;
-let number12;
-let number2;
-let number1;
-
-const sin30 = Math.sin(30 * Math.PI / 180);
-const cos30 = Math.cos(30 * Math.PI / 180);
-const sin60 = Math.sin(60 * Math.PI / 180);
-const cos60 = Math.cos(60 * Math.PI / 180);
-
-const numbers = [];
-for (let i = 1; i <= 12; i++) {
-  numbers.push(i);
-}
-console.log(numbers);
-console.log(numbers[3]);
-
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
 
-number12 = new fabric.Text(String(numbers[11]), { //11 は 12
-  left: mainCanvasCenterWidth,
-  top: mainCanvasCenterHeight - dialSize / 2 + 8, // 8 は 自身のfontSizeの半分
-  originX: 'center',
-  originY: 'center',
-  fill: 'black',
-  fontFamily: 'cursive',
-  fontSize: 16,
-});
-number6 = new fabric.Text(String(numbers[5]), {
-  left: mainCanvasCenterWidth,
-  top: mainCanvasCenterHeight + dialSize / 2 - 8, // 8 は 自身のfontSizeの半分
-  originX: 'center',
-  originY: 'center',
-  fill: 'black',
-  fontFamily: 'cursive',
-  fontSize: 16,
-});
-number2 = new fabric.Text(String(numbers[1]), {
-  left: mainCanvasCenterWidth + (dialSize / 2 - 8) * cos30, // 8 は 自身のfontSizeの半分
-  top: mainCanvasCenterHeight - (dialSize / 2 - 8) * sin30, // 8 は 自身のfontSizeの半分
-  originX: 'center',
-  originY: 'center',
-  fill: 'black',
-  fontFamily: 'cursive',
-  fontSize: 16,
-});
-number1 = new fabric.Text(String(numbers[0]), {
-  left: mainCanvasCenterWidth + (dialSize / 2 - 8) * cos60, // 8 は 自身のfontSizeの半分
-  top: mainCanvasCenterHeight - (dialSize / 2 - 8) * sin60, // 8 は 自身のfontSizeの半分
-  originX: 'center',
-  originY: 'center',
-  fill: 'black',
-  fontFamily: 'cursive',
-  fontSize: 16,
-});
-mainCanvas.add(number6, number12, number2, number1);
-
-
-
+  console.log(caseObject);
+  console.log(caseObject.radius);
 
   // ここまで試しコードを書く ----------------------------
 
@@ -1748,10 +1831,9 @@ mainCanvas.add(number6, number12, number2, number1);
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
-console.log("PI"+ Math.PI);
-console.log(Math.cos(30 * Math.PI / 180));
 
 });
+
 //* テスト用 -------------------------------------------------------------------------
 
 

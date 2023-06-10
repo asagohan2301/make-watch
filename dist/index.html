@@ -31,9 +31,6 @@
           <div class="workspace-top-container">
             <!---------- case sizes ---------->
             <div class="text-labels-container" style="position: relative;">
-              <!-- test -->
-              <!-- <p id="disabled-comment" style="display: none; position: absolute; left: -300px">てすとてすと</p> -->
-              <!-- test -->
               <div class="text-label-container">
                 <label for="case-size">ケース直径:</label>
                 <input type="text" id="case-size" size="4">
@@ -45,8 +42,8 @@
                 <span>mm</span>
               </div>
               <div class="text-label-container">
-                <label for="dial-opening-size">文字盤見切り直径:</label>
-                <input type="text" id="dial-opening-size" size="4">
+                <label for="dial-size">文字盤見切り直径:</label>
+                <input type="text" id="dial-size" size="4">
                 <span>mm</span>
               </div>
               <div class="text-label-container">
@@ -316,45 +313,45 @@
                 </li>
               </ul>
             </div>
-            <div class="design-list design-list-number">
+            <div class="design-list design-list-hour-layout">
               <h3>数字の配置:</h3>
               <ul>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="number-layout" value="all-number">
+                    <input type="radio" name="hour-layout" value="all-hour">
                   </label>
                   <img src="./assets/number-all.svg" alt="全数字" width="54" height="54">
                   <p>全数字</p>
                 </li>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="number-layout" value="four-point-number">
+                    <input type="radio" name="hour-layout" value="four-point-hour">
                   </label>
                   <img src="./assets/number-four.svg" alt="4ポイント数字" width="54" height="54">
                   <p>4ポイント数字</p>
                 </li>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="number-layout" value="two-point-number">
+                    <input type="radio" name="hour-layout" value="two-point-hour">
                   </label>
                   <img src="./assets/number-two.svg" alt="2ポイント数字" width="54" height="54">
                   <p>2ポイント数字</p>
                 </li>
               </ul>
             </div>
-            <div class="design-list design-list-font">
+            <div class="design-list design-list-hour-font">
               <h3>数字のフォント:</h3>
               <ul>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="number-font" value="sans">
+                    <input type="radio" name="hour-font" value="sans">
                   </label>
                   <img src="./assets/font-sans.svg" alt="ゴシック体のフォント" width="48" height="42">
                   <p>ゴシック</p>
                 </li>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="number-font" value="serif">
+                    <input type="radio" name="hour-font" value="serif">
                   </label>
                   <img src="./assets/font-serif.svg" alt="明朝体のフォント" width="48" height="42">
                   <p>明朝</p>
@@ -369,7 +366,7 @@
     <!-- test ----------------------------------------->
     <button id="button-for-test">test</button>
     <button id="button-for-test2">test2</button>
-    <input type="range" name="crown-size" id="test-range" min="1" max="50" step="1">
+    <input type="range" name="font-size" id="font-size-range" min="4" max="32" step="1">
     <input type="range" name="canvas-size" id="canvas-range" min="1" max="5" step=".1">
     <ul class="gnavi">
       <li class="current"><a href="#"><span>Home</span></a></li>
