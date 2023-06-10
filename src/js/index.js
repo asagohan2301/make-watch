@@ -375,7 +375,7 @@ dialColorInputs.forEach(dialColorInput => {
 // 数字の配置が選択されたら描画する ----------------
 numberLayoutInputs.forEach(numberLayoutInput => {
   numberLayoutInput.addEventListener('input', () => {
-    drawNumber();
+    drawHour();
   });
 });
 
@@ -383,7 +383,7 @@ numberLayoutInputs.forEach(numberLayoutInput => {
 // 数字を描く関数 ----------------
 let numberObject;
 const defaultDialSize = mmToPixel(30);
-function drawNumber() {
+function drawHour() {
   mainCanvas.remove(numberObject);
   fabric.loadSVGFromURL('./assets/number-all.svg', (objects, options) => {
     numberObject = fabric.util.groupSVGElements(objects, options);
@@ -1617,55 +1617,7 @@ mainCanvas.on('mouse:down', function(options) {
 // mainCanvas.add(group);
 
 
-//* test
-const range = document.getElementById('test-range');
 
-range.addEventListener('input', () => {
-  const rangeValue = parseInt(range.value);
-  nums.forEach(num => {
-    // num.set({
-    //   scaleX: rangeValue / 10,
-    //   scaleY: rangeValue / 10,
-    //   // 線幅を保つ
-    //   strokeUniform: true,
-    // });
-    console.log(num);
-  });
-  numObject.set({
-    scaleX: rangeValue / 10,
-    scaleY: rangeValue / 10,
-    // 線幅を保つ
-    strokeUniform: true,
-  });
-  // number6.set({
-  //   scaleX: rangeValue / 10,
-  //   scaleY: rangeValue / 10,
-  //   // 線幅を保つ
-  //   strokeUniform: true,
-  // });
-  // number12.set({
-  //   scaleX: rangeValue / 10,
-  //   scaleY: rangeValue / 10,
-  //   // 線幅を保つ
-  //   strokeUniform: true,
-  // });
-  // number1.set({
-  //   scaleX: rangeValue / 10,
-  //   scaleY: rangeValue / 10,
-  //   // 線幅を保つ
-  //   strokeUniform: true,
-  // });
-  // number2.set({
-  //   scaleX: rangeValue / 10,
-  //   scaleY: rangeValue / 10,
-  //   // 線幅を保つ
-  //   strokeUniform: true,
-  // });
-  // group.item(0).set(
-  //   'text', 'good'
-  // );
-  mainCanvas.renderAll();
-});
 
 // var textPath = new fabric.Text('Text on a path', {
 //   top: 150,
@@ -1694,10 +1646,25 @@ ctx.fillText('ケースの直径を入力', 10, 50);
 
 //* テスト用 -------------------------------------------------------------------------
 
-// let number6;
-// let number12;
-// let number2;
-// let number1;
+//* test
+// 数字のサイズを変えるレンジ
+const fontSizeRange = document.getElementById('font-size-range');
+fontSizeRange.addEventListener('input', () => {
+  // inputFontSizeにレンジの値を代入
+  inputFontSize = parseInt(fontSizeRange.value);
+  // フォントサイズを変更
+  hourObjects.forEach(hourObject => {
+    hourObject.set({
+      fontSize: inputFontSize,
+    });
+  })
+  mainCanvas.renderAll();
+});
+
+// hourObject を入れていくための配列
+let hourObjects = [];
+
+let inputFontSize = 12; // 初期値12
 
 // 数字の位置を計算するための数値
 const sin30 = Math.sin(30 * Math.PI / 180);
@@ -1705,157 +1672,34 @@ const cos30 = Math.cos(30 * Math.PI / 180);
 const sin60 = Math.sin(60 * Math.PI / 180);
 const cos60 = Math.cos(60 * Math.PI / 180);
 
-// 文字盤に描く1から12までの数字
-const numbers = [];
-for (let i = 1; i <= 12; i++) {
-  // numbers.push(i);
-  numbers.push(new fabric.Text(String(i),{
-    originX: 'center',
-    originY: 'center',
-    fill: 'black',
-    fontFamily: 'cursive',
-    fontSize: 16,
-  })
-  )
-}
-// const numbers = [];
-// for (let i = 1; i <= 12; i++) {
-//   // numbers.push(i);
-//   mainCanvas.add(new fabric.Text(String(i), {
-//     originX: 'center',
-//     originY: 'center',
-//     fill: 'black',
-//     fontFamily: 'cursive',
-//     fontSize: 16,
-//   })
-//   )
-// }
 
-let numberFontSize = 12;
-
-// class Number extends fabric.Text {
-//   constructor(options) {
-//     super(options);
-//     this.text = 'test';
-//     this.originX = 'center';
-//     this.originY = 'center';
-//     this.fill = 'black';
-//     this.fontFamily = 'cursive';
-//     this.fontSize = fontSize;
-//   }
-// }
-
-let numObject;
-let nums = [];
-
-class NumberRe {
+// クラス ----------------
+class Hour {
   constructor(left, top, text) {
     this.left = left;
     this.top = top;
     this.text = text;
   }
-  drawNumber() {
-    numObject = new fabric.Text(this.text, {
-      originX: 'center',
-      originY: 'center',
-      fill: 'black',
-      fontFamily: 'cursive',
-      fontSize: numberFontSize,
-      left: this.left,
-      top: this.top,
-    });
-    mainCanvas.add(numObject);
+  // インスタンスから drawHour を呼び出すと、hourObjects に 名もなきfabricオブジェクトが入っていく
+  drawHour() {
+    hourObjects.push(
+      new fabric.Text(this.text, {
+        originX: 'center',
+        originY: 'center',
+        fill: 'black',
+        fontFamily: 'cursive',
+        fontSize: inputFontSize,
+        left: this.left,
+        top: this.top,
+      })
+    );
   }
 }
-
-
-
-for (let i = 1; i <= 12; i++) {
-  const num = new NumberRe(100, 100, i + '番目');
-  num.drawNumber();
-  if (i === 3) {
-    numObject.set({
-      fill: 'red',
-    });
-  }
-  mainCanvas.renderAll();
-}
-
-console.log(numObject);
-
-// class WatchCrown {
-//   constructor(url) {
-//     this.url = url;
-//   }
-//   drawCrown() {
-//     mainCanvas.remove(crownObject);
-//     fabric.loadSVGFromURL(this.url, (objects, options) => {
-//       crownObject = fabric.util.groupSVGElements(objects, options);
-//       crownObject.set({
-//         originY: 'center',
-//         left: caseObject.left + caseObject.width / 2,
-//         top: mainCanvasCenterHeight,
-//         fill: inputCaseColor,
-//       });
-//       mainCanvas.add(crownObject);
-//     });
-//   }
-// }
-
-// インスタンス
-// const newNum = new Number();
-// newNum.set({
-//   text: 'test',
-//   left: mainCanvasCenterWidth,
-// });
-// mainCanvas.add(newNum);
 
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
-
-number12 = new fabric.Text(String(numbers[11]), { //11 は 12
-  left: mainCanvasCenterWidth,
-  top: mainCanvasCenterHeight - dialSize / 2 + numberFontSize / 2, // 自身のfontSizeの半分ぶん移動
-  originX: 'center',
-  originY: 'center',
-  fill: 'black',
-  fontFamily: 'cursive',
-  fontSize: 16,
-});
-number6 = new fabric.Text(String(numbers[5]), {
-  left: mainCanvasCenterWidth,
-  top: mainCanvasCenterHeight + dialSize / 2 - numberFontSize / 2, // 自身のfontSizeの半分ぶん移動
-  originX: 'center',
-  originY: 'center',
-  fill: 'black',
-  fontFamily: 'cursive',
-  fontSize: 16,
-});
-number6.set({
-  text: 'change',
-});
-number2 = new fabric.Text(String(numbers[1]), {
-  left: mainCanvasCenterWidth + (dialSize / 2 - 8) * cos30, // 8 は 自身のfontSizeの半分
-  top: mainCanvasCenterHeight - (dialSize / 2 - 8) * sin30, // 8 は 自身のfontSizeの半分
-  originX: 'center',
-  originY: 'center',
-  fill: 'black',
-  fontFamily: 'cursive',
-  fontSize: 16,
-});
-number1 = new fabric.Text(String(numbers[0]), {
-  left: mainCanvasCenterWidth + (dialSize / 2 - 8) * cos60, // 8 は 自身のfontSizeの半分
-  top: mainCanvasCenterHeight - (dialSize / 2 - 8) * sin60, // 8 は 自身のfontSizeの半分
-  originX: 'center',
-  originY: 'center',
-  fill: 'black',
-  fontFamily: 'cursive',
-  fontSize: 16,
-});
-mainCanvas.add(number6, number12, number2, number1);
-
 
 
 
@@ -1863,38 +1707,126 @@ mainCanvas.add(number6, number12, number2, number1);
 
 });
 
-let num12;
-let num1;
-let num2;
+// インスタンス用の変数を準備
+// これらは描かれるオブジェクトではなく、これらのインスタンスから呼び出したメソッドの中で
+// hourObjects 配列に追加されていく名もなき子たちが fabric オブジェクト
+let hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12;
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
-  num12 = new NumberRe(
+  // 数字の位置を計算数数式は何度も書くことになるのでここで宣言してしまう
+  // OneNoteの図参照
+  // 4パターンの距離が分かれば、全ての数字の位置を計算できる
+  // 1, 5, 7, 11 用
+  let distanceX1 = (dialSize / 2 - inputFontSize / 2) * cos60;
+  let distanceY1 = (dialSize / 2 - inputFontSize / 2) * sin60;
+  // 2, 4, 8, 10 用
+  let distanceX2 = (dialSize / 2 - inputFontSize / 2) * cos30;
+  let distanceY2 = (dialSize / 2 - inputFontSize / 2) * sin30;
+
+  // 引数は left, top, text
+  // 1
+  hour1 = new Hour(
+    // x2 = x1 + r * cosΘ
+    mainCanvasCenterWidth + distanceX1,
+    // y2 = y1 + r * sinΘ
+    mainCanvasCenterHeight - distanceY1,
+    '1',
+  );
+  hour1.drawHour();
+  
+  // 2
+  hour2 = new Hour(
+    mainCanvasCenterWidth + distanceX2,
+    mainCanvasCenterHeight - distanceY2,
+    '2',
+  );
+  hour2.drawHour();
+  
+  // 3
+  hour3 = new Hour(
+    mainCanvasCenterWidth + dialSize / 2 - inputFontSize / 2,
+    mainCanvasCenterHeight,
+    '3',
+  );
+  hour3.drawHour();
+    
+  // 4
+  hour4 = new Hour(
+    mainCanvasCenterWidth + distanceX2,
+    mainCanvasCenterHeight + distanceY2,
+    '4',
+  );
+  hour4.drawHour();
+  
+  // 5
+  hour5 = new Hour(
+    mainCanvasCenterWidth + distanceX1,
+    mainCanvasCenterHeight + distanceY1,
+    '5',
+  );
+  hour5.drawHour();
+  
+  // 6
+  hour6 = new Hour(
     mainCanvasCenterWidth,
-    mainCanvasCenterHeight - dialSize / 2 + numberFontSize / 2, // 8 は 自身のfontSizeの半分,
-    '12'
+    mainCanvasCenterHeight + dialSize / 2 - inputFontSize / 2,
+    '6',
   );
-  num12.drawNumber();
+  hour6.drawHour();
+    
+  // 7
+  hour7 = new Hour(
+    mainCanvasCenterWidth - distanceX1,
+    mainCanvasCenterHeight + distanceY1,
+    '7',
+  );
+  hour7.drawHour();
+    
+  // 8
+  hour8 = new Hour(
+    mainCanvasCenterWidth - distanceX2,
+    mainCanvasCenterHeight + distanceY2,
+    '8',
+  );
+  hour8.drawHour();
 
-  num1 = new NumberRe(
-    mainCanvasCenterWidth + (dialSize / 2 - numberFontSize / 2) * cos60, // 8 は 自身のfontSizeの半分
-    mainCanvasCenterHeight - (dialSize / 2 - numberFontSize / 2) * sin60, // 8 は 自身のfontSizeの半
-    '1'
+  // 9
+  hour9 = new Hour(
+    mainCanvasCenterWidth - dialSize / 2 + inputFontSize / 2,
+    mainCanvasCenterHeight,
+    '9',
   );
-  num1.drawNumber();
-  
-  num2 = new NumberRe(
-    mainCanvasCenterWidth + (dialSize / 2 - numberFontSize / 2) * cos30, // 8 は 自身のfontSizeの半分
-    mainCanvasCenterHeight - (dialSize / 2 - numberFontSize / 2) * sin30, // 8 は 自身のfontSizeの半分
-    '2'
-  );
+  hour9.drawHour();
 
-  
-  nums.push(num1, num2, num12);
-  nums.forEach(num => {
-    num.drawNumber();
-  });
-  
+  // 10
+  hour10 = new Hour(
+    mainCanvasCenterWidth - distanceX2,
+    mainCanvasCenterHeight - distanceY2,
+    '10',
+  );
+  hour10.drawHour();
+
+  // 11
+  hour11 = new Hour(
+    mainCanvasCenterWidth - distanceX1,
+    mainCanvasCenterHeight - distanceY1,
+    '11',
+  );
+  hour11.drawHour();
+
+  // 12
+  hour12 = new Hour(
+    mainCanvasCenterWidth,
+    mainCanvasCenterHeight - dialSize / 2 + inputFontSize / 2,
+    '12',
+  );
+  hour12.drawHour();
+
+  // hourObjects配列に入れたオブジェクトをcanvasに描画
+  hourObjects.forEach(hourObject => {
+    mainCanvas.add(hourObject);
+  });  
 
 });
 //* テスト用 -------------------------------------------------------------------------
