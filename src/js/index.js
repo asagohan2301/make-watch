@@ -1303,11 +1303,66 @@ class Hour {
   }
 }
 
+// 数字のサイズを変えるレンジ ----------------
+const hourFontSizeRange = document.getElementById('hour-font-size-range');
+//* test
+//* 初期値は入力不可
+hourFontSizeRange.disabled = true;
+hourFontSizeRange.addEventListener('input', () => {
+  // hourFontSizeにレンジの値を代入
+  hourFontSize = parseInt(hourFontSizeRange.value);
+  // フォントサイズを変更
+  // hourObjects.forEach(hourObject => {
+  //   hourObject.set({
+  //     fontSize: hourFontSize,
+  //   });
+  // })
+  // mainCanvas.renderAll();
+  drawHours();
+});
+
+// 数字の位置を変えるレンジ ----------------
+const hourLayoutCircleRadiusRange = document.getElementById('hour-layout-circle-radius-range');
+//* test
+//* 初期値は入力不可
+hourLayoutCircleRadiusRange.disabled = true;
+hourLayoutCircleRadiusRange.addEventListener('input', () => {
+  // hourLayoutCircleRadiusにレンジの値を代入
+  const hourLayoutCircleRadiusValue = parseInt(hourLayoutCircleRadiusRange.value);
+  // 変更
+  hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 + hourLayoutCircleRadiusValue;
+  // mainCanvas.renderAll();
+  console.log(hourLayoutCircleRadius);
+  drawHours();
+});
+
+//* test
+// 数字がまだ描かれていないときにレンジをクリック
+hourFontSizeRange.parentElement.addEventListener('click', () => {
+  if (hourObjects.length === 0) {
+    alert('数字のレイアウトを選択してください');
+  }
+});
+hourLayoutCircleRadiusRange.parentElement.addEventListener('click', () => {
+  if (hourObjects.length === 0) {
+    alert('数字のレイアウトを選択してください');
+  }
+});
+
 // 数字の配置が選択されたらcanvasに描画する ----------------
 hourLayoutInputs.forEach(hourLayoutInput => {
   hourLayoutInput.addEventListener('input', () => {
     // hourLayout に値を代入
     hourLayout = hourLayoutInput.value;
+
+    //* test
+    // 文字盤半径から数字のフォントサイズの半分を引くと、ちょうど数字の外側が文字盤の円に触れる位置になる
+    // そこから内側に少し調整する
+    hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+
+    //* test
+    hourFontSizeRange.disabled = false;
+    hourLayoutCircleRadiusRange.disabled = false;
     // 数字たちを描く関数呼び出し
     drawHours();
   });
@@ -1331,10 +1386,7 @@ hourFontFamilyInputs.forEach(hourFontFamilyInput => {
 
 // 数字たちを描く関数 ----------------
 function drawHours() {
-  //* test
-  // 文字盤半径から数字のフォントサイズの半分を引くと、ちょうど数字の外側が文字盤の円に触れる位置になる
-  // そこから内側に少し調整する
-  hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+  
   // 数字の位置を計算する式は何度も書くことになるのでここで変数に入れておく
   // 4種類の距離で、全ての数字の位置を計算できる
   // 1, 5, 7, 11 用 ----
@@ -1453,20 +1505,6 @@ function drawHours() {
     hour11.drawHour();
   }
 }
-
-// 数字のサイズを変えるレンジ ----------------
-const fontSizeRange = document.getElementById('font-size-range');
-fontSizeRange.addEventListener('input', () => {
-  // hourFontSizeにレンジの値を代入
-  hourFontSize = parseInt(fontSizeRange.value);
-  // フォントサイズを変更
-  hourObjects.forEach(hourObject => {
-    hourObject.set({
-      fontSize: hourFontSize,
-    });
-  })
-  mainCanvas.renderAll();
-});
 
 //* case info canvas ---------------------------------------------------------------------------
 
