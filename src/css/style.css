@@ -232,15 +232,18 @@ main .component-list .component .workspace .design-list ul li:hover label.radio-
 }
 main .component-list .component .workspace .design-list ul li img,
 main .component-list .component .workspace .design-list ul li div {
+  width: 30px;
+  height: 30px;
   position: absolute;
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
-main .component-list .component .workspace .design-list ul li div {
-  width: 30px;
-  height: 30px;
+main .component-list .component .workspace .design-list ul li div.hour-font-sample {
+  text-align: center;
+  font-size: 24px;
+  line-height: 30px;
 }
 main .component-list .component .workspace .design-list ul li .color-picker {
   width: 96px;

@@ -154,6 +154,12 @@ function selectRadio(radios) {
   });
 }
 
+//*test
+// 数字のサンプルを表示
+hourFontFamilyInputs.forEach(hourFontFamilyInput => {
+  hourFontFamilyInput.parentElement.nextElementSibling.style.fontFamily = hourFontFamilyInput.value;
+});
+
 // タブを切り替える ----------------------------------------
 
 // 一つめのworkspaceを表示させておく
