@@ -1266,9 +1266,7 @@ buckleShapeInputs.forEach(buckleShapeInput => {
 
 // hourObject(実際には hourObject という名前はなく名もなきオブジェクト) を入れていくための配列
 let hourObjects = [];
-
-let dotObjects = [];
-let barObjects = [];
+let barDotObjects = [];
 
 // インスタンス用の変数
 // これらはcanvasに描かれるオブジェクトではなく、これらのインスタンスから呼び出したメソッドの中で、
@@ -1287,6 +1285,15 @@ let hourLayout; // 全数字 or 4ポイント or 2ポイント
 let hourLayoutCircleRadius; // 数字を配置する時に、各数字の中心となる弧を持つ円の半径
 let hourFontFamily = 'sans-serif'; // 初期値
 let hourColor = 'black'; // 初期値
+// バーかドットかを保持する変数
+let barOrDot;
+
+// 円の中心座標(=回転させるときの中心点)
+let centerPoint;
+// 円周上の点の初期位置 12時位置
+let initialPoint;
+// 回転角度を保持する変数
+let rotateDegrees = 0;
 
 //* main 文字盤色 ----------------------------------------
 
@@ -1609,142 +1616,97 @@ function drawHours() {
   }
 }
 
-let rotateDegrees = 0;
-
-//* ドットを描く ----------------
+//* main 文字盤 バー・ドット ----------------------------------------
 //* ドットを2つ一組でグループ化して、それをcloneして回転させていきたいけどうまくcloneできなかった
 //* fabric.Pointを使って点の位置を取得する方法を採用
 //* 数字もこれでできそうなので後で直すかも
+
 // バーorドットが選択されたらcanvasに描画する ----------------
 barDotInputs.forEach(barDotInput => {
   barDotInput.addEventListener('input', () => {
-
-    // すでにオブジェクトが描かれていたらcanvasから削除
-    dotObjects.forEach(dotObject => {
-      mainCanvas.remove(dotObject);
-    });
-    dotObjects = [];
-    barObjects.forEach(barObject => {
-      mainCanvas.remove(barObject);
-    });
-    barObjects = [];
-
-    // バーorドットがinputされた時点で以下の値を定義
+    // 変数に値を代入
+    barOrDot = barDotInput.value;
+    // バーorドットが選択された時点で変数に値を代入する
     // 円の中心座標(=回転させるときの中心点)
-    const centerPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight);
+    centerPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight);
     // 円周上の点の初期位置 12時位置
-    const initialPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - hourLayoutCircleRadius);
-    // 回転角度を保持する変数
-    //* 0に戻す？
-    rotateDegrees = 0;
-
-    //* dot --------
-    if (barDotInput.value === 'dot') {
-      
-
-      // canvasにドットを描画
-      for (let i = 0; i < 12; i++) {
-        // fabric.util.rotatePointメソッドを使用して、
-        // 初期位置の点 initialPoint を、centerPoint を 中心に、指定の度数回転させた位置を取得
-        const rotatedPoint = fabric.util.rotatePoint(initialPoint, centerPoint, fabric.util.degreesToRadians(rotateDegrees));
-        // canvasにドットを描画
-        //* 全数字なら無し、4ポイントなら、2ポイントなら...
-        // 全数字が選択されていたらドットは描かない
-        if (hourLayout === 'all-hour') {
-          return;
-        }
-
-        const dotObject = new fabric.Circle({
-          radius: 2,
-          fill: hourColor,
-          originX: 'center',
-          originY: 'center',
-          top: rotatedPoint.y,
-          left: rotatedPoint.x,
-        });
-        
-        
-        if (hourLayout === 'four-point-hour') {
-          if (i % 3 === 0) {
-            dotObject.set({
-              fill: 'transparent',
-            });
-          }
-        }
-        if (hourLayout === 'two-point-hour') {
-          if (i % 6 === 0) {
-            dotObject.set({
-              fill: 'transparent',
-            });
-          }
-        }
-        
-        dotObjects.push(dotObject);
-
-        rotateDegrees += 30;
-      }
-      dotObjects.forEach(dotObject => {
-        mainCanvas.add(dotObject);
-      });
-    }
-    
-    // bar
-    if (barDotInput.value === 'bar') {
-
-      
-
-      // canvasにバーを描画
-      for (let i = 0; i < 12; i++) {
-        // fabric.util.rotatePointメソッドを使用して、
-        // 初期位置の点 initialPoint を、centerPoint を 中心に、指定の度数回転させた位置を取得
-        const rotatedPoint = fabric.util.rotatePoint(initialPoint, centerPoint, fabric.util.degreesToRadians(rotateDegrees));
-        // canvasにドットを描画
-        // * 全数字なら無し、4ポイントなら、2ポイントなら...
-        // 全数字が選択されていたらドットは描かない
-        if (hourLayout === 'all-hour') {
-          return;
-        }
-
-        const barObject = new fabric.Rect({
-          width: 2,
-          height: 10,
-          originX: 'center',
-          originY: 'center',
-          top: rotatedPoint.y,
-          left: rotatedPoint.x,
-        });
-
-        barObject.rotate(rotateDegrees);
-        
-        if (hourLayout === 'four-point-hour') {
-          if (i % 3 === 0) {
-            barObject.set({
-              fill: 'transparent',
-            });
-          }
-        }
-        if (hourLayout === 'two-point-hour') {
-          if (i % 6 === 0) {
-            barObject.set({
-              fill: 'transparent',
-            });
-          }
-        }
-        
-        barObjects.push(barObject);
-
-        rotateDegrees += 30;
-      }
-      barObjects.forEach(barObject => {
-        mainCanvas.add(barObject);
-      });
-
-    }
-
+    initialPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - hourLayoutCircleRadius);
+    // バーorドットを描く関数呼び出し
+    drawBarDot();
   });
-})
+});
 
-  
+// バーorドットを描く関数 ----------------
+function drawBarDot() {
+  // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする
+  barDotObjects.forEach(barDotObject => {
+    mainCanvas.remove(barDotObject);
+  });
+  barDotObjects = [];
+  // ループを回してバーorドットを描く
+  for (let i = 0; i < 12; i++) {
+    // ここでしか使わない、個々のバーorドットオブジェクトの変数名
+    // 実際に配列 barDotObject に入るときは、この名前が使われるわけではないと思われる
+    let barDotObject;
+    // fabric.util.rotatePointメソッドを使用して、
+    // 初期位置の点 initialPoint を、centerPoint を 中心に、指定の度数回転させた位置を取得
+    // rotatedPoint の値はループのたびに rotateDegrees によって更新される
+    const rotatedPoint = fabric.util.rotatePoint(initialPoint, centerPoint, fabric.util.degreesToRadians(rotateDegrees));
+    // 全数字が選択されていたら何も描かない
+    if (hourLayout === 'all-hour') {
+      return;
+    }
+    // バーオブジェクト
+    if (barOrDot === 'bar') {
+      barDotObject = new fabric.Rect({
+        width: 2,
+        height: 10,
+        originX: 'center',
+        originY: 'center',
+        top: rotatedPoint.y,
+        left: rotatedPoint.x,
+      });
+      // バーの向きを回転させる
+      barDotObject.rotate(rotateDegrees);
+    }
+    // ドットオブジェクト
+    if (barOrDot === 'dot') {
+      barDotObject = new fabric.Circle({
+        radius: 2,
+        fill: hourColor,
+        originX: 'center',
+        originY: 'center',
+        top: rotatedPoint.y,
+        left: rotatedPoint.x,
+      });
+    }
+    // ここからはバードット共通
+    // 数字が4ポイントの時 3, 6, 9, 12 位置を透明に
+    if (hourLayout === 'four-point-hour') {
+      if (i % 3 === 0) {
+        barDotObject.set({
+          fill: 'transparent',
+        });
+      }
+    }
+    // 数字が2ポイントの時 6, 12 位置を透明に
+    if (hourLayout === 'two-point-hour') {
+      if (i % 6 === 0) {
+        barDotObject.set({
+          fill: 'transparent',
+        });
+      }
+    }
+    // barDotObjects 配列に入れる
+    barDotObjects.push(barDotObject);
+    // 回転角度を更新
+    rotateDegrees += 30;
+  }
+  // ループが終わってオブジェクトが配列に入ったら、canvasに描画
+  barDotObjects.forEach(barDotObject => {
+    mainCanvas.add(barDotObject);
+  });
+}
 
 //* case info canvas ---------------------------------------------------------------------------
 
@@ -2148,7 +2110,8 @@ testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
-
+  console.log(barDotObjects);
+  console.log(barDotObjects[3]);
 
   
   // ここまで試しコードを書く ----------------------------
