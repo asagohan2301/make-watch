@@ -2000,83 +2000,71 @@ const centerLine = new fabric.Polyline([
 });
 mainCanvas.add(centerLine);
 
+
+let dotObjects = [];
+
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
   //* バーを描く 線？でも色付けたいからクローズドパスか
-  //* 2個一組でグループ化して、それをcloneしていきたいけどうまくcloneできない
-  //* fabric.Pointを使って点の位置を取得してそれを使う！
-  //* ...数字もこれでできそうだけどまあとりあえず良いか
-  const dot = new fabric.Circle({
-    radius: 2,
-    fill: hourColor,
-    originX: 'center',
-    originY: 'center',
-    // top: mainCanvasCenterHeight - hourLayoutCircleRadius,
-    // left: mainCanvasCenterWidth,
-  });
+  //* ドットを2つ一組でグループ化して、それをcloneして回転させていきたいけどうまくcloneできなかった
+  //* fabric.Pointを使って点の位置を取得する方法を採用
+  //* 数字もこれでできそうなので後で直すかも
 
-  // fabric.Point を使って、円周上の点の位置を取得する
-  // 円の中心座標 回転の中心点
+  // 円の中心座標(=回転させるときの中心点)
   const centerPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight);
   // 円周上の点の初期位置 12時位置
   const initialPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - hourLayoutCircleRadius);
-  // fabric.util.rotatePointメソッドを使用して、
-  // 初期位置の点 initialPoint を、centerPoint を 中心に、指定の度数回転させた位置を取得
-  // const rotatedPoint = fabric.util.rotatePoint(initialPoint, centerPoint, fabric.util.degreesToRadians(30));
-  // 計算した rotatedPoint は x と y プロパティを持つので、これを使う
-  // dot.set({
-  //   top: rotatedPoint.y,
-  //   left: rotatedPoint.x,
-  // });
-  // mainCanvas.add(dot);
-
-  // 深いコピー
-  const dot2 = fabric.util.object.clone(dot);
-  dot2.set({
-    top: initialPoint.y,
-    left: initialPoint.x,
-  });
-  mainCanvas.add(dot2);
-
-  let degrees = 0;
-
+  // 回転角度を保持する変数
+  let rotateDegrees = 0;
+  
+  // canvasにドットを描画
   for (let i = 0; i < 12; i++) {
-    const rotatedPoint = fabric.util.rotatePoint(initialPoint, centerPoint, fabric.util.degreesToRadians(degrees));
-    mainCanvas.add(new fabric.Circle({
+    // fabric.util.rotatePointメソッドを使用して、
+    // 初期位置の点 initialPoint を、centerPoint を 中心に、指定の度数回転させた位置を取得
+    const rotatedPoint = fabric.util.rotatePoint(initialPoint, centerPoint, fabric.util.degreesToRadians(rotateDegrees));
+    // canvasにドットを描画
+    //* 全数字なら無し、4ポイントなら、2ポイントなら...
+    // 全数字が選択されていたらドットは描かない
+    if (hourLayout === 'all-hour') {
+      return;
+    }
+
+    const dotObject = new fabric.Circle({
       radius: 2,
       fill: hourColor,
       originX: 'center',
       originY: 'center',
       top: rotatedPoint.y,
       left: rotatedPoint.x,
-    }));
-    degrees += 30;
+    });
+    
+    
+    if (hourLayout === 'four-point-hour') {
+      if (i % 3 === 0) {
+        dotObject.set({
+          fill: 'transparent',
+        });
+      }
+    }
+    if (hourLayout === 'two-point-hour') {
+      if (i % 6 === 0) {
+        dotObject.set({
+          fill: 'transparent',
+        });
+      }
+    }
+    
+    dotObjects.push(dotObject);
+
+    rotateDegrees += 30;
   }
-
-  // dotとdot2をグループ化
-  // const dotGroup = new fabric.Group([ dot, dot2 ], {
-  // });
-  // mainCanvas.add(dotGroup);
-  // dotGroupをコピー
-  // Groupオブジェクトの複製
-// const clonedObjects = dotGroup.getObjects().map(obj => {fabric.util.object.clone(obj)});
-// const dotGroup2 = new fabric.Group(clonedObjects, {
-//   /* グループのプロパティ */
-// });
-// const dotGroup2 = dotGroup.clone(callback, )
-// dotGroup.clone(function(dotGroup2) {
-//   dotGroup.rotate(90);
-//   mainCanvas.add(dotGroup2);
-// });
-  // const dotGroup2 = fabric.util.object.clone(dotGroup);
-  // dotGroup2.rotate(90);
-  // mainCanvas.add(dotGroup2);
-  // console.log(dotGroup2._objects);
-  // console.log(dotGroup2._objects[0].fill);
-
+  dotObjects.forEach(dotObject => {
+    mainCanvas.add(dotObject);
+  });
+  
   // ここまで試しコードを書く ----------------------------
 
 });
@@ -2084,6 +2072,11 @@ testButton1.addEventListener('click', () => {
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
   centerLine.bringToFront();
+
+  dotObjects.forEach(dotObject => {
+    mainCanvas.remove(dotObject);
+  });
+  dotObjects = [];
 
 });
 
