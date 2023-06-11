@@ -392,6 +392,8 @@ dialSizeInput.addEventListener('input', () => {
   //* 数字再描画 ----
   //* すでに数字が描かれていたら、再描画する
   if (hourObjects.length !== 0) {
+    //* test
+    hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     drawHours();
   }
   // 重なり順を直す
@@ -1323,7 +1325,6 @@ class Hour {
       originY: 'center',
       fill: hourColor,
       fontFamily: hourFontFamily,
-      // fontSize: 50,
       fontSize: hourFontSize,
       left: this.left,
       // top: this.top,
@@ -1331,14 +1332,10 @@ class Hour {
       //* 数字の下に少し隙間が空いてしまう.....
       //* textBaselineなどのプロパティが効かないのでとりあえずtopで調整
       top: this.top + hourFontSize / 14,
-      // textAlign: 'center',
-      lineHeight: 1,
-      // height: 50,
-      // styles: {background: 'red'},
-      // deltaY: 20,
+      //* この辺が効いていないみたい
+      // lineHeight: 1,
       // pathAlign: 'center',
       // textBaseline: 'middle',
-      textBaseline: 'bottom',
     });
     mainCanvas.add(hourObject);
     hourObjects.push(hourObject);
@@ -1421,7 +1418,10 @@ hourLayoutInputs.forEach(hourLayoutInput => {
     //* test
     // 文字盤半径から数字のフォントサイズの半分を引くと、ちょうど数字の外側が文字盤の円に触れる位置になる
     // そこから内側に少し調整する
+    //* 数字ずれる原因ここにある可能性？→違うやっぱ少し上にずれてる
     hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+    // hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2;
+    // hourLayoutCircleRadius = dialObject.radius;
 
     //* test
     hourFontSizeRange.disabled = false;
@@ -1449,6 +1449,8 @@ hourFontFamilyInputs.forEach(hourFontFamilyInput => {
 
 // 数字たちを描く関数 ----------------
 function drawHours() {
+
+  
   
   // 数字の位置を計算する式は何度も書くことになるのでここで変数に入れておく
   // 4種類の距離で、全ての数字の位置を計算できる
@@ -1996,15 +1998,84 @@ const centerLine = new fabric.Polyline([
   {x: 384, y: mainCanvasCenterHeight}], {
   stroke: 'red',
 });
-
 mainCanvas.add(centerLine);
 
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
-  centerLine.bringToFront();
+  
   //* バーを描く 線？でも色付けたいからクローズドパスか
+  //* 2個一組でグループ化して、それをcloneしていきたいけどうまくcloneできない
+  //* fabric.Pointを使って点の位置を取得してそれを使う！
+  //* ...数字もこれでできそうだけどまあとりあえず良いか
+  const dot = new fabric.Circle({
+    radius: 2,
+    fill: hourColor,
+    originX: 'center',
+    originY: 'center',
+    // top: mainCanvasCenterHeight - hourLayoutCircleRadius,
+    // left: mainCanvasCenterWidth,
+  });
+
+  // fabric.Point を使って、円周上の点の位置を取得する
+  // 円の中心座標 回転の中心点
+  const centerPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight);
+  // 円周上の点の初期位置 12時位置
+  const initialPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - hourLayoutCircleRadius);
+  // fabric.util.rotatePointメソッドを使用して、
+  // 初期位置の点 initialPoint を、centerPoint を 中心に、指定の度数回転させた位置を取得
+  // const rotatedPoint = fabric.util.rotatePoint(initialPoint, centerPoint, fabric.util.degreesToRadians(30));
+  // 計算した rotatedPoint は x と y プロパティを持つので、これを使う
+  // dot.set({
+  //   top: rotatedPoint.y,
+  //   left: rotatedPoint.x,
+  // });
+  // mainCanvas.add(dot);
+
+  // 深いコピー
+  const dot2 = fabric.util.object.clone(dot);
+  dot2.set({
+    top: initialPoint.y,
+    left: initialPoint.x,
+  });
+  mainCanvas.add(dot2);
+
+  let degrees = 0;
+
+  for (let i = 0; i < 12; i++) {
+    const rotatedPoint = fabric.util.rotatePoint(initialPoint, centerPoint, fabric.util.degreesToRadians(degrees));
+    mainCanvas.add(new fabric.Circle({
+      radius: 2,
+      fill: hourColor,
+      originX: 'center',
+      originY: 'center',
+      top: rotatedPoint.y,
+      left: rotatedPoint.x,
+    }));
+    degrees += 30;
+  }
+
+  // dotとdot2をグループ化
+  // const dotGroup = new fabric.Group([ dot, dot2 ], {
+  // });
+  // mainCanvas.add(dotGroup);
+  // dotGroupをコピー
+  // Groupオブジェクトの複製
+// const clonedObjects = dotGroup.getObjects().map(obj => {fabric.util.object.clone(obj)});
+// const dotGroup2 = new fabric.Group(clonedObjects, {
+//   /* グループのプロパティ */
+// });
+// const dotGroup2 = dotGroup.clone(callback, )
+// dotGroup.clone(function(dotGroup2) {
+//   dotGroup.rotate(90);
+//   mainCanvas.add(dotGroup2);
+// });
+  // const dotGroup2 = fabric.util.object.clone(dotGroup);
+  // dotGroup2.rotate(90);
+  // mainCanvas.add(dotGroup2);
+  // console.log(dotGroup2._objects);
+  // console.log(dotGroup2._objects[0].fill);
 
   // ここまで試しコードを書く ----------------------------
 
@@ -2012,20 +2083,7 @@ testButton1.addEventListener('click', () => {
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
-  console.log(hourObjects[0]);
-  // console.log(hourObjects[0].__lineHeights);
-  // console.log(hourObjects[0]._cacheContext.textAlign);
-  // console.log(hourObjects[0]._cacheContext.textBaseline);
-  console.log(hourObjects[0].textBaseline);
-  console.log(hourObjects[0].lineHeight);
-  hourObjects[0].set({
-    lineHeight: 5,
-  });
-  hourObjects[0].set({
-    textBaseline: 'top',
-  });
-  // hourObjects[0]._cacheContext.textBaseline = 'bottom';
-  // console.log(hourObjects[0]._cacheContext.textBaseline);
+  centerLine.bringToFront();
 
 });
 
