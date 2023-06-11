@@ -208,7 +208,6 @@ main .component-list .component .workspace .design-list {
 main .component-list .component .workspace .design-list h3 {
   flex: 1;
   font-size: 12px;
-  line-height: 80px;
 }
 main .component-list .component .workspace .design-list ul {
   flex: 4;
@@ -232,13 +231,15 @@ main .component-list .component .workspace .design-list ul li:hover label.radio-
 }
 main .component-list .component .workspace .design-list ul li img,
 main .component-list .component .workspace .design-list ul li div {
-  width: 30px;
-  height: 30px;
   position: absolute;
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
+}
+main .component-list .component .workspace .design-list ul li div {
+  width: 30px;
+  height: 30px;
 }
 main .component-list .component .workspace .design-list ul li div.hour-font-sample {
   text-align: center;

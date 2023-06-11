@@ -46,7 +46,7 @@ function caseStackingOrder() {
   }
 }
 
-// カラーピッカー ----------------
+// カラーピッカー ----------------------------------------
 // カラーピッカーで色を選択したときの処理 ----
 // ケース
 const caseColorPicker = document.getElementById('case-color-picker');
@@ -89,6 +89,23 @@ dialColorPicker.addEventListener('input', () => {
   }
   mainCanvas.renderAll();
 });
+// 数字
+const hourColorPicker = document.getElementById('hour-color-picker');
+hourColorPicker.addEventListener('input', () => {
+  // ボタンの色を変える
+  hourColorPicker.previousElementSibling.style.backgroundColor = hourColorPicker.value;
+  // hourColorに値を入れておく
+  hourColor = hourColorPicker.value;
+  // オブジェクトに色をつける
+  if (hourObjects.length !== 0) {
+    hourObjects.forEach(hourObject => {
+      hourObject.set({
+        fill: hourColor,
+      });
+    });
+  }
+  mainCanvas.renderAll();
+});
 
 // カラーピッカー(input type="color")をクリックしたときにも、radioをクリックしたことにする ----
 // ゴールドなど他の色にした後も、その他の色のボタンをクリックしただけで、その色にするための処理
@@ -100,6 +117,9 @@ strapColorPicker.addEventListener('click', () => {
 });
 dialColorPicker.addEventListener('click', () => {
   dialColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
+});
+hourColorPicker.addEventListener('click', () => {
+  hourColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
 });
 
 //* style --------------------------------------------------------------------------------
@@ -120,6 +140,7 @@ const buckleShapeInputs = document.querySelectorAll('input[name="buckle-shape"]'
 const dialColorInputs = document.querySelectorAll('input[name="dial-color"]');
 const hourLayoutInputs = document.querySelectorAll('input[name="hour-layout"]');
 const hourFontFamilyInputs = document.querySelectorAll('input[name="hour-font"]');
+const hourColorInputs = document.querySelectorAll('input[name="hour-color"]');
 
 // 配列 radioArray の中に、複数の要素が配列のようになった lugShapeInputs などが入っている
 // lugShapeInputs などの中に、個々の input 要素が入っている
@@ -136,6 +157,7 @@ const radioArray = [
   dialColorInputs,
   hourLayoutInputs,
   hourFontFamilyInputs,
+  hourColorInputs,
 ];
 
 // 配列の各要素(の集まり)から関数を呼び出す ----------------
@@ -153,12 +175,6 @@ function selectRadio(radios) {
     });
   });
 }
-
-//*test
-// 数字のサンプルを表示
-hourFontFamilyInputs.forEach(hourFontFamilyInput => {
-  hourFontFamilyInput.parentElement.nextElementSibling.style.fontFamily = hourFontFamilyInput.value;
-});
 
 // タブを切り替える ----------------------------------------
 
@@ -203,6 +219,12 @@ tabs.forEach(tab => {
     });
     tab.classList.add('active');
   });
+});
+
+// 数字フォントのサンプル"2"を各フォントで表示 ----------------------------------------
+
+hourFontFamilyInputs.forEach(hourFontFamilyInput => {
+  hourFontFamilyInput.parentElement.nextElementSibling.style.fontFamily = hourFontFamilyInput.value;
 });
 
 //* main canvas ----------------------------------------------------------------------------------
@@ -1257,6 +1279,7 @@ let hourFontSize = 12; // 初期値12
 let hourLayout; // 全数字 or 4ポイント or 2ポイント
 let hourLayoutCircleRadius; // 数字を配置する時に、各数字の中心となる弧を持つ円の半径
 let hourFontFamily = 'sans-serif'; // 初期値
+let hourColor = 'black'; // 初期値
 
 //* main 文字盤色 ----------------------------------------
 
@@ -1298,16 +1321,50 @@ class Hour {
     const hourObject = new fabric.Text(this.text, {
       originX: 'center',
       originY: 'center',
-      fill: 'black',
+      fill: hourColor,
       fontFamily: hourFontFamily,
+      // fontSize: 50,
       fontSize: hourFontSize,
       left: this.left,
-      top: this.top,
+      // top: this.top,
+      //* test
+      //* 数字の下に少し隙間が空いてしまう.....
+      //* textBaselineなどのプロパティが効かないのでとりあえずtopで調整
+      top: this.top + hourFontSize / 14,
+      // textAlign: 'center',
+      lineHeight: 1,
+      // height: 50,
+      // styles: {background: 'red'},
+      // deltaY: 20,
+      // pathAlign: 'center',
+      // textBaseline: 'middle',
+      textBaseline: 'bottom',
     });
     mainCanvas.add(hourObject);
     hourObjects.push(hourObject);
   }
 }
+
+//* 数字色 ----
+// 数字色が選択されたら、色を付ける ----------------
+hourColorInputs.forEach(hourColorInput => {
+  hourColorInput.addEventListener('input', () => {
+    // hourColorに値を代入
+    hourColor = hourColorInput.value;
+    // アラートを表示
+    if (hourObjects.length === 0) {
+      alert('「数字の配置」を入力すると、選択した色で数字が描かれます');
+      return;
+    }
+    // 数字に色をつける
+    hourObjects.forEach(hourObject => {
+      hourObject.set({
+        fill: hourColor,
+      });
+    });
+    mainCanvas.renderAll();
+  });
+});
 
 // 数字のサイズを変えるレンジ ----------------
 const hourFontSizeRange = document.getElementById('hour-font-size-range');
@@ -1411,6 +1468,39 @@ function drawHours() {
     });
     hourObjects = [];
   }
+
+  //* test
+  //* 確認用の円 ------------
+  const testCircle2 = new fabric.Circle({
+    radius: 6,
+    stroke: 'red',
+    fill: 'transparent',
+    originX: 'center',
+    originY: 'center',
+    left: mainCanvasCenterWidth + distanceX2,
+    top: mainCanvasCenterHeight - distanceY2,
+  });
+  mainCanvas.add(testCircle2);
+  const testCircle3 = new fabric.Circle({
+    radius: 6,
+    stroke: 'red',
+    fill: 'transparent',
+    originX: 'center',
+    originY: 'center',
+    left: mainCanvasCenterWidth + hourLayoutCircleRadius,
+    top: mainCanvasCenterHeight,
+  });
+  mainCanvas.add(testCircle3);
+  const testCircle4 = new fabric.Circle({
+    radius: 6,
+    stroke: 'red',
+    fill: 'transparent',
+    originX: 'center',
+    originY: 'center',
+    left: mainCanvasCenterWidth + distanceX2,
+    top: mainCanvasCenterHeight + distanceY2,
+  });
+  mainCanvas.add(testCircle4);
 
   // Hourインスタンスを生成 ----
   // 引数は順に left, top, text
@@ -1901,13 +1991,20 @@ ctx.fillText('ケースの直径を入力', 10, 50);
 
 //* テスト用 -------------------------------------------------------------------------
 
+const centerLine = new fabric.Polyline([
+  {x: 0, y: mainCanvasCenterHeight},
+  {x: 384, y: mainCanvasCenterHeight}], {
+  stroke: 'red',
+});
+
+mainCanvas.add(centerLine);
+
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
-
-  console.log(caseObject);
-  console.log(caseObject.radius);
+  centerLine.bringToFront();
+  //* バーを描く 線？でも色付けたいからクローズドパスか
 
   // ここまで試しコードを書く ----------------------------
 
@@ -1915,6 +2012,20 @@ testButton1.addEventListener('click', () => {
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
+  console.log(hourObjects[0]);
+  // console.log(hourObjects[0].__lineHeights);
+  // console.log(hourObjects[0]._cacheContext.textAlign);
+  // console.log(hourObjects[0]._cacheContext.textBaseline);
+  console.log(hourObjects[0].textBaseline);
+  console.log(hourObjects[0].lineHeight);
+  hourObjects[0].set({
+    lineHeight: 5,
+  });
+  hourObjects[0].set({
+    textBaseline: 'top',
+  });
+  // hourObjects[0]._cacheContext.textBaseline = 'bottom';
+  // console.log(hourObjects[0]._cacheContext.textBaseline);
 
 });
 

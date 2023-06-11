@@ -223,7 +223,7 @@ main {
           h3 {
             flex: 1;
             font-size: 12px;
-            line-height: 80px;
+            // line-height: 80px;
           }
           ul {
             flex: 4;
@@ -245,14 +245,16 @@ main {
               }
               img,
               div {
-                width: 30px;
-                height: 30px;
                 position: absolute;
                 top: 40%;
                 left: 50%;
                 transform: translate(-50%, -50%);
                 // labelをクリックさせるため
                 pointer-events: none;
+              }
+              div {
+                width: 30px;
+                height: 30px;
               }
               div.hour-font-sample {
                 text-align: center;
