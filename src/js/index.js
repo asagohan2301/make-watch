@@ -44,6 +44,12 @@ function caseStackingOrder() {
       hourObject.moveTo(8);
     });
   }
+  //*test
+  if (barDotObjects.length !== 0) {
+    barDotObjects.forEach(barDotObject => {
+      barDotObject.moveTo(20);
+    });
+  }
 }
 
 // カラーピッカー ----------------------------------------
@@ -397,6 +403,10 @@ dialSizeInput.addEventListener('input', () => {
     //* test
     hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     drawHours();
+  }
+  //* test
+  if (barOrDot !== undefined) {
+    drawBarDot();
   }
   // 重なり順を直す
   caseStackingOrder();
@@ -1430,7 +1440,6 @@ hourLayoutInputs.forEach(hourLayoutInput => {
     //* test
     // 文字盤半径から数字のフォントサイズの半分を引くと、ちょうど数字の外側が文字盤の円に触れる位置になる
     // そこから内側に少し調整する
-    //* 数字ずれる原因ここにある可能性？→違うやっぱ少し上にずれてる
     hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     // hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2;
     // hourLayoutCircleRadius = dialObject.radius;
@@ -1440,6 +1449,17 @@ hourLayoutInputs.forEach(hourLayoutInput => {
     hourLayoutCircleRadiusRange.disabled = false;
     // 数字たちを描く関数呼び出し
     drawHours();
+    //* test
+    // すでにバーorドットが描かれている場合は、再描画する
+    //* barDotObjects.length による条件分岐だと、
+    //* 前回全数字を選んでいた場合に barDotObjects.length は 0 だから バーorドットを描く関数が呼ばれない
+    //* なのでbarDotObjectsではなく barOrDot に値が入っているかどうかを条件式にする
+    // if (barDotObjects.length !== 0) {
+      // drawBarDot();
+    // }
+    if (barOrDot !== undefined) {
+      drawBarDot();
+    }
   });
 });
 
@@ -1626,11 +1646,8 @@ barDotInputs.forEach(barDotInput => {
   barDotInput.addEventListener('input', () => {
     // 変数に値を代入
     barOrDot = barDotInput.value;
-    // バーorドットが選択された時点で変数に値を代入する
-    // 円の中心座標(=回転させるときの中心点)
-    centerPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight);
-    // 円周上の点の初期位置 12時位置
-    initialPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - hourLayoutCircleRadius);
+    //? まだ数字の配置が選ばれていないとき
+
     // バーorドットを描く関数呼び出し
     drawBarDot();
   });
@@ -1638,14 +1655,25 @@ barDotInputs.forEach(barDotInput => {
 
 // バーorドットを描く関数 ----------------
 function drawBarDot() {
-  // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする
+  // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする ----
   barDotObjects.forEach(barDotObject => {
     mainCanvas.remove(barDotObject);
   });
+  // 計算に必要な数値を準備する ----
+  // 円の中心座標(=回転させるときの中心点)
+  centerPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight);
+  // 円周上の点の初期位置 12時位置
+  //* hourLayoutCircleRadiusに値を入れるのが数字のレイアウトを選んだ時などなので、バードットを先に選択したときには値がないはず
+  //* ここで定義すると?
+  //* OKそう
+  hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+  initialPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - hourLayoutCircleRadius);
+  // オブジェクトを入れていく配列 ----
   barDotObjects = [];
-  // ループを回してバーorドットを描く
+  // ループを回してバーorドットを描く ----
   for (let i = 0; i < 12; i++) {
     // ここでしか使わない、個々のバーorドットオブジェクトの変数名
+    // バーorドットが不要な位置を透明にsetするときに名前が必要なのでつけている
     // 実際に配列 barDotObject に入るときは、この名前が使われるわけではないと思われる
     let barDotObject;
     // fabric.util.rotatePointメソッドを使用して、
@@ -1702,7 +1730,7 @@ function drawBarDot() {
     // 回転角度を更新
     rotateDegrees += 30;
   }
-  // ループが終わってオブジェクトが配列に入ったら、canvasに描画
+  // ループが終わってオブジェクトが配列に入ったら、canvasに描画 ----
   barDotObjects.forEach(barDotObject => {
     mainCanvas.add(barDotObject);
   });
@@ -2110,8 +2138,7 @@ testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
-  console.log(barDotObjects);
-  console.log(barDotObjects[3]);
+  console.log(hourLayout);
 
   
   // ここまで試しコードを書く ----------------------------
