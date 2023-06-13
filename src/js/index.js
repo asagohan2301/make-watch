@@ -110,11 +110,24 @@ hourColorPicker.addEventListener('input', () => {
       });
     });
   }
+  //* test
+  // 透明にしているバーorドット以外のバーorドットの色を変える
+  barDotObjects.forEach(barDotObject => {
+    if (barDotObject.fill !== 'transparent') {
+      barDotObject.set({
+        fill: hourColor,
+      });
+    }
+  });
   mainCanvas.renderAll();
 });
 
 // カラーピッカー(input type="color")をクリックしたときにも、radioをクリックしたことにする ----
 // ゴールドなど他の色にした後も、その他の色のボタンをクリックしただけで、その色にするための処理
+//* dialとhourができておらず理由もわからない→わかった別の場所で解決
+//* dialとhourはクリックしたとき黒になるのが怪しい!!
+//* 色を選ぶラジオボタンのところで、custom-color が選ばれたときに、そのvalueが正しく変数 dialColorなどに
+//* 入っていなかったため
 caseColorPicker.addEventListener('click', () => {
   caseColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
 });
@@ -1321,6 +1334,14 @@ dialColorInputs.forEach(dialColorInput => {
     dialObject.set({
       fill: dialColor,
     });
+    //* test!!
+    //* ここがないとカスタムカラークリックしただけで色が変わる動作が起きない
+    //* 後で整理したい
+    if (dialColorInput.value === 'custom-color') {
+      dialObject.set({
+        fill: dialColorPicker.value,
+      });
+    }
     mainCanvas.renderAll();
   });
 });
@@ -1370,6 +1391,14 @@ hourColorInputs.forEach(hourColorInput => {
   hourColorInput.addEventListener('input', () => {
     // hourColorに値を代入
     hourColor = hourColorInput.value;
+    //* ↑hourColorInput.valueは、すでに用意した色の値はblackやwhiteだが、
+    //* カスタムカラーの時はここに custom-color という文字列が入るだけであることに注意
+    //* fill: 'custom-color'となってしまうから色が変わらない
+    //* test
+    if (hourColor === 'custom-color') {
+      hourColor = hourColorPicker.value;
+    }
+    //* testここまで
     // アラートを表示
     if (hourObjects.length === 0) {
       alert('「数字の配置」を入力すると、選択した色で数字が描かれます');
@@ -1380,6 +1409,25 @@ hourColorInputs.forEach(hourColorInput => {
       hourObject.set({
         fill: hourColor,
       });
+    });
+    // バーorドットにも色をつける
+    //* 数字の配置によって、バーorドットがいらない位置は透明にしていることに注意しないと
+    // barDotObjects.forEach(barDotObject => {
+    //   barDotObject.set({
+    //     fill: hourColor,
+    //   });
+    // });
+    //* 関数呼び出しちゃう？
+    // drawBarDot();
+    //* それか条件分岐できるか?できた
+    // console.log(barDotObjects[9].fill);
+    // 透明にしているバーorドット以外のバーorドットの色を変える
+    barDotObjects.forEach(barDotObject => {
+      if (barDotObject.fill !== 'transparent') {
+        barDotObject.set({
+          fill: hourColor,
+        });
+      }
     });
     mainCanvas.renderAll();
   });
@@ -1505,36 +1553,36 @@ function drawHours() {
 
   //* test
   //* 確認用の円 ------------
-  const testCircle2 = new fabric.Circle({
-    radius: 6,
-    stroke: 'red',
-    fill: 'transparent',
-    originX: 'center',
-    originY: 'center',
-    left: mainCanvasCenterWidth + distanceX2,
-    top: mainCanvasCenterHeight - distanceY2,
-  });
-  mainCanvas.add(testCircle2);
-  const testCircle3 = new fabric.Circle({
-    radius: 6,
-    stroke: 'red',
-    fill: 'transparent',
-    originX: 'center',
-    originY: 'center',
-    left: mainCanvasCenterWidth + hourLayoutCircleRadius,
-    top: mainCanvasCenterHeight,
-  });
-  mainCanvas.add(testCircle3);
-  const testCircle4 = new fabric.Circle({
-    radius: 6,
-    stroke: 'red',
-    fill: 'transparent',
-    originX: 'center',
-    originY: 'center',
-    left: mainCanvasCenterWidth + distanceX2,
-    top: mainCanvasCenterHeight + distanceY2,
-  });
-  mainCanvas.add(testCircle4);
+  // const testCircle2 = new fabric.Circle({
+  //   radius: 6,
+  //   stroke: 'red',
+  //   fill: 'transparent',
+  //   originX: 'center',
+  //   originY: 'center',
+  //   left: mainCanvasCenterWidth + distanceX2,
+  //   top: mainCanvasCenterHeight - distanceY2,
+  // });
+  // mainCanvas.add(testCircle2);
+  // const testCircle3 = new fabric.Circle({
+  //   radius: 6,
+  //   stroke: 'red',
+  //   fill: 'transparent',
+  //   originX: 'center',
+  //   originY: 'center',
+  //   left: mainCanvasCenterWidth + hourLayoutCircleRadius,
+  //   top: mainCanvasCenterHeight,
+  // });
+  // mainCanvas.add(testCircle3);
+  // const testCircle4 = new fabric.Circle({
+  //   radius: 6,
+  //   stroke: 'red',
+  //   fill: 'transparent',
+  //   originX: 'center',
+  //   originY: 'center',
+  //   left: mainCanvasCenterWidth + distanceX2,
+  //   top: mainCanvasCenterHeight + distanceY2,
+  // });
+  // mainCanvas.add(testCircle4);
 
   // Hourインスタンスを生成 ----
   // 引数は順に left, top, text
@@ -1646,7 +1694,6 @@ barDotInputs.forEach(barDotInput => {
   barDotInput.addEventListener('input', () => {
     // 変数に値を代入
     barOrDot = barDotInput.value;
-    //? まだ数字の配置が選ばれていないとき
 
     // バーorドットを描く関数呼び出し
     drawBarDot();
@@ -1689,6 +1736,7 @@ function drawBarDot() {
       barDotObject = new fabric.Rect({
         width: 2,
         height: 10,
+        fill: hourColor,
         originX: 'center',
         originY: 'center',
         top: rotatedPoint.y,
