@@ -1,3 +1,4 @@
+<!-- MITライセンスの記載 -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -337,6 +338,32 @@
                   <img src="./assets/two-point-hour.svg" alt="2ポイント数字" width="54" height="54">
                   <p>2ポイント数字</p>
                 </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hour-layout" value="no-hour">
+                  </label>
+                  <img src="./assets/two-point-hour.svg" alt="数字なし" width="54" height="54">
+                  <p>数字なし</p>
+                </li>
+              </ul>
+            </div>
+            <div class="design-list design-list-bardot">
+              <h3>数字がない場所のデザイン:</h3>
+              <ul>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="bar-dot" value="bar">
+                  </label>
+                  <img src="./assets/all-hour.svg" alt="バー" width="54" height="54">
+                  <p>バー</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="bar-dot" value="dot">
+                  </label>
+                  <img src="./assets/four-point-hour.svg" alt="ドット" width="54" height="54">
+                  <p>ドット</p>
+                </li>
               </ul>
             </div>
             <div class="design-list design-list-hour-font">
@@ -370,6 +397,13 @@
               <ul>
                 <li>
                   <label class="radio-label">
+                    <input type="radio" name="hour-color" value="gold">
+                  </label>
+                  <div class="gold-color color-box"></div>
+                  <p>ゴールド</p>
+                </li>
+                <li>
+                  <label class="radio-label">
                     <input type="radio" name="hour-color" value="black">
                   </label>
                   <div class="black-color color-box"></div>
@@ -399,25 +433,6 @@
                 </li>
               </ul>
             </div>
-            <div class="design-list design-list-bardot">
-              <h3>数字がない場所のデザイン:</h3>
-              <ul>
-                <li>
-                  <label class="radio-label">
-                    <input type="radio" name="bar-dot" value="bar">
-                  </label>
-                  <img src="./assets/all-hour.svg" alt="バー" width="54" height="54">
-                  <p>バー</p>
-                </li>
-                <li>
-                  <label class="radio-label">
-                    <input type="radio" name="bar-dot" value="dot">
-                  </label>
-                  <img src="./assets/four-point-hour.svg" alt="ドット" width="54" height="54">
-                  <p>ドット</p>
-                </li>
-              </ul>
-            </div>
             <div class="design-list design-list-hour-range">
               <h3>数字の調整:</h3>
               <label>数字のサイズ
@@ -425,6 +440,15 @@
               </label>
               <label>数字の位置
                 <input type="range" name="hour-layout-circle-radius" id="hour-layout-circle-radius-range" min="-20" max="0" step="1">
+              </label>
+            </div>
+            <div class="design-list design-list-bardot-range">
+              <h3>バードットの調整:</h3>
+              <label>バーの幅
+                <input type="range" name="bar-width" id="bar-width-range" min=".1" max="5" step=".1">
+              </label>
+              <label>バーの長さ
+                <input type="range" name="bar-length" id="bar-length-range" min="1" max="10" step=".1">
               </label>
             </div>
           </div>

@@ -628,13 +628,19 @@ const pinkGoldGradation = new Gradation({
     { offset: 1, color: 'rgb(220,170,119)'},
   ]
 });
+// const textGoldGradation = new Gradation({
+//   colorStops:[
+//     { offset: 0, color: 'rgb(238,215,71)'},
+//     { offset: .5, color: 'rgb(238,215,71)'},
+//     { offset: 1, color: 'rgb(238,215,71)'},
+//   ]
+// });
 
 // 色が選択されたら、ケース(とラグとリュウズとバックル)に色をつける関数呼び出し ----------------
 // 色が選択されたとき、オブジェクトがすでにあれば色を付ける
 // オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色を付ける
 caseColorInputs.forEach(caseColorInput => {
   caseColorInput.addEventListener('input', () => {
-    //* ここ直せそう
     // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
     switch(caseColorInput.value) {
       case 'gold':
@@ -1360,6 +1366,9 @@ class Hour {
       // lineHeight: 1,
       // pathAlign: 'center',
       // textBaseline: 'middle',
+      //* test stroke
+      stroke: 'black',
+      strokeWidth: .5,
     });
     mainCanvas.add(hourObject);
     hourObjects.push(hourObject);
@@ -1400,6 +1409,9 @@ hourFontFamilyInputs.forEach(hourFontFamilyInput => {
       alert('数字の配置を選択すると、数字が描画されます');
       return;
     }
+    if (hourLayout === 'no-hour') {
+      alert('数字なしが選択されています。数字があるデザインを選択すると指定のフォントで描かれます。');
+    }
     // 数字たちを描く関数呼び出し
     drawHours();
   });
@@ -1426,6 +1438,12 @@ function drawHours() {
       mainCanvas.remove(hourObject);
     });
     hourObjects = [];
+  }
+
+  //*test
+  //*数字なしの場合
+  if (hourLayout === 'no-hour') {
+    return;
   }
 
   // Hourインスタンスを生成 ----
@@ -1523,79 +1541,6 @@ function drawHours() {
   }
 }
 
-//* main 文字盤数字色 ----------------------------------------
-
-// 数字色が選択されたら、色を付ける ----------------
-hourColorInputs.forEach(hourColorInput => {
-  hourColorInput.addEventListener('input', () => {
-    // hourColorにinput要素のvalue値を代入
-    hourColor = hourColorInput.value;
-    // カスタムカラーが選択された場合はhourColorにカラーピッカーの値を代入
-    if (hourColorInput.value === 'custom-color') {
-      hourColor = hourColorPicker.value;
-    }
-    // アラートを表示
-    if (hourObjects.length === 0) {
-      alert('「数字の配置」を入力すると、選択した色で数字が描かれます');
-      return;
-    }
-    // 数字に色をつける
-    hourObjects.forEach(hourObject => {
-      hourObject.set({
-        fill: hourColor,
-      });
-    });
-    // バーorドットにも色をつける(透明にしているバーorドット以外)
-    // バーorドットが不要な位置は、バーorドットを透明にして対応していることに注意
-    barDotObjects.forEach(barDotObject => {
-      if (barDotObject.fill !== 'transparent') {
-        barDotObject.set({
-          fill: hourColor,
-        });
-      }
-    });
-    mainCanvas.renderAll();
-  });
-});
-
-//* main 文字盤レンジ ----------------------------------------
-
-// 数字のサイズを変えるレンジ ----------------
-const hourFontSizeRange = document.getElementById('hour-font-size-range');
-// 初期は入力不可
-hourFontSizeRange.disabled = true;
-hourFontSizeRange.addEventListener('input', () => {
-  // hourFontSizeにレンジの値を代入
-  hourFontSize = parseInt(hourFontSizeRange.value);
-  // 数字たちを描く関数呼び出し
-  drawHours();
-});
-
-// 数字の位置を変えるレンジ ----------------
-const hourLayoutCircleRadiusRange = document.getElementById('hour-layout-circle-radius-range');
-// 初期は入力不可
-hourLayoutCircleRadiusRange.disabled = true;
-hourLayoutCircleRadiusRange.addEventListener('input', () => {
-  // hourLayoutCircleRadiusにレンジの値を代入
-  const hourLayoutCircleRadiusValue = parseInt(hourLayoutCircleRadiusRange.value);
-  // hourLayoutCircleRadiusの値をレンジの値に合わせて変更
-  hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 + hourLayoutCircleRadiusValue;
-  // 数字たちを描く関数呼び出し
-  drawHours();
-});
-
-// 数字がまだ描かれていないときにレンジをクリックした時の処理 ----------------
-hourFontSizeRange.parentElement.addEventListener('click', () => {
-  if (hourObjects.length === 0) {
-    alert('数字の配置を選択してください');
-  }
-});
-hourLayoutCircleRadiusRange.parentElement.addEventListener('click', () => {
-  if (hourObjects.length === 0) {
-    alert('数字の配置を選択してください');
-  }
-});
-
 //* main 文字盤 バー・ドット ----------------------------------------
 // ドットを2つ一組でグループ化して、それをcloneして回転させていきたいけどうまくcloneできなかった
 // fabric.Pointを使って点の位置を取得する方法を採用
@@ -1606,6 +1551,20 @@ barDotInputs.forEach(barDotInput => {
   barDotInput.addEventListener('input', () => {
     // 変数に値を代入
     barOrDot = barDotInput.value;
+    // 計算に必要な数値を準備する ----
+    // hourLayoutCircleRadius を計算
+    //* はじめは呼び出し先の drawBarDot 関数内で hourLayoutCircleRadius を計算していたが、
+    //* それだとレンジを変えても計算されなおされてしまい値が変わらない
+    //* そのため呼び出し元で計算している
+    hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+    //*test レンジを選択可能にする
+    if (barOrDot === 'bar') {
+      barWidthRange.disabled = false;
+      barLengthRange.disabled = false;
+    } else {
+      barWidthRange.disabled = true;
+      barLengthRange.disabled = true;
+    }
     // バーorドットを描く関数呼び出し
     drawBarDot();
   });
@@ -1619,7 +1578,10 @@ function drawBarDot() {
   });
   // 計算に必要な数値を準備する ----
   // hourLayoutCircleRadius を計算
-  hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+  //* ここでhourLayoutCircleRadius を計算してしまうと、レンジを変えてもここで計算されなおされてしまい
+  //* 値が変わらない
+  //* ので呼び出し元に移動させるか
+  // hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
   // 円周上の点の初期位置 12時位置
   initialPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - hourLayoutCircleRadius);
   // オブジェクトを入れていく配列 ----
@@ -1641,8 +1603,9 @@ function drawBarDot() {
     // バーオブジェクト
     if (barOrDot === 'bar') {
       barDotObject = new fabric.Rect({
-        width: 2,
-        height: 10,
+        //* test
+        width: mmToPixel(1),
+        height: mmToPixel(5),
         fill: hourColor,
         originX: 'center',
         originY: 'center',
@@ -1690,6 +1653,171 @@ function drawBarDot() {
     mainCanvas.add(barDotObject);
   });
 }
+
+//* main 数字とバーorドットの色 ----------------------------------------
+
+// 数字色が選択されたら、色を付ける ----------------
+hourColorInputs.forEach(hourColorInput => {
+  hourColorInput.addEventListener('input', () => {
+    //* test
+    //* 数字色にもグラデーションクラスを使いたい
+    //* ?色つかない。文字には使えない？？
+    switch(hourColorInput.value) {
+      // case 'gold':
+      //   hourColor = textGoldGradation;
+      //   break;
+      case 'silver':
+        hourColor = silverGradation;
+        break;
+      case 'pink-gold':
+        hourColor = pinkGoldGradation;
+        break;
+      case 'custom-color':
+        hourColor = hourColorPicker.value;
+        break;
+      default:
+        hourColor = hourColorInput.value;
+    }
+    // hourColorにinput要素のvalue値を代入
+    // hourColor = hourColorInput.value;
+    // カスタムカラーが選択された場合はhourColorにカラーピッカーの値を代入
+    // if (hourColorInput.value === 'custom-color') {
+    //   hourColor = hourColorPicker.value;
+    // }
+    // アラートを表示
+    if (hourObjects.length === 0) {
+      alert('「数字の配置」を入力すると、選択した色で数字が描かれます');
+      return;
+    }
+    //* test
+    // const testGold = new fabric.Gradient({
+    //   type: 'linear',
+    //   // gradientUnits: 'percentage',
+    //   coords:{
+    //     x1: 0, 
+    //     y1: 0,
+    //     x2: hourFontSize,
+    //     y2: 0,
+    //   },
+    //   colorStops: [
+    //     {color: 'red', offset: 0.0},
+    //     {color: 'blue', offset: 1.0}
+    //   ]
+    // });
+    // 数字に色をつける
+    hourObjects.forEach(hourObject => {
+    //   hourObject.set('fill', testGold);
+    // });
+      hourObject.set('fill', new fabric.Gradient({
+          type: 'linear',
+          // gradientUnits: 'percentage',
+          coords:{
+            x1: 0, 
+            y1: 0,
+            x2: hourObject.width,
+            y2: 0,
+          },
+          colorStops: [
+            {color: 'red', offset: 0.0},
+            {color: 'blue', offset: 1.0}
+          ]
+        }));
+    });
+    // itext.set('fill', new fabric.Gradient({
+    //   type: 'linear',
+    //   coords:{
+    //     x1:0, 
+    //     y1:0,
+    //     x2: itext.width,
+    //     y2: itext.height
+    //   },
+    //   colorStops: [
+    //     {color: 'red', offset: 0.0},
+    //     {color: 'blue', offset: 1.0}
+    //   ]
+    // }));
+    // バーorドットにも色をつける(透明にしているバーorドット以外)
+    // バーorドットが不要な位置は、バーorドットを透明にして対応していることに注意
+    barDotObjects.forEach(barDotObject => {
+      if (barDotObject.fill !== 'transparent') {
+        barDotObject.set({
+          fill: hourColor,
+        });
+      }
+    });
+    mainCanvas.renderAll();
+  });
+});
+
+//* main 文字盤レンジ ----------------------------------------
+
+// 数字のサイズを変えるレンジ ----------------
+const hourFontSizeRange = document.getElementById('hour-font-size-range');
+// 初期は入力不可
+hourFontSizeRange.disabled = true;
+hourFontSizeRange.addEventListener('input', () => {
+  // hourFontSizeにレンジの値を代入
+  hourFontSize = parseInt(hourFontSizeRange.value);
+  // 数字たちを描く関数呼び出し
+  drawHours();
+});
+
+// 数字の位置を変えるレンジ ----------------
+const hourLayoutCircleRadiusRange = document.getElementById('hour-layout-circle-radius-range');
+// 初期は入力不可
+hourLayoutCircleRadiusRange.disabled = true;
+hourLayoutCircleRadiusRange.addEventListener('input', () => {
+  // hourLayoutCircleRadiusにレンジの値を代入
+  const hourLayoutCircleRadiusValue = parseInt(hourLayoutCircleRadiusRange.value);
+  // hourLayoutCircleRadiusの値をレンジの値に合わせて変更
+  hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 + hourLayoutCircleRadiusValue;
+  // 数字たちを描く関数呼び出し
+  drawHours();
+  //* test
+  //* バーorドットの大きさもとりあえず一緒に変えておく
+  drawBarDot();
+});
+
+//* test
+//* バーの幅
+const barWidthRange = document.getElementById('bar-width-range');
+// 初期は入力不可
+barWidthRange.disabled = true;
+barWidthRange.addEventListener('input', () => {
+  //* setしなおすやり方と、数字のサイズを変えるレンジのように関数を呼び出しなおす方法があるがどっちが良いか
+  //* 初期値の有無による?
+  barDotObjects.forEach(barDotObject => {
+    barDotObject.set({
+      width: mmToPixel(barWidthRange.value),
+    });
+    mainCanvas.renderAll();
+  });
+});
+//* test
+//* バーの長さ
+const barLengthRange = document.getElementById('bar-length-range');
+// 初期は入力不可
+barLengthRange.disabled = true;
+barLengthRange.addEventListener('input', () => {
+  barDotObjects.forEach(barDotObject => {
+    barDotObject.set({
+      height: mmToPixel(barLengthRange.value),
+    });
+    mainCanvas.renderAll();
+  });
+});
+
+// 数字がまだ描かれていないときにレンジをクリックした時の処理 ----------------
+hourFontSizeRange.parentElement.addEventListener('click', () => {
+  if (hourObjects.length === 0) {
+    alert('数字の配置を選択してください');
+  }
+});
+hourLayoutCircleRadiusRange.parentElement.addEventListener('click', () => {
+  if (hourObjects.length === 0) {
+    alert('数字の配置を選択してください');
+  }
+});
 
 //* case info canvas ------------------------------------------------------------------------------
 
@@ -2093,7 +2221,49 @@ testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
-
+  /// ITextオブジェクト作成
+  var itext = new fabric.Text('myfont',{
+    left: 0,
+    top: 30,
+    text: 'テストテキスト',
+    fontSize: 30,
+  });
+  /// 赤から青のグラデーション追加
+  itext.set('fill', new fabric.Gradient({
+    type: 'linear',
+    coords:{
+      x1:0, 
+      y1:0,
+      x2: itext.width,
+      y2: itext.height
+    },
+    colorStops: [
+      {color: 'red', offset: 0.0},
+      {color: 'blue', offset: 1.0}
+    ]
+  }));
+  mainCanvas.add(itext);
+  var itext2 = new fabric.Text('myfont',{
+    left: 0,
+    top: 50,
+    text: '3',
+    fontSize: 30,
+  });
+  /// 赤から青のグラデーション追加
+  itext2.set('fill', new fabric.Gradient({
+    type: 'linear',
+    coords:{
+      x1:0, 
+      y1:0,
+      x2: itext2.width,
+      y2: itext2.height
+    },
+    colorStops: [
+      {color: 'yellow', offset: 0.0},
+      {color: 'gold', offset: 1.0}
+    ]
+  }));
+  mainCanvas.add(itext2);
   
   // ここまで試しコードを書く ----------------------------
 
@@ -2101,7 +2271,57 @@ testButton1.addEventListener('click', () => {
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
-  centerLine.bringToFront();
+  // const texttest = new fabric.Text('HelloWorld!', {
+  //   left: 50,
+  //   top: 50,
+  //   fontSize: 24,
+  // });
+  // mainCanvas.add(texttest);
+  // const svg = texttest.toSVG();
+  // const parser = new DOMParser();
+  // const svgDoc = parser.parseFromString(svg, 'image/svg+xml');
+  // const svgElement = svgDoc.documentElement;
+  // const pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  // pathElement.setAttribute('d', svgElement.getAttribute('d'));
+  // mainCanvas.add(pathElement);
+
+
+
+
+// テキストオブジェクトを作成
+const text = new fabric.Text('Hello World', {
+  left: 50,
+  top: 50,
+  fill: 'red',
+  stroke: 'blue',
+  strokeWidth: 2,
+});
+
+// テキストオブジェクトをキャンバスに追加
+mainCanvas.add(text);
+
+// テキストオブジェクトをSVGパスに変換
+const svgElement = text.toSVG();
+
+// SVGパスを取得
+const path = extractPathFromSVG(svgElement);
+
+console.log(path);
+
+// SVGパスを取得する関数
+function extractPathFromSVG(svgElement) {
+  const parser = new DOMParser();
+  const svgDoc = parser.parseFromString(svgElement, 'image/svg+xml');
+  const pathElement = svgDoc.querySelector('path');
+  return pathElement.getAttribute('d');
+}
+
+
+
+  
+
+
+  
 
 
 });
