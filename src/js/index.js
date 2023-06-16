@@ -1367,8 +1367,8 @@ class Hour {
       // pathAlign: 'center',
       // textBaseline: 'middle',
       //* test stroke
-      stroke: 'black',
-      strokeWidth: .5,
+      // stroke: 'black',
+      // strokeWidth: .5,
     });
     mainCanvas.add(hourObject);
     hourObjects.push(hourObject);
@@ -1660,8 +1660,15 @@ function drawBarDot() {
 hourColorInputs.forEach(hourColorInput => {
   hourColorInput.addEventListener('input', () => {
     //* test
-    //* 数字色にもグラデーションクラスを使いたい
-    //* ?色つかない。文字には使えない？？
+    //* 数字色にもグラデーションクラスを使いたいが、なぜか作成したグラデーションクラスを指定すると色がつかない問題
+    //* →とりあえず直接Gradientを指定
+    //* 数字にstrokeをつけると、ダウンロードしたときに塗と線で別のオブジェクトになってしまい使いにくい問題
+    //* →テキストのパス化は色々試したができなかった
+    //* →shadowで対応しようかと思ったがダウンロードするとshadowは消えてしまう
+    //* →線無し、塗だけで表現する方法しか今は思いつかない
+    //* テキストはダウンロードしたときに、ユーザーの環境にそのフォントがないとだめだからパス化したいが、
+    //* 今のところは方法がわからない
+    //* 一般的なフォントだけ使うか、変わったフォントは代替を必ず準備しておくくらいしか
     switch(hourColorInput.value) {
       // case 'gold':
       //   hourColor = textGoldGradation;
@@ -2288,36 +2295,31 @@ document.getElementById('button-for-test2').addEventListener('click', () => {
 
 
 
-// テキストオブジェクトを作成
-const text = new fabric.Text('Hello World', {
-  left: 50,
-  top: 50,
-  fill: 'red',
-  stroke: 'blue',
-  strokeWidth: 2,
+// // テキストオブジェクトを作成
+// const text = new fabric.Text('Hello World', {
+//   left: 50,
+//   top: 50,
+//   fill: 'red',
+//   fontSize: 24
+// });
+// mainCanvas.add(text);
+
+// // テキストをパスに変換
+// const path = text.toPath();
+
+// // path要素をSVGに追加
+// const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+// svg.appendChild(path);
+
+// // SVGを出力
+// const svgString = new XMLSerializer().serializeToString(svg);
+// console.log(svgString);
+
+var shadowText2 = new fabric.Text("And another shadow", {
+  fill: 'black',
+  shadow: 'red 0 0 2px'
 });
-
-// テキストオブジェクトをキャンバスに追加
-mainCanvas.add(text);
-
-// テキストオブジェクトをSVGパスに変換
-const svgElement = text.toSVG();
-
-// SVGパスを取得
-const path = extractPathFromSVG(svgElement);
-
-console.log(path);
-
-// SVGパスを取得する関数
-function extractPathFromSVG(svgElement) {
-  const parser = new DOMParser();
-  const svgDoc = parser.parseFromString(svgElement, 'image/svg+xml');
-  const pathElement = svgDoc.querySelector('path');
-  return pathElement.getAttribute('d');
-}
-
-
-
+mainCanvas.add(shadowText2);
   
 
 
