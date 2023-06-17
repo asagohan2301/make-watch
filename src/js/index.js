@@ -411,6 +411,8 @@ dialSizeInput.addEventListener('input', () => {
   // バーorドット再描画 ----
   // すでにバーorドットが描かれていたら、再描画する
   if (barOrDot !== undefined) {
+    //* test
+    barDotLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     drawBarDot();
   }
   // 重なり順を直す
@@ -1287,7 +1289,10 @@ const cos60 = Math.cos(60 * Math.PI / 180);
 // サイズなど
 let hourFontSize = 12; // 初期値12
 let hourLayout; // 全数字 or 4ポイント or 2ポイント
+//* test
+//* 数字用と、バーorドット用で配置用の円のサイズを別にするテスト
 let hourLayoutCircleRadius; // 数字たちを配置するための(数字それぞれの中心がこの円の円周上にくる)円の半径
+let barDotLayoutCircleRadius; // バードットを配置するための(それぞれの中心がこの円の円周上にくる)円の半径
 let hourFontFamily = 'sans-serif'; // 初期値
 let hourColor = 'black'; // 初期値
 // バーかドットかを保持する変数
@@ -1556,8 +1561,13 @@ barDotInputs.forEach(barDotInput => {
     //* はじめは呼び出し先の drawBarDot 関数内で hourLayoutCircleRadius を計算していたが、
     //* それだとレンジを変えても計算されなおされてしまい値が変わらない
     //* そのため呼び出し元で計算している
-    hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
-    //*test レンジを選択可能にする
+
+    //* test 数字とバードットで円のサイズを分けたい
+    barDotLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+    // hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+    //* test
+    barDotLayoutCircleRadiusRange.disabled = false;
+    
     if (barOrDot === 'bar') {
       barWidthRange.disabled = false;
       barLengthRange.disabled = false;
@@ -1585,7 +1595,8 @@ function drawBarDot() {
   //* ので呼び出し元に移動させるか
   // hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
   // 円周上の点の初期位置 12時位置
-  initialPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - hourLayoutCircleRadius);
+  //* test
+  initialPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - barDotLayoutCircleRadius);
   // オブジェクトを入れていく配列 ----
   barDotObjects = [];
   // ループを回してバーorドットを描く ----
@@ -1782,9 +1793,6 @@ hourLayoutCircleRadiusRange.addEventListener('input', () => {
   // 数字たちを描く関数呼び出し
   drawHours();
   //* test
-  //* バーorドットの大きさもとりあえず一緒に変えておく
-  // drawBarDot();
-  //* test
   callApplyIndexColor(hourColor);
 });
 
@@ -1815,6 +1823,22 @@ barLengthRange.addEventListener('input', () => {
     });
     mainCanvas.renderAll();
   });
+});
+
+//* test
+// バーの位置を変えるレンジ ----------------
+const barDotLayoutCircleRadiusRange = document.getElementById('bardot-layout-circle-radius-range');
+// 初期は入力不可
+barDotLayoutCircleRadiusRange.disabled = true;
+barDotLayoutCircleRadiusRange.addEventListener('input', () => {
+  // hourLayoutCircleRadiusにレンジの値を代入
+  const barDotLayoutCircleRadiusValue = parseInt(barDotLayoutCircleRadiusRange.value);
+  // hourLayoutCircleRadiusの値をレンジの値に合わせて変更
+  barDotLayoutCircleRadius = dialObject.radius - hourFontSize / 2 + barDotLayoutCircleRadiusValue;
+  // 数字たちを描く関数呼び出し
+  drawBarDot();
+  //* test
+  callApplyIndexColor(hourColor);
 });
 
 // 数字がまだ描かれていないときにレンジをクリックした時の処理 ----------------
