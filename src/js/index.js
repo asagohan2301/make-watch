@@ -1659,18 +1659,22 @@ function drawBarDot() {
 // 数字色が選択されたら、色を付ける ----------------
 hourColorInputs.forEach(hourColorInput => {
   hourColorInput.addEventListener('input', () => {
-    //* test
-    //* 数字色にもグラデーションクラスを使いたいが、なぜか作成したグラデーションクラスを指定すると色がつかない問題
-    //* →とりあえず直接Gradientを指定
-    //* 数字にstrokeをつけると、ダウンロードしたときに塗と線で別のオブジェクトになってしまい使いにくい問題
-    //* →テキストのパス化は色々試したができなかった
-    //* →shadowで対応しようかと思ったがダウンロードするとshadowは消えてしまう
-    //* →線無し、塗だけで表現する方法しか今は思いつかない
-    //* テキストはダウンロードしたときに、ユーザーの環境にそのフォントがないとだめだからパス化したいが、
-    //* 今のところは方法がわからない
-    //* 一般的なフォントだけ使うか、変わったフォントは代替を必ず準備しておくくらいしか
+    // アラートを表示
+    if (hourObjects.length === 0) {
+      alert('「数字の配置」を入力すると、選択した色で数字が描かれます');
+      return;
+    }
+    //* 数字色にもグラデーションクラスを使いたいが、なぜか作成したグラデーションクラスを指定すると色がつかない
+    //*  →とりあえず直接Gradientを指定
+    //* 数字にstrokeをつけると、ダウンロードしたときに塗と線で別のオブジェクトになってしまい使いにくい
+    //*  →テキストのパス化は色々試したができなかった
+    //*  →shadowで対応しようかと思ったがダウンロードするとshadowは消えてしまう
+    //*  →線無し、塗だけで表現する方法しか今は思いつかない
+    //* webフォントで変わったデザインのフォントを使いたいが、
+    //* ダウンロードしたときにユーザーの環境にそのフォントはたぶん無いので代替フォントになってしまう
+    //* そのためダウンロード前にパス化したいが、今のところは方法がわからない
+    //*  →とりあえず一般的なフォントだけ使う
     switch(hourColorInput.value) {
-      //* test
       case 'gold':
         applyIndexGradientColor(hourObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
         break;
@@ -1688,69 +1692,63 @@ hourColorInputs.forEach(hourColorInput => {
       hourColor = hourColorInput.value;
       applyIndexSolidColor(hourObjects);
     }
-    // アラートを表示
-    if (hourObjects.length === 0) {
-      alert('「数字の配置」を入力すると、選択した色で数字が描かれます');
-      return;
-    }
     // バーorドットにも色をつける(透明にしているバーorドット以外)
     // バーorドットが不要な位置は、バーorドットを透明にして対応していることに注意
-    barDotObjects.forEach(barDotObject => {
-      if (barDotObject.fill !== 'transparent') {
-        // barDotObject.set({
-        //   fill: hourColor,
-        // });
-        switch(hourColorInput.value) {
-          //* test
-          case 'gold':
-            applyIndexGradientColor(barDotObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
-            break;
-          case 'silver':
-            applyIndexGradientColor(barDotObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
-            break;
-          case 'pink-gold':
-            applyIndexGradientColor(barDotObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
-            break;
-          case 'custom-color':
-            hourColor = hourColorPicker.value;
-            applyIndexSolidColor(barDotObjects);
-            break;
-          default:
-          hourColor = hourColorInput.value;
-          applyIndexSolidColor(barDotObjects);
-        }
-      }
-    });
+    switch(hourColorInput.value) {
+      case 'gold':
+        applyIndexGradientColor(barDotObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
+        break;
+      case 'silver':
+        applyIndexGradientColor(barDotObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
+        break;
+      case 'pink-gold':
+        applyIndexGradientColor(barDotObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
+        break;
+      case 'custom-color':
+        hourColor = hourColorPicker.value;
+        applyIndexSolidColor(barDotObjects);
+        break;
+      default:
+      hourColor = hourColorInput.value;
+      applyIndexSolidColor(barDotObjects);
+    }
     mainCanvas.renderAll();
   });
 });
 
-//* test
-//* 数字にグラデーション色をつける関数
+//* 数字とバーorドットにグラデーション色をつける関数 ----------------
 function applyIndexGradientColor(objects, deepColor, PaleColor) {
   objects.forEach(object => {
-    object.set('fill', new fabric.Gradient({
-      type: 'linear',
-      coords:{
-        x1: 0, 
-        y1: 0,
-        x2: object.width,
-        y2: 0,
-      },
-      colorStops: [
-        {color: deepColor, offset: 0},
-        {color: PaleColor, offset: .5},
-        {color: deepColor, offset: 1}
-      ]
-    }));
+    //* バーorドット用の条件分岐
+    //* 数字には関係ない条件分岐だが、数字はtransparentであることはないので、if分の中に進む
+    if (object.fill !== 'transparent') {
+      object.set('fill', new fabric.Gradient({
+        type: 'linear',
+        coords:{
+          x1: 0, 
+          y1: 0,
+          x2: object.width,
+          y2: 0,
+        },
+        colorStops: [
+          {color: deepColor, offset: 0},
+          {color: PaleColor, offset: .5},
+          {color: deepColor, offset: 1}
+        ]
+      }));
+    }
   });
 }
-//* 数字に単色をつける関数
+//* 数字とバーorドットに単色をつける関数 ----------------
 function applyIndexSolidColor(objects) {
   objects.forEach(object => {
-    object.set({
-      fill: hourColor,
-    });
+      //* バーorドット用の条件分岐
+      //* 数字には関係ない条件分岐だが、数字はtransparentであることはないので、if分の中に進む
+      if (object.fill !== 'transparent') {
+      object.set({
+        fill: hourColor,
+      });
+    }
   });
 }
 
@@ -1780,7 +1778,7 @@ hourLayoutCircleRadiusRange.addEventListener('input', () => {
   drawHours();
   //* test
   //* バーorドットの大きさもとりあえず一緒に変えておく
-  drawBarDot();
+  // drawBarDot();
 });
 
 //* test
