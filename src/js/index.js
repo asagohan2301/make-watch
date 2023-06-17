@@ -1567,13 +1567,15 @@ barDotInputs.forEach(barDotInput => {
     // hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     //* test
     barDotLayoutCircleRadiusRange.disabled = false;
-    
+
     if (barOrDot === 'bar') {
       barWidthRange.disabled = false;
       barLengthRange.disabled = false;
-    } else {
+      dotSizeRange.disabled = true;
+    } else if (barOrDot === 'dot') {
       barWidthRange.disabled = true;
       barLengthRange.disabled = true;
+      dotSizeRange.disabled = false;
     }
     // バーorドットを描く関数呼び出し
     drawBarDot();
@@ -1820,6 +1822,19 @@ barLengthRange.addEventListener('input', () => {
   barDotObjects.forEach(barDotObject => {
     barDotObject.set({
       height: mmToPixel(barLengthRange.value),
+    });
+    mainCanvas.renderAll();
+  });
+});
+//* test
+//* ドットの大きさ
+const dotSizeRange = document.getElementById('dot-size-range');
+// 初期は入力不可
+dotSizeRange.disabled = true;
+dotSizeRange.addEventListener('input', () => {
+  barDotObjects.forEach(barDotObject => {
+    barDotObject.set({
+      radius: mmToPixel(dotSizeRange.value),
     });
     mainCanvas.renderAll();
   });
