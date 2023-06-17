@@ -1670,91 +1670,89 @@ hourColorInputs.forEach(hourColorInput => {
     //* 今のところは方法がわからない
     //* 一般的なフォントだけ使うか、変わったフォントは代替を必ず準備しておくくらいしか
     switch(hourColorInput.value) {
-      // case 'gold':
-      //   hourColor = textGoldGradation;
-      //   break;
+      //* test
+      case 'gold':
+        applyIndexGradientColor(hourObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
+        break;
       case 'silver':
-        hourColor = silverGradation;
+        applyIndexGradientColor(hourObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
         break;
       case 'pink-gold':
-        hourColor = pinkGoldGradation;
+        applyIndexGradientColor(hourObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
         break;
       case 'custom-color':
         hourColor = hourColorPicker.value;
+        applyIndexSolidColor(hourObjects);
         break;
       default:
-        hourColor = hourColorInput.value;
+      hourColor = hourColorInput.value;
+      applyIndexSolidColor(hourObjects);
     }
-    // hourColorにinput要素のvalue値を代入
-    // hourColor = hourColorInput.value;
-    // カスタムカラーが選択された場合はhourColorにカラーピッカーの値を代入
-    // if (hourColorInput.value === 'custom-color') {
-    //   hourColor = hourColorPicker.value;
-    // }
     // アラートを表示
     if (hourObjects.length === 0) {
       alert('「数字の配置」を入力すると、選択した色で数字が描かれます');
       return;
     }
-    //* test
-    // const testGold = new fabric.Gradient({
-    //   type: 'linear',
-    //   // gradientUnits: 'percentage',
-    //   coords:{
-    //     x1: 0, 
-    //     y1: 0,
-    //     x2: hourFontSize,
-    //     y2: 0,
-    //   },
-    //   colorStops: [
-    //     {color: 'red', offset: 0.0},
-    //     {color: 'blue', offset: 1.0}
-    //   ]
-    // });
-    // 数字に色をつける
-    hourObjects.forEach(hourObject => {
-    //   hourObject.set('fill', testGold);
-    // });
-      hourObject.set('fill', new fabric.Gradient({
-          type: 'linear',
-          // gradientUnits: 'percentage',
-          coords:{
-            x1: 0, 
-            y1: 0,
-            x2: hourObject.width,
-            y2: 0,
-          },
-          colorStops: [
-            {color: 'red', offset: 0.0},
-            {color: 'blue', offset: 1.0}
-          ]
-        }));
-    });
-    // itext.set('fill', new fabric.Gradient({
-    //   type: 'linear',
-    //   coords:{
-    //     x1:0, 
-    //     y1:0,
-    //     x2: itext.width,
-    //     y2: itext.height
-    //   },
-    //   colorStops: [
-    //     {color: 'red', offset: 0.0},
-    //     {color: 'blue', offset: 1.0}
-    //   ]
-    // }));
     // バーorドットにも色をつける(透明にしているバーorドット以外)
     // バーorドットが不要な位置は、バーorドットを透明にして対応していることに注意
     barDotObjects.forEach(barDotObject => {
       if (barDotObject.fill !== 'transparent') {
-        barDotObject.set({
-          fill: hourColor,
-        });
+        // barDotObject.set({
+        //   fill: hourColor,
+        // });
+        switch(hourColorInput.value) {
+          //* test
+          case 'gold':
+            applyIndexGradientColor(barDotObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
+            break;
+          case 'silver':
+            applyIndexGradientColor(barDotObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
+            break;
+          case 'pink-gold':
+            applyIndexGradientColor(barDotObjects, 'rgb(255,222,0)', 'rgb(255,234,96)');
+            break;
+          case 'custom-color':
+            hourColor = hourColorPicker.value;
+            applyIndexSolidColor(barDotObjects);
+            break;
+          default:
+          hourColor = hourColorInput.value;
+          applyIndexSolidColor(barDotObjects);
+        }
       }
     });
     mainCanvas.renderAll();
   });
 });
+
+//* test
+//* 数字にグラデーション色をつける関数
+function applyIndexGradientColor(objects, deepColor, PaleColor) {
+  objects.forEach(object => {
+    object.set('fill', new fabric.Gradient({
+      type: 'linear',
+      coords:{
+        x1: 0, 
+        y1: 0,
+        x2: object.width,
+        y2: 0,
+      },
+      colorStops: [
+        {color: deepColor, offset: 0},
+        {color: PaleColor, offset: .5},
+        {color: deepColor, offset: 1}
+      ]
+    }));
+  });
+}
+//* 数字に単色をつける関数
+function applyIndexSolidColor(objects) {
+  objects.forEach(object => {
+    object.set({
+      fill: hourColor,
+    });
+  });
+}
 
 //* main 文字盤レンジ ----------------------------------------
 
