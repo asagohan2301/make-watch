@@ -1,3 +1,4 @@
+<!-- MITライセンスの記載 -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -105,28 +106,28 @@
                   <label class="radio-label">
                     <input type="radio" name="case-color" value="gold">
                   </label>
-                  <div class="gold-color"></div>
+                  <div class="gold-color color-box"></div>
                   <p>ゴールド</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="case-color" value="silver">
                   </label>
-                  <div class="silver-color"></div>
+                  <div class="silver-color color-box"></div>
                   <p>シルバー</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="case-color" value="pink-gold">
                   </label>
-                  <div class="pink-gold-color"></div>
+                  <div class="pink-gold-color color-box"></div>
                   <p>ピンクゴールド</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="case-color" value="custom-color">
                   </label>
-                  <div class="custom-color"></div>
+                  <div class="custom-color color-box"></div>
                   <input type="color" id="case-color-picker" class="color-picker">
                   <p>その他の色</p>
                 </li>
@@ -224,28 +225,28 @@
                   <label class="radio-label">
                     <input type="radio" name="strap-color" value="black">
                   </label>
-                  <div class="black-color"></div>
+                  <div class="black-color color-box"></div>
                   <p>黒</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="strap-color" value="brown">
                   </label>
-                  <div class="brown-color"></div>
+                  <div class="brown-color color-box"></div>
                   <p>茶</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="strap-color" value="gray">
                   </label>
-                  <div class="gray-color"></div>
+                  <div class="gray-color color-box"></div>
                   <p>グレー</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="strap-color" value="custom-color">
                   </label>
-                  <div class="custom-color"></div>
+                  <div class="custom-color color-box"></div>
                   <input type="color" id="strap-color-picker" class="color-picker">
                   <p>その他の色</p>
                 </li>
@@ -284,30 +285,30 @@
               <ul>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="dial-color" value="black">
-                  </label>
-                  <div class="black-color"></div>
-                  <p>黒</p>
-                </li>
-                <li>
-                  <label class="radio-label">
                     <input type="radio" name="dial-color" value="white">
                   </label>
-                  <div class="white-color"></div>
+                  <div class="white-color color-box"></div>
                   <p>白</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="dial-color" value="ivory">
                   </label>
-                  <div class="ivory-color"></div>
+                  <div class="ivory-color color-box"></div>
                   <p>アイボリー</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="dial-color" value="black">
+                  </label>
+                  <div class="black-color color-box"></div>
+                  <p>黒</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="dial-color" value="custom-color">
                   </label>
-                  <div class="custom-color"></div>
+                  <div class="custom-color color-box"></div>
                   <input type="color" id="dial-color-picker" class="color-picker">
                   <p>その他の色</p>
                 </li>
@@ -320,22 +321,48 @@
                   <label class="radio-label">
                     <input type="radio" name="hour-layout" value="all-hour">
                   </label>
-                  <img src="./assets/number-all.svg" alt="全数字" width="54" height="54">
+                  <img src="./assets/all-hour.svg" alt="全数字" width="54" height="54">
                   <p>全数字</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="hour-layout" value="four-point-hour">
                   </label>
-                  <img src="./assets/number-four.svg" alt="4ポイント数字" width="54" height="54">
+                  <img src="./assets/four-point-hour.svg" alt="4ポイント数字" width="54" height="54">
                   <p>4ポイント数字</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="hour-layout" value="two-point-hour">
                   </label>
-                  <img src="./assets/number-two.svg" alt="2ポイント数字" width="54" height="54">
+                  <img src="./assets/two-point-hour.svg" alt="2ポイント数字" width="54" height="54">
                   <p>2ポイント数字</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hour-layout" value="no-hour">
+                  </label>
+                  <img src="./assets/two-point-hour.svg" alt="数字なし" width="54" height="54">
+                  <p>数字なし</p>
+                </li>
+              </ul>
+            </div>
+            <div class="design-list design-list-bardot">
+              <h3>数字がない場所のデザイン:</h3>
+              <ul>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="bar-dot" value="bar">
+                  </label>
+                  <img src="./assets/all-hour.svg" alt="バー" width="54" height="54">
+                  <p>バー</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="bar-dot" value="dot">
+                  </label>
+                  <img src="./assets/four-point-hour.svg" alt="ドット" width="54" height="54">
+                  <p>ドット</p>
                 </li>
               </ul>
             </div>
@@ -344,19 +371,98 @@
               <ul>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="hour-font" value="sans">
+                    <input type="radio" name="hour-font" value="sans-serif">
                   </label>
-                  <img src="./assets/font-sans.svg" alt="ゴシック体のフォント" width="48" height="42">
+                  <div class="hour-font-sample">2</div>
                   <p>ゴシック</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="hour-font" value="serif">
                   </label>
-                  <img src="./assets/font-serif.svg" alt="明朝体のフォント" width="48" height="42">
+                  <div class="hour-font-sample">2</div>
                   <p>明朝</p>
                 </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hour-font" value="cursive">
+                  </label>
+                  <div class="hour-font-sample">2</div>
+                  <p>筆記体</p>
+                </li>
               </ul>
+            </div>
+            <div class="design-list design-list-hour-color">
+              <h3>数字の色:</h3>
+              <ul>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hour-color" value="gold">
+                  </label>
+                  <div class="gold-color color-box"></div>
+                  <p>ゴールド</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hour-color" value="silver">
+                  </label>
+                  <div class="silver-color color-box"></div>
+                  <p>シルバー</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hour-color" value="pink-gold">
+                  </label>
+                  <div class="pink-gold-color color-box"></div>
+                  <p>ピンクゴールド</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hour-color" value="black">
+                  </label>
+                  <div class="black-color color-box"></div>
+                  <p>黒</p>
+                </li>
+                <!-- <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hour-color" value="white">
+                  </label>
+                  <div class="white-color color-box"></div>
+                  <p>白</p>
+                </li> -->
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hour-color" value="custom-color">
+                  </label>
+                  <div class="custom-color color-box"></div>
+                  <input type="color" id="hour-color-picker" class="color-picker">
+                  <p>その他の色</p>
+                </li>
+              </ul>
+            </div>
+            <div class="design-list design-list-hour-range">
+              <h3>数字の調整:</h3>
+              <label>数字のサイズ
+                <input type="range" name="hour-font-size" id="hour-font-size-range" min="4" max="32" step="1">
+              </label>
+              <label>数字の位置
+                <input type="range" name="hour-layout-circle-radius" id="hour-layout-circle-radius-range" min="-20" max="0" step="1">
+              </label>
+            </div>
+            <div class="design-list design-list-bardot-range">
+              <h3>バードットの調整:</h3>
+              <label>バーの幅
+                <input type="range" name="bar-width" id="bar-width-range" min=".1" max="5" step=".1">
+              </label>
+              <label>バーの長さ
+                <input type="range" name="bar-length" id="bar-length-range" min="1" max="10" step=".1">
+              </label>
+              <label>ドットのサイズ
+                <input type="range" name="dot-size" id="dot-size-range" min=".4" max="3" step=".1">
+              </label>
+              <label>バーorドットの位置
+                <input type="range" name="bardot-layout-circle-radius" id="bardot-layout-circle-radius-range" min="-20" max="0" step="1">
+              </label>
             </div>
           </div>
         </div>
@@ -366,8 +472,7 @@
     <!-- test ----------------------------------------->
     <button id="button-for-test">test</button>
     <button id="button-for-test2">test2</button>
-    <input type="range" name="font-size" id="font-size-range" min="4" max="32" step="1">
-    <input type="range" name="canvas-size" id="canvas-range" min="1" max="5" step=".1">
+    <!-- <input type="range" name="canvas-size" id="canvas-range" min="1" max="5" step=".1"> -->
     <ul class="gnavi">
       <li class="current"><a href="#"><span>Home</span></a></li>
       <li><a href="#"><span>About</span></a></li>

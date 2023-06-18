@@ -213,7 +213,7 @@ main {
           }
         }
         
-        /* ----- shape radio ----- */
+        /* ----- design list ----- */
         .design-list {
           height: 132px;
           padding: 0 22px;
@@ -223,7 +223,7 @@ main {
           h3 {
             flex: 1;
             font-size: 12px;
-            line-height: 80px;
+            // line-height: 80px;
           }
           ul {
             flex: 4;
@@ -249,11 +249,17 @@ main {
                 top: 40%;
                 left: 50%;
                 transform: translate(-50%, -50%);
+                // labelをクリックさせるため
                 pointer-events: none;
               }
               div {
                 width: 30px;
                 height: 30px;
+              }
+              div.hour-font-sample {
+                text-align: center;
+                font-size: 24px;
+                line-height: 30px;
               }
               .color-picker {
                 width: 96px;
