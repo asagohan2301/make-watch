@@ -1310,7 +1310,9 @@ const centerPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeig
 // バーなどを配置するための円の、円周上の点の初期位置(12時位置)
 let initialPoint;
 // 回転角度を保持する変数
-let rotateDegrees = 0;
+// let rotateDegrees = 0;
+//* test
+let rotateDegrees = 30;
 
 //* main 文字盤色 ----------------------------------------
 
@@ -1450,6 +1452,7 @@ function drawHours() {
   // 引数は順に left, top, text
   //* 全数字、4ポイント、2ポイント 共通 ----
   // 6
+  //* test ---------------------------------------
   hour6 = new Hour(
     mainCanvasCenterWidth,
     mainCanvasCenterHeight + hourLayoutCircleRadius,
@@ -1643,6 +1646,8 @@ function drawBarDot() {
   barDotObjects.forEach(barDotObject => {
     mainCanvas.add(barDotObject);
   });
+  //* test
+  rotateDegrees = 30;
   // 数字とバーorドットに色を付ける関数 を呼び出す関数を呼び出し
   callApplyIndexColor(hourColor);
 }
@@ -2279,9 +2284,12 @@ testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
-  // フォントを入れる変数
-
+  // 変数
   const hourFontOpenType = './assets/Kanit-Medium.ttf';
+  const text = '2';
+  const fontSize = 72;
+  const x = 100;
+  const y = 100;
 
   // フォントのパスを指定してフォントを読み込む
   opentype.load(hourFontOpenType, function(err, font) {
@@ -2292,17 +2300,19 @@ testButton1.addEventListener('click', () => {
     }
     // 読み込みできたときの処理 ----
     // テキストをパスに変換
-    const path = font.getPath('Hello World', 0, 0, 72).toPathData();
+    // Font.getPath(text, x, y, fontSize, options) : 指定されたテキストを表すパスオブジェクトを作成
+    const path = font.getPath(text, x, y, fontSize);
+    // Path.toPathData(options) : パスオブジェクトをSVGのパスデータ形式に変換
+    const pathData = path.toPathData();
     // fabric.jsのパスオブジェクトに変換
-    const fabricPath = new fabric.Path(path, {
-      top: 100,
-      left: 100,
+    const fabricPath = new fabric.Path(pathData, {
       fill: 'red',
       stroke: 'blue',
       strokeWidth: 2,
     });
     mainCanvas.add(fabricPath);
   });
+  
   
   // ここまで試しコードを書く ----------------------------
 
@@ -2311,12 +2321,94 @@ testButton1.addEventListener('click', () => {
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
 
-var shadowText2 = new fabric.Text("And another shadow", {
-  fill: 'black',
-  shadow: 'red 0 0 2px'
-});
-mainCanvas.add(shadowText2);
+  // 変数
+  const hourFontOpenType = './assets/Kanit-Medium.ttf';
+
+  const objectsArray = [];
   
+  hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+
+  // const distanceX1 = (hourLayoutCircleRadius) * cos60;
+  // // Y = y + r * sinΘ の r * sinΘ の部分
+  // const distanceY1 = (hourLayoutCircleRadius) * sin60;
+  // // 2, 4, 8, 10 用 ----
+  // // X = x + r * cosΘ の r * cosΘ の部分
+  // const distanceX2 = (hourLayoutCircleRadius) * cos30;
+  // // X = x + r * cosΘ の r * cosΘ の部分
+  // const distanceY2 = (hourLayoutCircleRadius) * sin30;
+
+  const initialPointForHour = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - hourLayoutCircleRadius);
+
+
+  // フォントのパスを指定してフォントを読み込む
+  opentype.load(hourFontOpenType, (err, font) => {
+    // 読み込みに失敗したときの処理
+    if (err) {
+      console.error('フォントの読み込みエラー:', err);
+      return;
+    }
+    // 読み込みできたときの処理 ----
+    // テキストをパスに変換
+    // Font.getPath(text, x, y, fontSize, options) : 指定されたテキストを表すパスオブジェクトを作成
+    // const path1 = font.getPath('1', 0, 0, hourFontSize);
+    // const path2 = font.getPath('2', 0, 0, hourFontSize);
+    // const path12 = font.getPath('12', 0, 0, hourFontSize);
+    // Path.toPathData(options) : パスオブジェクトをSVGのパスデータ形式に変換
+    // const pathData1 = path1.toPathData();
+    // const pathData2 = path2.toPathData();
+    // const pathData12 = path12.toPathData();
+    // fabric.jsのパスオブジェクトに変換
+    for (let i = 1; i <= 12; i++) {
+      const rotatedPoint = fabric.util.rotatePoint(initialPointForHour, centerPoint, fabric.util.degreesToRadians(rotateDegrees));
+      let path = font.getPath(String(i), 0, 0, hourFontSize).toPathData();
+      let fabricPath = new fabric.Path(path, {
+        originX: 'center',
+        originY: 'center',
+        top: rotatedPoint.y,
+        left: rotatedPoint.x,
+        fill: 'red',
+        stroke: 'blue',
+        strokeWidth: .5,
+      });
+      console.log(fabricPath);
+      objectsArray.push(fabricPath);
+      mainCanvas.add(fabricPath);
+      rotateDegrees += 30;
+    }
+    // objectsArray.forEach(object => {
+    //   mainCanvas.add(object);
+    // });
+    // const fabricPath1 = new fabric.Path(pathData1, {
+    //   originX: 'center',
+    //   originY: 'center',
+    //   top: mainCanvasCenterHeight - distanceY1,
+    //   left: mainCanvasCenterWidth + distanceX1,
+    //   fill: 'red',
+    //   stroke: 'blue',
+    //   strokeWidth: .5,
+    // });
+    // const fabricPath2 = new fabric.Path(pathData2, {
+    //   originX: 'center',
+    //   originY: 'center',
+    //   top: mainCanvasCenterHeight - distanceY2,
+    //   left: mainCanvasCenterWidth + distanceX2,
+    //   fill: 'red',
+    //   stroke: 'blue',
+    //   strokeWidth: .5,
+    // });
+    // const fabricPath12 = new fabric.Path(pathData12, {
+    //   originX: 'center',
+    //   originY: 'center',
+    //   top: mainCanvasCenterHeight - hourLayoutCircleRadius,
+    //   left: mainCanvasCenterWidth,
+    //   fill: 'red',
+    //   stroke: 'blue',
+    //   strokeWidth: .5,
+    // });
+    // mainCanvas.add(fabricPath1);
+    // mainCanvas.add(fabricPath2);
+    // mainCanvas.add(fabricPath12);
+  });
 
 
   
