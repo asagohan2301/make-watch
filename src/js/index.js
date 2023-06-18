@@ -8,6 +8,9 @@ import { fabric } from "fabric";
 import { downloadSVG } from './download.js';
 downloadSVG();
 
+//* test
+import opentype from 'opentype.js';
+
 //* common ----------------------------------------------------------------------------------------
 
 // mmからpixelに変換する関数 ----------------
@@ -2276,7 +2279,30 @@ testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
+  // フォントを入れる変数
 
+  const hourFontOpenType = './assets/Kanit-Medium.ttf';
+
+  // フォントのパスを指定してフォントを読み込む
+  opentype.load(hourFontOpenType, function(err, font) {
+    // 読み込みに失敗したときの処理
+    if (err) {
+      console.error('フォントの読み込みエラー:', err);
+      return;
+    }
+    // 読み込みできたときの処理 ----
+    // テキストをパスに変換
+    const path = font.getPath('Hello World', 0, 0, 72).toPathData();
+    // fabric.jsのパスオブジェクトに変換
+    const fabricPath = new fabric.Path(path, {
+      top: 100,
+      left: 100,
+      fill: 'red',
+      stroke: 'blue',
+      strokeWidth: 2,
+    });
+    mainCanvas.add(fabricPath);
+  });
   
   // ここまで試しコードを書く ----------------------------
 
