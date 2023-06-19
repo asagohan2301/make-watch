@@ -1414,8 +1414,8 @@ function drawHour() {
         top: rotatedPoint.y,
         left: rotatedPoint.x,
         fill: hourColor,
-        // stroke: 'black',
-        // strokeWidth: .5,
+        stroke: 'rgb(118,99,4)',
+        strokeWidth: .5,
       });
       hourObjects.push(hourObject);
       rotateDegrees += 30;
@@ -1594,6 +1594,7 @@ hourFontSizeRange.disabled = true;
 // レンジが動かされたら数字のサイズを変える ----
 hourFontSizeRange.addEventListener('input', () => {
   // hourFontSizeにレンジの値を代入した上で、
+  //! 数字をパス化したけど...fontSizeきいてる？→フォント読み込み時につかわれるからきいてる
   hourFontSize = parseInt(hourFontSizeRange.value);
   // 数字のサイズが変わると配置用円の半径も変わることになるが、
   // ここではそのままの位置で数字のサイズだけ変えたいので、配置用円の半径は変更しないことにする
