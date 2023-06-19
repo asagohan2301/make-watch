@@ -114,11 +114,11 @@ hourColorPicker.addEventListener('input', () => {
   // 透明にしているバーorドットには色がつかないように、
   // それ以外のバーorドットの色を変える
   barDotObjects.forEach(barDotObject => {
-    if (barDotObject.fill !== 'transparent') {
+    // if (barDotObject.fill !== 'transparent') {
       barDotObject.set({
         fill: hourColor,
       });
-    }
+    // }
   });
   mainCanvas.renderAll();
 });
@@ -1276,46 +1276,23 @@ buckleShapeInputs.forEach(buckleShapeInput => {
 let hourObjects = [];
 let barDotObjects = [];
 
-// インスタンス用の変数
-// これらはcanvasに描かれるオブジェクトではない
-// これらのインスタンスから呼び出したメソッドの中で、
-// hourObjects 配列に追加されていく名もなきオブジェクトたちが fabric オブジェクト
-// let hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12;
-
-// 数字の位置を計算するための数値
-// const sin30 = Math.sin(30 * Math.PI / 180);
-// const cos30 = Math.cos(30 * Math.PI / 180);
-// const sin60 = Math.sin(60 * Math.PI / 180);
-// const cos60 = Math.cos(60 * Math.PI / 180);
-
 // 値・サイズ・色
 let hourFontSize = 12; // 初期値12
 let hourLayout; // 全数字 or 4ポイント or 2ポイント
 let hourLayoutCircleRadius; // 数字たちを配置するための(数字それぞれの中心がこの円の円周上にくる)円の半径
 let barDotLayoutCircleRadius; // バードットを配置するための(それぞれの中心がこの円の円周上にくる)円の半径
-// let hourFontFamily = 'sans-serif'; // 初期値
 let hourColor = 'black'; // 初期値
 let barOrDot; // バーかドットかを保持する変数
 let barWidth = mmToPixel(1);
 let barLength = mmToPixel(5);
 let dotRadius = mmToPixel(1);
-const goldDeepColor = 'rgb(255,222,0)';
-const goldPaleColor = 'rgb(255,234,96)';
-const silverDeepColor = 'rgb(115,115,115)';
-const silverPaleColor = 'rgb(195,195,195)';
-const pinkGoldDeepColor = 'rgb(175,108,54)';
-const pinkGoldPaleColor = 'rgb(225,153,94)';
 // 文字盤の中心座標(=バーなどを回転させるときの中心点)
 const centerPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight);
 // バーなどを配置するための円の、円周上の点の初期位置(12時位置)
-//* test
 let barDotInitialPoint;
 let hourInitialPoint;
 // 回転角度を保持する変数
-// let rotateDegrees = 0;
-//* test
 let rotateDegrees = 30;
-
 let hourFontType = './assets/Kanit-Medium.ttf'; //* 初期値どうするか
 
 //* main 文字盤色 ----------------------------------------
@@ -1348,43 +1325,6 @@ dialColorInputs.forEach(dialColorInput => {
 
 //* main 文字盤数字 ----------------------------------------
 
-// 数字のクラス ----------------
-// class Hour {
-//   constructor(left, top, text) {
-//     this.left = left;
-//     this.top = top;
-//     this.text = text;
-//   }
-  // 1つの数字を描くメソッド
-  // インスタンスから drawHour メソッドを呼び出すと、canvasにオブジェクトが描かれ、
-  // さらに hourObjects 配列に hourObject オブジェクトが入っていく
-  // 配列に入れるのは、後から数字の大きさを変えたりするのにループを回すため
-  // 配列に入っているオブジェクトは全て hourObject という名前?
-  // 実際には名前はついておらず、名もなきオブジェクトが配列に入っている?
-//   drawHour() {
-//     const hourObject = new fabric.Text(this.text, {
-//       originX: 'center',
-//       originY: 'center',
-//       fill: hourColor,
-//       fontFamily: hourFontFamily,
-//       fontSize: hourFontSize,
-//       left: this.left,
-//       //* 数字の下に少し隙間が空いてしまう問題が解決できていない
-//       //* textBaselineなどのプロパティがうまく効かないのでとりあえずtopで調整している
-//       // top: this.top,
-//       top: this.top + hourFontSize / 14,
-//       // lineHeight: 1,
-//       // pathAlign: 'center',
-//       // textBaseline: 'middle',
-//       //* test stroke
-//       // stroke: 'black',
-//       // strokeWidth: .5,
-//     });
-//     mainCanvas.add(hourObject);
-//     hourObjects.push(hourObject);
-//   }
-// }
-
 // 数字の配置が選択されたらcanvasに描画する ----------------
 hourLayoutInputs.forEach(hourLayoutInput => {
   hourLayoutInput.addEventListener('input', () => {
@@ -1396,7 +1336,7 @@ hourLayoutInputs.forEach(hourLayoutInput => {
     hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     // レンジの入力可・不可の切り替え ----
     switchRange();
-    // 数字たちを描く関数呼び出し
+    // 数字を描く関数呼び出し
     drawHour();
     // すでにバーorドットが描かれている場合は、再描画する
     // (barDotObjects.length !== 0) での条件分岐だと、
@@ -1418,25 +1358,27 @@ hourFontTypeInputs.forEach(hourFontTypeInput => {
       alert('数字の配置を選択すると、数字が描画されます');
       return;
     }
+    // 数字なしが選択されている場合にアラートを表示
     if (hourLayout === 'no-hour') {
       alert('数字なしが選択されています。数字があるデザインを選択すると指定のフォントで描かれます。');
+      return;
     }
-    // 数字たちを描く関数呼び出し
+    // 数字を描く関数呼び出し
     drawHour();
   });
 });
 
-//* test new
 // 数字を描く関数 ----------------
 function drawHour() {
-  // フォントのパスを指定してフォントを読み込む
+  // フォントを読み込む
+  // loadメソッドはフォントファイルを非同期で読み込み、読み込みが完了した後にコールバック関数を呼び出す
   opentype.load(hourFontType, (err, font) => {
     // 読み込みに失敗したときの処理 ----
     if (err) {
       console.error('フォントの読み込みエラー:', err);
       return;
     }
-    // これ以降、読み込み完了後の処理(非同期処理) ----
+    // これ以降、読み込み完了後に行われる処理(コールバック関数) ----
     // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする
     if (hourObjects.length !== 0) {
       hourObjects.forEach(hourObject => {
@@ -1448,11 +1390,6 @@ function drawHour() {
     if (hourLayout === 'no-hour') {
       return;
     }
-    // hourLayoutCircleRadius を計算
-    // 文字盤半径から数字のフォントサイズの半分を引くと、ちょうど数字の外側が文字盤の円に触れる位置になる
-    // そこから内側に少し調整した円の半径
-    // ここで計算するとレンジの値を変えても変わらないので呼び出しもとで計算する
-    // hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     // 計算に必要な数値を準備する ----
     // 数字を配置するための円の、円周上の点の初期位置(12時位置)
     // fabric.Point(x座標, y座標)
@@ -1477,8 +1414,8 @@ function drawHour() {
         top: rotatedPoint.y,
         left: rotatedPoint.x,
         fill: hourColor,
-        stroke: 'black',
-        strokeWidth: .5,
+        // stroke: 'black',
+        // strokeWidth: .5,
       });
       hourObjects.push(hourObject);
       rotateDegrees += 30;
@@ -1502,8 +1439,6 @@ function drawHour() {
     });
     // 回転角度を保持する変数の値を初期値に戻す
     rotateDegrees = 30;
-    // 数字とバーorドットに色を付ける関数 を呼び出す関数を呼び出し
-    callApplyIndexColor(hourColor);
   });
 }
 
@@ -1604,8 +1539,6 @@ function drawBarDot() {
   });
   // 回転角度を保持する変数の値を初期値に戻す
   rotateDegrees = 30;
-  // 数字とバーorドットに色を付ける関数 を呼び出す関数を呼び出し
-  callApplyIndexColor(hourColor);
 }
 
 //* main 数字とバーorドットの色 ----------------------------------------
@@ -1613,102 +1546,44 @@ function drawBarDot() {
 // 数字色が選択されたら、色を付ける ----------------
 hourColorInputs.forEach(hourColorInput => {
   hourColorInput.addEventListener('input', () => {
-    // 変数 hourColor に値を代入しておく
-    //* hourColor は、グラデーション色が選択されたときは分岐条件に使われ、
-    //* 単色が選択されたときはそのまま hourColorInput.value が色の値として使われ、
-    //* カスタム色が選択されたときは、カラーピッカーの値を代入しなおすことになる
-    hourColor = hourColorInput.value;
+    // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
+    switch(hourColorInput.value) {
+      case 'gold':
+        hourColor = goldGradation;
+        break;
+      case 'silver':
+        hourColor = silverGradation;
+        break;
+      case 'pink-gold':
+        hourColor = pinkGoldGradation;
+        break;
+      case 'custom-color':
+        hourColor = hourColorPicker.value;
+        break;
+      default:
+        hourColor = hourColorInput.value;
+    }
+    // 数字もバーorドットもなければここでリターン
     // アラートを表示
     if (hourObjects.length === 0 && barDotObjects.length === 0) {
       alert('「数字の配置」や「バーorドット」を入力すると、選択した色で描かれます');
       return;
     }
-    //* 数字色にもグラデーションクラスを使いたいが、なぜか作成したグラデーションクラスを指定すると色がつかない
-    //*  →とりあえず直接Gradientを指定
-    //* 数字にstrokeをつけると、ダウンロードしたときに塗と線で別のオブジェクトになってしまい使いにくい
-    //*  →テキストのパス化は色々試したができなかった
-    //*  →shadowで対応しようかと思ったがダウンロードするとshadowは消えてしまう
-    //*  →線無し、塗だけで表現する方法しか今は思いつかない
-    //* webフォントで変わったデザインのフォントを使いたいが、
-    //* ダウンロードしたときにユーザーの環境にそのフォントはたぶん無いので代替フォントになってしまう
-    //* そのためダウンロード前にパス化したいが、今のところは方法がわからない
-    //*  →とりあえず一般的なフォントだけ使う
-    //! 塗りだけで表現するところまでは良かったが、ダウンロードしてillustratorで開くとグラデーションが適用されていない
-    //! あと透明にしたバーとドットも存在はしているので邪魔かも
-    // 数字とバーorドットに色を付ける関数 を呼び出す関数を呼び出し
-    callApplyIndexColor(hourColor);
+    // 数字に色をつける
+    hourObjects.forEach(hourObject => {
+      hourObject.set({
+        fill: hourColor,
+      });
+    });
+    // バーorドットに色をつける
+    barDotObjects.forEach(barDotObject => {
+      barDotObject.set({
+        fill: hourColor,
+      });
+    });
     mainCanvas.renderAll();
   });
 });
-
-// 数字とバーorドットに色を付ける関数 を呼び出す関数 ----------------
-function callApplyIndexColor(parameter) {
-  switch(parameter) {
-    case 'gold':
-      // 数字に色をつける
-      applyIndexGradientColor(hourObjects, goldDeepColor,  goldPaleColor);
-      // バーorドットにも色をつける(透明にしているバーorドット以外)
-      // バーorドットが不要な位置は、バーorドットを透明にして対応していることに注意
-      // 呼び出し先の関数で条件分岐している
-      applyIndexGradientColor(barDotObjects, goldDeepColor, goldPaleColor);
-      break;
-    case 'silver':
-      applyIndexGradientColor(hourObjects, silverDeepColor, silverPaleColor);
-      applyIndexGradientColor(barDotObjects, silverDeepColor, silverPaleColor);
-      break;
-    case 'pink-gold':
-      applyIndexGradientColor(hourObjects, pinkGoldDeepColor, pinkGoldPaleColor);
-      applyIndexGradientColor(barDotObjects, pinkGoldDeepColor, pinkGoldPaleColor);
-      break;
-    case 'custom-color':
-      // custom-colorのときは hourColor にカラーピッカーの値を代入しなおす
-      hourColor = hourColorPicker.value;
-      applyIndexSolidColor(hourObjects);
-      applyIndexSolidColor(barDotObjects);
-      break;
-    default:
-      // 単色の時はそのまま hourColor の値を使う
-      applyIndexSolidColor(hourObjects);
-      applyIndexSolidColor(barDotObjects);
-  }
-}
-
-// 数字とバーorドットにグラデーション色をつける関数 ----------------
-function applyIndexGradientColor(objects, deepColor, PaleColor) {
-  objects.forEach(object => {
-    // バーorドット用の条件分岐
-    // 数字には関係ない条件分岐だが、数字はtransparentであることはないので、処理が行われる
-    if (object.fill !== 'transparent') {
-      object.set('fill', new fabric.Gradient({
-        type: 'linear',
-        coords:{
-          x1: 0, 
-          y1: 0,
-          x2: object.width,
-          y2: 0,
-        },
-        colorStops: [
-          {color: deepColor, offset: 0},
-          {color: PaleColor, offset: .5},
-          {color: deepColor, offset: 1}
-        ]
-      }));
-    }
-  });
-}
-
-// 数字とバーorドットに単色をつける関数 ----------------
-function applyIndexSolidColor(objects) {
-  objects.forEach(object => {
-    // バーorドット用の条件分岐
-    // 数字には関係ない条件分岐だが、数字はtransparentであることはないので、処理が行われる
-    if (object.fill !== 'transparent') {
-      object.set({
-        fill: hourColor,
-      });
-    }
-  });
-}
 
 //* main 文字盤レンジ ----------------------------------------
 
@@ -1720,7 +1595,10 @@ hourFontSizeRange.disabled = true;
 hourFontSizeRange.addEventListener('input', () => {
   // hourFontSizeにレンジの値を代入した上で、
   hourFontSize = parseInt(hourFontSizeRange.value);
-  // 数字たちを描く関数呼び出し
+  // 数字のサイズが変わると配置用円の半径も変わることになるが、
+  // ここではそのままの位置で数字のサイズだけ変えたいので、配置用円の半径は変更しないことにする
+  // hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+  // 数字を描く関数呼び出し
   drawHour();
 });
 
@@ -1732,7 +1610,7 @@ hourLayoutCircleRadiusRange.disabled = true;
 hourLayoutCircleRadiusRange.addEventListener('input', () => {
   // 数字たちを配置する円の半径を、レンジの値に合わせて変える
   hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 + parseInt(hourLayoutCircleRadiusRange.value);
-  // 数字たちを描く関数呼び出し
+  // 数字を描く関数呼び出し
   drawHour();
 });
 
@@ -1748,6 +1626,7 @@ barWidthRange.addEventListener('input', () => {
   barWidth = mmToPixel(barWidthRange.value);
   drawBarDot();
 });
+
 // バーの長さを変えるレンジ ----------------
 const barLengthRange = document.getElementById('bar-length-range');
 // 初期は入力不可
@@ -1757,6 +1636,7 @@ barLengthRange.addEventListener('input', () => {
   barLength = mmToPixel(barLengthRange.value);
   drawBarDot();
 });
+
 // ドットの大きさを変えるレンジ ----------------
 const dotSizeRange = document.getElementById('dot-size-range');
 // 初期は入力不可
