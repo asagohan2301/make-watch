@@ -4,12 +4,10 @@
 
 import '../css/style.css';
 import { fabric } from "fabric";
+import opentype from 'opentype.js';
 
 import { downloadSVG } from './download.js';
 downloadSVG();
-
-//* test
-import opentype from 'opentype.js';
 
 //* common ----------------------------------------------------------------------------------------
 
@@ -114,11 +112,9 @@ hourColorPicker.addEventListener('input', () => {
   // 透明にしているバーorドットには色がつかないように、
   // それ以外のバーorドットの色を変える
   barDotObjects.forEach(barDotObject => {
-    // if (barDotObject.fill !== 'transparent') {
-      barDotObject.set({
-        fill: hourColor,
-      });
-    // }
+    barDotObject.set({
+      fill: hourColor,
+    });
   });
   mainCanvas.renderAll();
 });
@@ -159,6 +155,8 @@ const hourLayoutInputs = document.querySelectorAll('input[name="hour-layout"]');
 const hourFontTypeInputs = document.querySelectorAll('input[name="hour-font"]');
 const hourColorInputs = document.querySelectorAll('input[name="hour-color"]');
 const barDotInputs = document.querySelectorAll('input[name="bar-dot"]');
+const handsShapeInputs = document.querySelectorAll('input[name="hands-shape"]');
+const handsColorInputs = document.querySelectorAll('input[name="hands-color"]');
 
 // 配列 radioArray の中に、複数の要素が配列のようになった lugShapeInputs などが入っている
 // lugShapeInputs などの中に、個々の input 要素が入っている
@@ -177,6 +175,8 @@ const radioArray = [
   hourFontTypeInputs,
   hourColorInputs,
   barDotInputs,
+  handsShapeInputs,
+  handsColorInputs,
 ];
 
 // 配列の各要素(の集まり)から関数を呼び出す ----------------
@@ -1718,6 +1718,82 @@ document.querySelectorAll('input[type="range"]').forEach(range => {
   });
 });
 
+//* main hands ----------------------------------------------------------------------------------
+
+// 変数定義 ----------------------------------------
+//* test
+// オブジェクト
+let hourHandCircleObject;
+let hourHandBodyObject;
+let minuteHandCircleObject;
+let minuteHandBodyObject;
+
+// 色など
+let handsColor;
+
+// 針の形が選択されたらcanvasに描画する
+handsShapeInputs.forEach(handsShapeInput => {
+  handsShapeInput.addEventListener('input', () => {
+    hourHandCircleObject = new fabric.Circle({
+      radius: mmToPixel(1.5),
+      fill: 'red',
+      originX: 'center',
+      originY: 'center',
+      top: mainCanvasCenterHeight,
+      left: mainCanvasCenterWidth,
+      stroke: 'black',
+    });
+    minuteHandCircleObject = new fabric.Circle({
+      radius: mmToPixel(1),
+      fill: 'red',
+      originX: 'center',
+      originY: 'center',
+      top: mainCanvasCenterHeight,
+      left: mainCanvasCenterWidth,
+      stroke: 'black',
+    });
+    hourHandBodyObject = new fabric.Rect({
+      width: mmToPixel(.7),
+      height: dialObject.radius / 2,
+      fill: 'red',
+      originX: 'center',
+      originY: 'bottom',
+      top: mainCanvasCenterHeight,
+      left: mainCanvasCenterWidth,
+      stroke: 'black',
+    });
+    minuteHandBodyObject = new fabric.Rect({
+      width: mmToPixel(.5),
+      height: dialObject.radius - mmToPixel(2),
+      fill: 'red',
+      originX: 'center',
+      originY: 'bottom',
+      top: mainCanvasCenterHeight,
+      left: mainCanvasCenterWidth,
+      stroke: 'black',
+    });
+    mainCanvas.add(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject);
+  });
+});
+
+// 針の向きを変えるレンジ ----------------
+const handsDirectionRange = document.getElementById('hands-direction-range');
+// 初期は入力不可
+// handsDirectionRange.disabled = true;
+// レンジが動かされたら針の向きを変える ----
+handsDirectionRange.addEventListener('input', () => {
+  console.log(handsDirectionRange.value);
+  //* rotate()ではなくangleプロパティで指定したらできた
+  //* rotate()とangleプロパティでは回転の中心点が違う?
+  hourHandBodyObject.set({
+    angle: handsDirectionRange.value / 12,
+  });
+  minuteHandBodyObject.set({
+    angle: handsDirectionRange.value,
+  });
+  mainCanvas.renderAll();
+});
+
 
 //* case info canvas ------------------------------------------------------------------------------
 
@@ -2121,34 +2197,37 @@ testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
-  // 変数
-  const hourFontType = './assets/Kanit-Medium.ttf';
-  const text = '2';
-  const fontSize = 72;
-  const x = 100;
-  const y = 100;
+// circleオブジェクトを作成する
+var circle = new fabric.Circle({
+  radius: 50,
+  fill: 'red',
+  left: 100,
+  top: 100
+});
+// rectオブジェクトを作成する
+var rect = new fabric.Rect({
+  width: 100,
+  height: 100,
+  fill: 'blue',
+  left: 200,
+  top: 200
+});
+// circleオブジェクトとrectオブジェクトをパスに変換する
+var circlePath = circle.toPath();
+var rectPath = rect.toPath();
+// パスの座標を調整する
+circlePath.set({ left: -50, top: -50 });
+rectPath.set({ left: 50, top: 50 });
+// パスを結合する
+var combinedPath = new fabric.Path(circlePath.path.concat(rectPath.path), {
+  left: 150,
+  top: 150,
+  fill: false,
+  stroke: 'black'
+});
+// 結合したパスをキャンバスに追加する
+mainCanvas.add(combinedPath);
 
-  // フォントのパスを指定してフォントを読み込む
-  opentype.load(hourFontType, function(err, font) {
-    // 読み込みに失敗したときの処理
-    if (err) {
-      console.error('フォントの読み込みエラー:', err);
-      return;
-    }
-    // 読み込みできたときの処理 ----
-    // テキストをパスに変換
-    // Font.getPath(text, x, y, fontSize, options) : 指定されたテキストを表すパスオブジェクトを作成
-    const path = font.getPath(text, x, y, fontSize);
-    // Path.toPathData(options) : パスオブジェクトをSVGのパスデータ形式に変換
-    const pathData = path.toPathData();
-    // fabric.jsのパスオブジェクトに変換
-    const fabricPath = new fabric.Path(pathData, {
-      fill: 'red',
-      stroke: 'blue',
-      strokeWidth: 2,
-    });
-    mainCanvas.add(fabricPath);
-  });
   
   
   // ここまで試しコードを書く ----------------------------

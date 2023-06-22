@@ -467,6 +467,77 @@
           </div>
         </div>
       </li>
+      <!---------- hands ---------->
+      <li class="component">
+        <h2 class="tab" id="hands-tab">針</h2>
+        <div class="workspace">
+          <!---------- hands design ---------->
+          <div>
+            <div class="design-list design-list-hands-shape">
+              <h3>針の形:</h3>
+              <ul>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hands-shape" value="straight">
+                  </label>
+                  <img src="./assets/all-hour.svg" alt="ストレート針" width="54" height="54">
+                  <p>ストレート</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hands-shape" value="tip">
+                  </label>
+                  <img src="./assets/all-hour.svg" alt="とんがり針" width="54" height="54">
+                  <p>とんがり</p>
+                </li>
+              </ul>
+            </div>
+            <div class="design-list design-list-hands-color">
+              <h3>針の色:</h3>
+              <ul>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hands-color" value="white">
+                  </label>
+                  <div class="white-color color-box"></div>
+                  <p>白</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hands-color" value="ivory">
+                  </label>
+                  <div class="ivory-color color-box"></div>
+                  <p>アイボリー</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hands-color" value="black">
+                  </label>
+                  <div class="black-color color-box"></div>
+                  <p>黒</p>
+                </li>
+                <li>
+                  <label class="radio-label">
+                    <input type="radio" name="hands-color" value="custom-color">
+                  </label>
+                  <div class="custom-color color-box"></div>
+                  <input type="color" id="hands-color-picker" class="color-picker">
+                  <p>その他の色</p>
+                </li>
+              </ul>
+            </div>
+            <div class="design-list design-list-hands-range">
+              <h3>針の調整:</h3>
+              <label>針の向き
+                <input type="range" name="hands-direction" id="hands-direction-range" min="0" max="4320" step="6">
+              </label>
+              <label>針の長さ
+                <input type="range" name="hands-length" id="hands-length-range" min="4" max="32" step="1">
+              </label>
+            </div>
+          </div>
+        </div>
+      </li>
     </ul>
   </main>
     <!-- test ----------------------------------------->
