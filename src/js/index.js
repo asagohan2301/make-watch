@@ -1780,11 +1780,12 @@ class HandCircle extends fabric.Circle {
   }
 }
 
-//* 針本体のクラス ----------------
+// 針本体のクラス ----------------
 class HandBody {
   constructor(url) {
     this.url = url;
   }
+  // 時針を描くメソッド
   drawHourHandBody() {
     // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(hourHandBodyObject);
@@ -1812,6 +1813,7 @@ class HandBody {
       caseStackingOrder();
     });
   }
+  // 分針を描くメソッド
   drawMinuteHandBody() {
     // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(minuteHandBodyObject);
@@ -1844,9 +1846,9 @@ class HandBody {
 // 針の形が選択されたらcanvasに描画する ----------------
 handsShapeInputs.forEach(handsShapeInput => {
   handsShapeInput.addEventListener('input', () => {
-    //* すでにオブジェクトが描かれていたら中心円と秒針本体をcanvasから削除
+    // すでにオブジェクトが描かれていたら中心円と秒針本体をcanvasから削除
     mainCanvas.remove(hourHandCircleObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
-    // 針の中心円
+    // 針の中心円オブジェクトの生成
     hourHandCircleObject = new HandCircle({
       radius: mmToPixel(1.8),
     });
@@ -1856,23 +1858,14 @@ handsShapeInputs.forEach(handsShapeInput => {
     secondHandCircleObject = new HandCircle({
       radius: mmToPixel(1),
     });
-    // 針本体
-    if (handsShapeInput.value === 'pointed') {
-      // インスタンス生成
-      //* houHandBodyとhourHandBodyObjectは別物だよ
-      //* houHandBodyはインスタンスであってfabricオブジェクトじゃないよ
-      //* houHandBodyObjectがcanvasに描くオブジェクトだよ
-      const hourHandBody = new HandBody('./assets/hand-pointed.svg', 'hourHand');
-      const minuteHandBody = new HandBody('./assets/hand-pointed.svg', 'minuteHand');
-      hourHandBody.drawHourHandBody();
-      minuteHandBody.drawMinuteHandBody();
-    }
-    if (handsShapeInput.value === 'curvy') {
-      const minuteHandBody = new HandBody('./assets/hand-curvy.svg', 'minuteHand');
-      const hourHandBody = new HandBody('./assets/hand-curvy.svg', 'hourHand');
-      hourHandBody.drawHourHandBody();
-      minuteHandBody.drawMinuteHandBody();
-    }
+    // 時針と分針のインスタンス生成
+    // hourHandBodyとhourHandBodyObjectは別物
+    // hourHandBodyはインスタンスであり、fabricオブジェクトではない
+    // hourHandBodyObjectがcanvasに描かれるfabricオブジェクト
+    const hourHandBody = new HandBody(`./assets/hand-${handsShapeInput.value}.svg`);
+    const minuteHandBody = new HandBody(`./assets/hand-${handsShapeInput.value}.svg`);
+    hourHandBody.drawHourHandBody();
+    minuteHandBody.drawMinuteHandBody();
     // 秒針
     //* 時針分針を描く処理は非同期処理なので、秒針オブジェクトの生成は後から書いてはいるが、
     //* 時針分針よりも先に処理が行われる事があることに注意
@@ -1888,14 +1881,14 @@ handsShapeInputs.forEach(handsShapeInput => {
       strokeWidth: .5,
       angle: 210,
     });
-    // canvasに描画
-    //* 時針秒針本体を描く処理が非同期処理だから....
-    //* 時針秒針を描く処理の呼び出しより後に書いている、このあたりの処理が先に行われる可能性がある。ということは...
-    //* 時針分針よりも先にキャンバスにこれらが描かれる可能性があるので...
-    //* 時針分針が先に描かれる可能性もある(?)
-    //* なので時針分針が先に処理された時を考えてここでも並び替え caseStackingOrder を呼び出すし、
-    //* 時針分針があとから処理された時を考えてそちらでも caseStackingOrder を呼び出す
+    // canvasに描画 ----
+    // 時針分針本体を描く処理の方が先に書かれてはいるが、非同期処理なので、
+    // 下記のオブジェクトたちが先にcanvasに描かれることもある
+    // 針オブジェクトたちがそろった状態で重なり順を直したいので、
+    // 時針分針が後から描画された時のために、時針分針を描画するメソッド内でも caseStackingOrder を呼び出すし、
+    // 下記のオブジェクトたちが後から描画された時のために、ここでも caseStackingOrder を呼び出す
     mainCanvas.add(hourHandCircleObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
+    // 重なり順を直す
     caseStackingOrder();
   });
 });
