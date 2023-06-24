@@ -447,6 +447,11 @@ dialSizeInput.addEventListener('input', () => {
     barDotLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     drawBarDot();
   }
+  //* test
+  //* すでに針が描かれていたら、再描画する
+  if (hourHandBodyObject !== undefined) {
+    drawHands();
+  }
   // 重なり順を直す
   caseStackingOrder();
 });
@@ -1470,6 +1475,8 @@ function drawHour() {
     });
     // 回転角度を保持する変数の値を初期値に戻す
     rotateDegrees = 30;
+    //* test
+    caseStackingOrder();
   });
 }
 
@@ -1570,6 +1577,8 @@ function drawBarDot() {
   });
   // 回転角度を保持する変数の値を初期値に戻す
   rotateDegrees = 30;
+  //* test
+  caseStackingOrder();
 }
 
 //* main 数字とバーorドットの色 ----------------------------------------
@@ -1952,10 +1961,10 @@ hourMinuteHandsDirectionRange.addEventListener('input', () => {
   // rotate()で回転させようとすると、回転の軸がオブジェクトの中心点になってしまう
   // rotate()ではなくangleプロパティで指定したら、回転の軸を bottom にできた
   hourHandBodyObject.set({
-    angle: hourMinuteHandsDirectionRange.value,
+    angle: hourMinuteHandsDirectionRange.value / 12,
   });
   minuteHandBodyObject.set({
-    angle: hourMinuteHandsDirectionRange.value * 12,
+    angle: hourMinuteHandsDirectionRange.value,
   });
   mainCanvas.renderAll();
 });

@@ -5,9 +5,8 @@
 ]>
 <svg version="1.1"
 	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:a="http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/"
-	 x="0px" y="0px" width="3px" height="29px" viewBox="-0.001 0 3 29" enable-background="new -0.001 0 3 29" xml:space="preserve">
+	 x="0px" y="0px" width="3px" height="29px" viewBox="0 0 3 29" enable-background="new 0 0 3 29" xml:space="preserve">
 <defs>
 </defs>
-<polygon fill="#FFFFFF" stroke="#000000" stroke-width="0.5" stroke-linejoin="round" stroke-miterlimit="10" points="3.084,28.597 
-	0.25,28.597 0.25,2.594 1.666,0.25 3.084,2.594 "/>
+<rect x="0.25" y="0.25" fill="#FFFFFF" stroke="#000000" stroke-width="0.5" stroke-miterlimit="10" width="2.836" height="28.347"/>
 </svg>
