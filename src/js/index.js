@@ -1792,6 +1792,7 @@ handsShapeInputs.forEach(handsShapeInput => {
       left: mainCanvasCenterWidth,
       stroke: 'black',
       strokeWidth: .5,
+      angle: 300,
     });
     minuteHandBodyObject = new fabric.Rect({
       width: mmToPixel(.5),
@@ -1803,6 +1804,7 @@ handsShapeInputs.forEach(handsShapeInput => {
       left: mainCanvasCenterWidth,
       stroke: 'black',
       strokeWidth: .5,
+      angle: 60,
     });
     secondHandBodyObject = new fabric.Rect({
       width: mmToPixel(.2),
@@ -1814,6 +1816,7 @@ handsShapeInputs.forEach(handsShapeInput => {
       left: mainCanvasCenterWidth,
       stroke: 'black',
       strokeWidth: .5,
+      angle: 210,
     });
     mainCanvas.add(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
   });
@@ -1870,10 +1873,10 @@ hourMinuteHandsDirectionRange.addEventListener('input', () => {
   // rotate()で回転させようとすると、回転の軸がオブジェクトの中心点になってしまう
   // rotate()ではなくangleプロパティで指定したら、回転の軸を bottom にできた
   hourHandBodyObject.set({
-    angle: hourMinuteHandsDirectionRange.value / 12,
+    angle: hourMinuteHandsDirectionRange.value,
   });
   minuteHandBodyObject.set({
-    angle: hourMinuteHandsDirectionRange.value,
+    angle: hourMinuteHandsDirectionRange.value * 12,
   });
   mainCanvas.renderAll();
 });
