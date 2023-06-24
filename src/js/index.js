@@ -1763,6 +1763,7 @@ let secondHandBodyObject;
 
 // 色など
 let handsColor = 'red';
+let handsShape;
 const defaultHandWidth = mmToPixel(1);
 const defaultHandLength = mmToPixel(10);
 
@@ -1846,52 +1847,59 @@ class HandBody {
 // 針の形が選択されたらcanvasに描画する ----------------
 handsShapeInputs.forEach(handsShapeInput => {
   handsShapeInput.addEventListener('input', () => {
-    // すでにオブジェクトが描かれていたら中心円と秒針本体をcanvasから削除
-    mainCanvas.remove(hourHandCircleObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
-    // 針の中心円オブジェクトの生成
-    hourHandCircleObject = new HandCircle({
-      radius: mmToPixel(1.8),
-    });
-    minuteHandCircleObject = new HandCircle({
-      radius: mmToPixel(1.3),
-    });
-    secondHandCircleObject = new HandCircle({
-      radius: mmToPixel(1),
-    });
-    // 時針と分針のインスタンス生成
-    // hourHandBodyとhourHandBodyObjectは別物
-    // hourHandBodyはインスタンスであり、fabricオブジェクトではない
-    // hourHandBodyObjectがcanvasに描かれるfabricオブジェクト
-    const hourHandBody = new HandBody(`./assets/hand-${handsShapeInput.value}.svg`);
-    const minuteHandBody = new HandBody(`./assets/hand-${handsShapeInput.value}.svg`);
-    hourHandBody.drawHourHandBody();
-    minuteHandBody.drawMinuteHandBody();
-    // 秒針
-    //* 時針分針を描く処理は非同期処理なので、秒針オブジェクトの生成は後から書いてはいるが、
-    //* 時針分針よりも先に処理が行われる事があることに注意
-    secondHandBodyObject = new fabric.Rect({
-      width: mmToPixel(.2),
-      height: dialObject.radius - mmToPixel(2),
-      fill: handsColor,
-      originX: 'center',
-      originY: 'bottom',
-      top: mainCanvasCenterHeight,
-      left: mainCanvasCenterWidth,
-      stroke: 'black',
-      strokeWidth: .5,
-      angle: 210,
-    });
-    // canvasに描画 ----
-    // 時針分針本体を描く処理の方が先に書かれてはいるが、非同期処理なので、
-    // 下記のオブジェクトたちが先にcanvasに描かれることもある
-    // 針オブジェクトたちがそろった状態で重なり順を直したいので、
-    // 時針分針が後から描画された時のために、時針分針を描画するメソッド内でも caseStackingOrder を呼び出すし、
-    // 下記のオブジェクトたちが後から描画された時のために、ここでも caseStackingOrder を呼び出す
-    mainCanvas.add(hourHandCircleObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
-    // 重なり順を直す
-    caseStackingOrder();
+    // 変数に値を入れる
+    handsShape = handsShapeInput.value; 
+    // 針たちを描く関数呼び出し
+    drawHands();
   });
 });
+
+// 針たちを描く関数 ----------------
+function drawHands() {
+  // すでにオブジェクトが描かれていたら中心円と秒針本体をcanvasから削除
+  mainCanvas.remove(hourHandCircleObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
+  // 針の中心円オブジェクトの生成
+  hourHandCircleObject = new HandCircle({
+    radius: mmToPixel(1.8),
+  });
+  minuteHandCircleObject = new HandCircle({
+    radius: mmToPixel(1.3),
+  });
+  secondHandCircleObject = new HandCircle({
+    radius: mmToPixel(1),
+  });
+  // 時針と分針のインスタンス生成
+  // hourHandBodyとhourHandBodyObjectは別物
+  // hourHandBodyはインスタンスであり、fabricオブジェクトではない
+  // hourHandBodyObjectがcanvasに描かれるfabricオブジェクト
+  // 時針分針を描くメソッドは非同期処理である事に注意
+  const hourHandBody = new HandBody(`./assets/hand-${handsShape}.svg`);
+  const minuteHandBody = new HandBody(`./assets/hand-${handsShape}.svg`);
+  hourHandBody.drawHourHandBody();
+  minuteHandBody.drawMinuteHandBody();
+  // 秒針
+  secondHandBodyObject = new fabric.Rect({
+    width: mmToPixel(.2),
+    height: dialObject.radius - mmToPixel(2),
+    fill: handsColor,
+    originX: 'center',
+    originY: 'bottom',
+    top: mainCanvasCenterHeight,
+    left: mainCanvasCenterWidth,
+    stroke: 'black',
+    strokeWidth: .5,
+    angle: 210,
+  });
+  // canvasに描画 ----
+  // 時針分針本体を描く処理の方が先に書かれてはいるが、非同期処理なので、
+  // 下記のオブジェクトたちが先にcanvasに描かれることもある
+  // 針オブジェクトたちがそろった状態で重なり順を直したいので、
+  // 時針分針が後から描画された時のために、時針分針を描画するメソッド内でも caseStackingOrder を呼び出すし、
+  // 下記のオブジェクトたちが後から描画された時のために、ここでも caseStackingOrder を呼び出す
+  mainCanvas.add(hourHandCircleObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
+  // 重なり順を直す
+  caseStackingOrder();
+}
 
 // 色が選択されたら、針に色をつける ----------------
 // 色を変えたいオブジェクトをまとめるための配列を準備
