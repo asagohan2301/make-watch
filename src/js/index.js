@@ -308,7 +308,8 @@ let dialSize;
 // 円のクラス ----------------------------------------
 
 // インスタンス生成時は radius,left,topなどを指定する
-// オプションは何個でも、継承元のプロパティにあるものならoptionsで受け取ってくれるみたい
+//* インスタンス生成時には radius などのプロパティをは何個でも渡して良いみたい
+//* 継承元のプロパティにあるものならoptionsで全て受け取ってくれるみたい
 class WatchCircle extends fabric.Circle {
   constructor(options) {
     super(options);
@@ -1743,7 +1744,7 @@ document.querySelectorAll('input[type="range"]').forEach(range => {
 //* main hands ----------------------------------------------------------------------------------
 
 // 変数定義 ----------------------------------------
-//* test
+
 // オブジェクト
 let hourHandCircleObject;
 let hourHandBodyObject;
@@ -1752,45 +1753,34 @@ let minuteHandBodyObject;
 let secondHandCircleObject;
 let secondHandBodyObject;
 
-let handsColorChangeLists;
-
-// let testGroup;
-
 // 色など
 let handsColor = 'red'; //初期値
 
-// 針の形が選択されたらcanvasに描画する
+// 針の中心円のクラス ----------------
+class HandCircle extends fabric.Circle {
+  constructor(options) {
+    super(options);
+    this.originX = 'center';
+    this.originY = 'center';
+    this.top = mainCanvasCenterHeight;
+    this.left = mainCanvasCenterWidth;
+    this.stroke = 'black';
+    this.strokeWidth = .5;
+    this.fill = handsColor;
+  }
+}
+
+// 針の形が選択されたらcanvasに描画する ----------------
 handsShapeInputs.forEach(handsShapeInput => {
   handsShapeInput.addEventListener('input', () => {
-    hourHandCircleObject = new fabric.Circle({
-      radius: mmToPixel(1.5),
-      fill: handsColor,
-      originX: 'center',
-      originY: 'center',
-      top: mainCanvasCenterHeight,
-      left: mainCanvasCenterWidth,
-      stroke: 'black',
-      strokeWidth: .5,
+    hourHandCircleObject = new HandCircle({
+      radius: mmToPixel(1.8),
     });
-    minuteHandCircleObject = new fabric.Circle({
+    minuteHandCircleObject = new HandCircle({
+      radius: mmToPixel(1.3),
+    });
+    secondHandCircleObject = new HandCircle({
       radius: mmToPixel(1),
-      fill: handsColor,
-      originX: 'center',
-      originY: 'center',
-      top: mainCanvasCenterHeight,
-      left: mainCanvasCenterWidth,
-      stroke: 'black',
-      strokeWidth: .5,
-    });
-    secondHandCircleObject = new fabric.Circle({
-      radius: mmToPixel(.7),
-      fill: handsColor,
-      originX: 'center',
-      originY: 'center',
-      top: mainCanvasCenterHeight,
-      left: mainCanvasCenterWidth,
-      stroke: 'black',
-      strokeWidth: .5,
     });
     hourHandBodyObject = new fabric.Rect({
       width: mmToPixel(.7),
@@ -1825,25 +1815,14 @@ handsShapeInputs.forEach(handsShapeInput => {
       stroke: 'black',
       strokeWidth: .5,
     });
-    //* test
-    //* 任意の点に移動してみる
-    // minuteHandBodyObject.top += 20;
-    //* test
-    //* グループ化してしまうと丸の中心を回転の中心にできなそうなので、ダウンロード直前にグループ化するしかないか
-    // testGroup = new fabric.Group([hourHandBodyObject, hourHandCircleObject]);
-    // testGroup.set({
-    //   originX: 'center',
-    //   originY: 'bottom',
-    //   top: mainCanvasCenterHeight + mmToPixel(.75),
-    //   left: mainCanvasCenterWidth,
-    // });
-    // mainCanvas.add(testGroup);
-    mainCanvas.add(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
+    mainCanvas.add(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
   });
 });
 
-//* test
-//* 色が選択されたら、針に色をつける
+// 色が選択されたら、針に色をつける ----------------
+// 色を変えたいオブジェクトをまとめるための配列を準備
+let handsColorChangeLists;
+// 針に色をつける
 handsColorInputs.forEach(handsColorInput => {
   handsColorInput.addEventListener('input', () => {
     // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
@@ -1863,19 +1842,15 @@ handsColorInputs.forEach(handsColorInput => {
       default:
         handsColor = handsColorInput.value;
     }
-    // 数字もバーorドットもなければここでリターン
+    // まだ針オブジェクトがなければここでリターン
     // アラートを表示
-    // if (hourObjects.length === 0 && barDotObjects.length === 0) {
-    //   alert('「数字の配置」や「バーorドット」を入力すると、選択した色で描かれます');
-    //   return;
-    // }
-    // 針に色をつける
-    // hourObjects.forEach(hourObject => {
-    //   hourObject.set({
-    //     fill: hourColor,
-    //   });
-    // });
+    if (hourHandBodyObject === undefined) {
+      alert('「針の形」を入力すると、選択した色で描かれます');
+      return;
+    }
+    // 色を変えたいオブジェクトをまとめるための配列に値を入れる
     handsColorChangeLists = [hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject];
+    // オブジェクトに色をつける
     handsColorChangeLists.forEach(handsColorChangeList => {
       handsColorChangeList.set({
         fill: handsColor,
@@ -1885,39 +1860,35 @@ handsColorInputs.forEach(handsColorInput => {
   });
 });
 
-
-
-// 針の向きを変えるレンジ ----------------
+// 時針分針の向きを変えるレンジ ----------------
 const hourMinuteHandsDirectionRange = document.getElementById('hour-minute-hands-direction-range');
 // 初期は入力不可
 // hourMinuteHandsDirectionRange.disabled = true;
 // レンジが動かされたら針の向きを変える ----
 hourMinuteHandsDirectionRange.addEventListener('input', () => {
   console.log(hourMinuteHandsDirectionRange.value);
-  //* rotate()ではなくangleプロパティで指定したらできた
-  //* rotate()とangleプロパティでは回転の中心点が違う?
+  // rotate()で回転させようとすると、回転の軸がオブジェクトの中心点になってしまう
+  // rotate()ではなくangleプロパティで指定したら、回転の軸を bottom にできた
   hourHandBodyObject.set({
     angle: hourMinuteHandsDirectionRange.value / 12,
   });
   minuteHandBodyObject.set({
     angle: hourMinuteHandsDirectionRange.value,
   });
-  // testGroup.set({
-  //   angle: hourMinuteHandsDirectionRange.value,
-  // });
-
   mainCanvas.renderAll();
 });
 
-//* test
+// 秒針の向きを変えるレンジ ----------------
 const secondHandDirectionRange = document.getElementById('second-hand-direction-range');
+// 初期は入力不可
+// secondHandDirectionRange.disabled = true;
+// レンジが動かされたら針の向きを変える ----
 secondHandDirectionRange.addEventListener('input', () => {
   secondHandBodyObject.set({
     angle: secondHandDirectionRange.value,
   });
   mainCanvas.renderAll();
 });
-
 
 //* case info canvas ------------------------------------------------------------------------------
 
