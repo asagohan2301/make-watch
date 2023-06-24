@@ -121,15 +121,17 @@ hourColorPicker.addEventListener('input', () => {
 //* 針
 const handsColorPicker = document.getElementById('hands-color-picker');
 handsColorPicker.addEventListener('input', () => {
+  handsColorChangeLists = [hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject];
   // ボタンの色を変える
   handsColorPicker.previousElementSibling.style.backgroundColor = handsColorPicker.value;
   // handsColorに値を入れておく
   handsColor = handsColorPicker.value;
   // オブジェクトに色をつける
-  //* とりあえずひとつ。オブジェクト追加する
   // if (dialObject !== undefined) {
-    minuteHandBodyObject.set({
-      fill: handsColor,
+    handsColorChangeLists.forEach(handsColorChangeList => {
+      handsColorChangeList.set({
+        fill: handsColor,
+      });
     });
   // }
   mainCanvas.renderAll();
@@ -710,6 +712,7 @@ function applyCaseColor() {
   }
   //* ここでrenderAllを書かないと、オブジェクトを生成し直さないと色が変わらない
   //* setで値を変更したとき、オブジェクトにすぐに反映させたい場合はrenderAllが必要てことかな
+  //* メソッドで値を変えた時は不要で、setでプロパティを変えた時はrenderALlが必要?
   mainCanvas.renderAll();
 }
 
@@ -1749,6 +1752,8 @@ let minuteHandBodyObject;
 let secondHandCircleObject;
 let secondHandBodyObject;
 
+let handsColorChangeLists;
+
 // let testGroup;
 
 // 色など
@@ -1836,6 +1841,51 @@ handsShapeInputs.forEach(handsShapeInput => {
     mainCanvas.add(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
   });
 });
+
+//* test
+//* 色が選択されたら、針に色をつける
+handsColorInputs.forEach(handsColorInput => {
+  handsColorInput.addEventListener('input', () => {
+    // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
+    switch(handsColorInput.value) {
+      case 'gold':
+        handsColor = goldGradation;
+        break;
+      case 'silver':
+        handsColor = silverGradation;
+        break;
+      case 'pink-gold':
+        handsColor = pinkGoldGradation;
+        break;
+      case 'custom-color':
+        handsColor = handsColorPicker.value;
+        break;
+      default:
+        handsColor = handsColorInput.value;
+    }
+    // 数字もバーorドットもなければここでリターン
+    // アラートを表示
+    // if (hourObjects.length === 0 && barDotObjects.length === 0) {
+    //   alert('「数字の配置」や「バーorドット」を入力すると、選択した色で描かれます');
+    //   return;
+    // }
+    // 針に色をつける
+    // hourObjects.forEach(hourObject => {
+    //   hourObject.set({
+    //     fill: hourColor,
+    //   });
+    // });
+    handsColorChangeLists = [hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject];
+    handsColorChangeLists.forEach(handsColorChangeList => {
+      handsColorChangeList.set({
+        fill: handsColor,
+      });
+    });
+    mainCanvas.renderAll();
+  });
+});
+
+
 
 // 針の向きを変えるレンジ ----------------
 const hourMinuteHandsDirectionRange = document.getElementById('hour-minute-hands-direction-range');
