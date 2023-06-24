@@ -1775,6 +1775,9 @@ let handsColor = 'red';
 let handsShape;
 const defaultHandWidth = mmToPixel(1);
 const defaultHandLength = mmToPixel(10);
+let hourHandAngle = 300;
+let minuteHandAngle = 60;
+let secondHandAngle = 210;
 
 // 針の中心円のクラス ----------------
 class HandCircle extends fabric.Circle {
@@ -1813,7 +1816,8 @@ class HandBody {
         //* 幅どうするか
         // scaleX: 
         scaleY: dialObject.radius / 1.8 / defaultHandLength,
-        angle: 300,
+        //* test
+        angle: hourHandAngle,
         // 線幅を保つ
         strokeUniform: true,
       });
@@ -1838,7 +1842,7 @@ class HandBody {
         left: mainCanvasCenterWidth,
         stroke: 'black',
         strokeWidth: .5,
-        angle: 60,
+        angle: minuteHandAngle,
         //* 幅どうするか
         // scaleX: 
         scaleY: (dialObject.radius - mmToPixel(2)) / defaultHandLength,
@@ -1897,7 +1901,7 @@ function drawHands() {
     left: mainCanvasCenterWidth,
     stroke: 'black',
     strokeWidth: .5,
-    angle: 210,
+    angle: secondHandAngle,
   });
   // canvasに描画 ----
   // 時針分針本体を描く処理の方が先に書かれてはいるが、非同期処理なので、
@@ -1957,14 +1961,19 @@ const hourMinuteHandsDirectionRange = document.getElementById('hour-minute-hands
 // hourMinuteHandsDirectionRange.disabled = true;
 // レンジが動かされたら針の向きを変える ----
 hourMinuteHandsDirectionRange.addEventListener('input', () => {
-  console.log(hourMinuteHandsDirectionRange.value);
+  //* test
+  //* 角度を保持したいため変数に値を入れておく
+  hourHandAngle = hourMinuteHandsDirectionRange.value / 12;
+  minuteHandAngle = hourMinuteHandsDirectionRange.value;
   // rotate()で回転させようとすると、回転の軸がオブジェクトの中心点になってしまう
   // rotate()ではなくangleプロパティで指定したら、回転の軸を bottom にできた
+  //* setじゃなくてdrawHands呼び出しても良いが...
+  //* こちらの方が処理が少なくて軽量だったりするのかな?
   hourHandBodyObject.set({
-    angle: hourMinuteHandsDirectionRange.value / 12,
+    angle: hourHandAngle,
   });
   minuteHandBodyObject.set({
-    angle: hourMinuteHandsDirectionRange.value,
+    angle: minuteHandAngle,
   });
   mainCanvas.renderAll();
 });
@@ -1975,8 +1984,9 @@ const secondHandDirectionRange = document.getElementById('second-hand-direction-
 // secondHandDirectionRange.disabled = true;
 // レンジが動かされたら針の向きを変える ----
 secondHandDirectionRange.addEventListener('input', () => {
+  secondHandAngle = secondHandDirectionRange.value;
   secondHandBodyObject.set({
-    angle: secondHandDirectionRange.value,
+    angle: secondHandAngle,
   });
   mainCanvas.renderAll();
 });
