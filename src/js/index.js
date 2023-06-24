@@ -49,6 +49,14 @@ function caseStackingOrder() {
       barDotObject.moveTo(20);
     });
   }
+  if (hourHandBodyObject !== undefined) {
+    hourHandBodyObject.moveTo(32);
+    hourHandCircleObject.moveTo(33);
+    minuteHandBodyObject.moveTo(34);
+    minuteHandCircleObject.moveTo(35);
+    secondHandBodyObject.moveTo(36);
+    secondHandCircleObject.moveTo(37);
+  }
 }
 
 //* カラーピッカー ----------------------------------------
@@ -1747,14 +1755,16 @@ document.querySelectorAll('input[type="range"]').forEach(range => {
 
 // オブジェクト
 let hourHandCircleObject;
-let hourHandBodyObject;
 let minuteHandCircleObject;
-let minuteHandBodyObject;
 let secondHandCircleObject;
+let hourHandBodyObject;
+let minuteHandBodyObject;
 let secondHandBodyObject;
 
 // 色など
-let handsColor = 'red'; //初期値
+let handsColor = 'red';
+const defaultHandWidth = mmToPixel(1);
+const defaultHandLength = mmToPixel(10);
 
 // 針の中心円のクラス ----------------
 class HandCircle extends fabric.Circle {
@@ -1770,9 +1780,73 @@ class HandCircle extends fabric.Circle {
   }
 }
 
+//* 針本体のクラス ----------------
+class HandBody {
+  constructor(url) {
+    this.url = url;
+  }
+  drawHourHandBody() {
+    // すでにオブジェクトが描かれていたらcanvasから削除
+    mainCanvas.remove(hourHandBodyObject);
+    // オブジェクト生成
+    fabric.loadSVGFromURL(this.url, (objects, options) => {
+      hourHandBodyObject = fabric.util.groupSVGElements(objects, options);
+      hourHandBodyObject.set({
+        fill: handsColor,
+        originX: 'center',
+        originY: 'bottom',
+        top: mainCanvasCenterHeight,
+        left: mainCanvasCenterWidth,
+        stroke: 'black',
+        strokeWidth: .5,
+        //* 幅どうするか
+        // scaleX: 
+        scaleY: dialObject.radius / 1.8 / defaultHandLength,
+        angle: 300,
+        // 線幅を保つ
+        strokeUniform: true,
+      });
+      // canvasに描画
+      mainCanvas.add(hourHandBodyObject);
+      // 重なり順を直す
+      caseStackingOrder();
+    });
+  }
+  drawMinuteHandBody() {
+    // すでにオブジェクトが描かれていたらcanvasから削除
+    mainCanvas.remove(minuteHandBodyObject);
+    // オブジェクト生成
+    fabric.loadSVGFromURL(this.url, (objects, options) => {
+      minuteHandBodyObject = fabric.util.groupSVGElements(objects, options);
+      minuteHandBodyObject.set({
+        fill: handsColor,
+        originX: 'center',
+        originY: 'bottom',
+        top: mainCanvasCenterHeight,
+        left: mainCanvasCenterWidth,
+        stroke: 'black',
+        strokeWidth: .5,
+        angle: 60,
+        //* 幅どうするか
+        // scaleX: 
+        scaleY: (dialObject.radius - mmToPixel(2)) / defaultHandLength,
+        // 線幅を保つ
+        strokeUniform: true,
+      });
+      // canvasに描画
+      mainCanvas.add(minuteHandBodyObject);
+      // 重なり順を直す
+      caseStackingOrder();
+    });
+  }
+}
+
 // 針の形が選択されたらcanvasに描画する ----------------
 handsShapeInputs.forEach(handsShapeInput => {
   handsShapeInput.addEventListener('input', () => {
+    //* すでにオブジェクトが描かれていたら中心円と秒針本体をcanvasから削除
+    mainCanvas.remove(hourHandCircleObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
+    // 針の中心円
     hourHandCircleObject = new HandCircle({
       radius: mmToPixel(1.8),
     });
@@ -1782,30 +1856,26 @@ handsShapeInputs.forEach(handsShapeInput => {
     secondHandCircleObject = new HandCircle({
       radius: mmToPixel(1),
     });
-    hourHandBodyObject = new fabric.Rect({
-      width: mmToPixel(.7),
-      height: dialObject.radius / 2,
-      fill: handsColor,
-      originX: 'center',
-      originY: 'bottom',
-      top: mainCanvasCenterHeight,
-      left: mainCanvasCenterWidth,
-      stroke: 'black',
-      strokeWidth: .5,
-      angle: 300,
-    });
-    minuteHandBodyObject = new fabric.Rect({
-      width: mmToPixel(.5),
-      height: dialObject.radius - mmToPixel(2),
-      fill: handsColor,
-      originX: 'center',
-      originY: 'bottom',
-      top: mainCanvasCenterHeight,
-      left: mainCanvasCenterWidth,
-      stroke: 'black',
-      strokeWidth: .5,
-      angle: 60,
-    });
+    // 針本体
+    if (handsShapeInput.value === 'pointed') {
+      // インスタンス生成
+      //* houHandBodyとhourHandBodyObjectは別物だよ
+      //* houHandBodyはインスタンスであってfabricオブジェクトじゃないよ
+      //* houHandBodyObjectがcanvasに描くオブジェクトだよ
+      const hourHandBody = new HandBody('./assets/hand-pointed.svg', 'hourHand');
+      const minuteHandBody = new HandBody('./assets/hand-pointed.svg', 'minuteHand');
+      hourHandBody.drawHourHandBody();
+      minuteHandBody.drawMinuteHandBody();
+    }
+    if (handsShapeInput.value === 'curvy') {
+      const minuteHandBody = new HandBody('./assets/hand-curvy.svg', 'minuteHand');
+      const hourHandBody = new HandBody('./assets/hand-curvy.svg', 'hourHand');
+      hourHandBody.drawHourHandBody();
+      minuteHandBody.drawMinuteHandBody();
+    }
+    // 秒針
+    //* 時針分針を描く処理は非同期処理なので、秒針オブジェクトの生成は後から書いてはいるが、
+    //* 時針分針よりも先に処理が行われる事があることに注意
     secondHandBodyObject = new fabric.Rect({
       width: mmToPixel(.2),
       height: dialObject.radius - mmToPixel(2),
@@ -1818,7 +1888,15 @@ handsShapeInputs.forEach(handsShapeInput => {
       strokeWidth: .5,
       angle: 210,
     });
-    mainCanvas.add(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
+    // canvasに描画
+    //* 時針秒針本体を描く処理が非同期処理だから....
+    //* 時針秒針を描く処理の呼び出しより後に書いている、このあたりの処理が先に行われる可能性がある。ということは...
+    //* 時針分針よりも先にキャンバスにこれらが描かれる可能性があるので...
+    //* 時針分針が先に描かれる可能性もある(?)
+    //* なので時針分針が先に処理された時を考えてここでも並び替え caseStackingOrder を呼び出すし、
+    //* 時針分針があとから処理された時を考えてそちらでも caseStackingOrder を呼び出す
+    mainCanvas.add(hourHandCircleObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
+    caseStackingOrder();
   });
 });
 
