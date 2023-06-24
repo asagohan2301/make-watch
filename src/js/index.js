@@ -109,13 +109,29 @@ hourColorPicker.addEventListener('input', () => {
       });
     });
   }
-  // 透明にしているバーorドットには色がつかないように、
-  // それ以外のバーorドットの色を変える
+  // バーorドットの色を変える
   barDotObjects.forEach(barDotObject => {
     barDotObject.set({
       fill: hourColor,
     });
   });
+  mainCanvas.renderAll();
+});
+//* test
+//* 針
+const handsColorPicker = document.getElementById('hands-color-picker');
+handsColorPicker.addEventListener('input', () => {
+  // ボタンの色を変える
+  handsColorPicker.previousElementSibling.style.backgroundColor = handsColorPicker.value;
+  // handsColorに値を入れておく
+  handsColor = handsColorPicker.value;
+  // オブジェクトに色をつける
+  //* とりあえずひとつ。オブジェクト追加する
+  // if (dialObject !== undefined) {
+    minuteHandBodyObject.set({
+      fill: handsColor,
+    });
+  // }
   mainCanvas.renderAll();
 });
 
@@ -133,6 +149,9 @@ dialColorPicker.addEventListener('click', () => {
 });
 hourColorPicker.addEventListener('click', () => {
   hourColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
+});
+handsColorPicker.addEventListener('click', () => {
+  handsColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
 });
 
 //* style -----------------------------------------------------------------------------------------
@@ -1727,69 +1746,124 @@ let hourHandCircleObject;
 let hourHandBodyObject;
 let minuteHandCircleObject;
 let minuteHandBodyObject;
+let secondHandCircleObject;
+let secondHandBodyObject;
+
+// let testGroup;
 
 // 色など
-let handsColor;
+let handsColor = 'red'; //初期値
 
 // 針の形が選択されたらcanvasに描画する
 handsShapeInputs.forEach(handsShapeInput => {
   handsShapeInput.addEventListener('input', () => {
     hourHandCircleObject = new fabric.Circle({
       radius: mmToPixel(1.5),
-      fill: 'red',
+      fill: handsColor,
       originX: 'center',
       originY: 'center',
       top: mainCanvasCenterHeight,
       left: mainCanvasCenterWidth,
       stroke: 'black',
+      strokeWidth: .5,
     });
     minuteHandCircleObject = new fabric.Circle({
       radius: mmToPixel(1),
-      fill: 'red',
+      fill: handsColor,
       originX: 'center',
       originY: 'center',
       top: mainCanvasCenterHeight,
       left: mainCanvasCenterWidth,
       stroke: 'black',
+      strokeWidth: .5,
+    });
+    secondHandCircleObject = new fabric.Circle({
+      radius: mmToPixel(.7),
+      fill: handsColor,
+      originX: 'center',
+      originY: 'center',
+      top: mainCanvasCenterHeight,
+      left: mainCanvasCenterWidth,
+      stroke: 'black',
+      strokeWidth: .5,
     });
     hourHandBodyObject = new fabric.Rect({
       width: mmToPixel(.7),
       height: dialObject.radius / 2,
-      fill: 'red',
+      fill: handsColor,
       originX: 'center',
       originY: 'bottom',
       top: mainCanvasCenterHeight,
       left: mainCanvasCenterWidth,
       stroke: 'black',
+      strokeWidth: .5,
     });
     minuteHandBodyObject = new fabric.Rect({
       width: mmToPixel(.5),
       height: dialObject.radius - mmToPixel(2),
-      fill: 'red',
+      fill: handsColor,
       originX: 'center',
       originY: 'bottom',
       top: mainCanvasCenterHeight,
       left: mainCanvasCenterWidth,
       stroke: 'black',
+      strokeWidth: .5,
     });
-    mainCanvas.add(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject);
+    secondHandBodyObject = new fabric.Rect({
+      width: mmToPixel(.2),
+      height: dialObject.radius - mmToPixel(2),
+      fill: handsColor,
+      originX: 'center',
+      originY: 'bottom',
+      top: mainCanvasCenterHeight,
+      left: mainCanvasCenterWidth,
+      stroke: 'black',
+      strokeWidth: .5,
+    });
+    //* test
+    //* 任意の点に移動してみる
+    // minuteHandBodyObject.top += 20;
+    //* test
+    //* グループ化してしまうと丸の中心を回転の中心にできなそうなので、ダウンロード直前にグループ化するしかないか
+    // testGroup = new fabric.Group([hourHandBodyObject, hourHandCircleObject]);
+    // testGroup.set({
+    //   originX: 'center',
+    //   originY: 'bottom',
+    //   top: mainCanvasCenterHeight + mmToPixel(.75),
+    //   left: mainCanvasCenterWidth,
+    // });
+    // mainCanvas.add(testGroup);
+    mainCanvas.add(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
   });
 });
 
 // 針の向きを変えるレンジ ----------------
-const handsDirectionRange = document.getElementById('hands-direction-range');
+const hourMinuteHandsDirectionRange = document.getElementById('hour-minute-hands-direction-range');
 // 初期は入力不可
-// handsDirectionRange.disabled = true;
+// hourMinuteHandsDirectionRange.disabled = true;
 // レンジが動かされたら針の向きを変える ----
-handsDirectionRange.addEventListener('input', () => {
-  console.log(handsDirectionRange.value);
+hourMinuteHandsDirectionRange.addEventListener('input', () => {
+  console.log(hourMinuteHandsDirectionRange.value);
   //* rotate()ではなくangleプロパティで指定したらできた
   //* rotate()とangleプロパティでは回転の中心点が違う?
   hourHandBodyObject.set({
-    angle: handsDirectionRange.value / 12,
+    angle: hourMinuteHandsDirectionRange.value / 12,
   });
   minuteHandBodyObject.set({
-    angle: handsDirectionRange.value,
+    angle: hourMinuteHandsDirectionRange.value,
+  });
+  // testGroup.set({
+  //   angle: hourMinuteHandsDirectionRange.value,
+  // });
+
+  mainCanvas.renderAll();
+});
+
+//* test
+const secondHandDirectionRange = document.getElementById('second-hand-direction-range');
+secondHandDirectionRange.addEventListener('input', () => {
+  secondHandBodyObject.set({
+    angle: secondHandDirectionRange.value,
   });
   mainCanvas.renderAll();
 });
@@ -2192,41 +2266,44 @@ const centerLine = new fabric.Polyline([
 mainCanvas.add(centerLine);
 
 
+let object;
+
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
-// circleオブジェクトを作成する
-var circle = new fabric.Circle({
-  radius: 50,
-  fill: 'red',
-  left: 100,
-  top: 100
-});
-// rectオブジェクトを作成する
-var rect = new fabric.Rect({
-  width: 100,
-  height: 100,
-  fill: 'blue',
-  left: 200,
-  top: 200
-});
-// circleオブジェクトとrectオブジェクトをパスに変換する
-var circlePath = circle.toPath();
-var rectPath = rect.toPath();
-// パスの座標を調整する
-circlePath.set({ left: -50, top: -50 });
-rectPath.set({ left: 50, top: 50 });
-// パスを結合する
-var combinedPath = new fabric.Path(circlePath.path.concat(rectPath.path), {
-  left: 150,
-  top: 150,
-  fill: false,
-  stroke: 'black'
-});
-// 結合したパスをキャンバスに追加する
-mainCanvas.add(combinedPath);
+  object = new fabric.Rect({
+    left: 100,
+    top: 100,
+    width: 200,
+    height: 100,
+    originX: 'center',
+    originY: 'center',
+    fill: 'red'
+  });
+  
+  const rotationCenterX = 150; // 回転の中心点X座標
+  const rotationCenterY = 150; // 回転の中心点Y座標
+  
+  // オブジェクトを回転の中心点に移動
+  object.set({
+    left: object.left - rotationCenterX,
+    top: object.top - rotationCenterY
+  });
+  
+  object.set('angle', 45); // 45度回転させる
+  
+  // オブジェクトを元の位置に戻す
+  object.set({
+    left: object.left + rotationCenterX,
+    top: object.top + rotationCenterY
+  });
+  
+  mainCanvas.add(object);
+  mainCanvas.renderAll();
+  
+  
 
   
   
@@ -2236,7 +2313,10 @@ mainCanvas.add(combinedPath);
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
-
+object.set('angle', 65); // 45度回転させる
+  
+mainCanvas.add(object);
+mainCanvas.renderAll(); // キャンバスを再描画して変更を反映する
 
 
 });
