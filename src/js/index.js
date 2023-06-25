@@ -1664,7 +1664,7 @@ barWidthRange.addEventListener('input', () => {
   // width: mmToPixel(barWidthRange.value) のように値をsetし直して、renderAllする方法と、
   // barWidth などの値を変更して、drawBarDot などオブジェクトを描く関数を呼び出しなおす方法がある
   // barWidth などの値を保持したいので、2つめの方法を採用している
-  barWidth = mmToPixel(barWidthRange.value);
+  barWidth = mmToPixel(parseFloat(barWidthRange.value));
   drawBarDot();
 });
 
@@ -1674,7 +1674,7 @@ const barLengthRange = document.getElementById('bar-length-range');
 barLengthRange.disabled = true;
 // レンジが動かされたらバーの長さを変える ----
 barLengthRange.addEventListener('input', () => {
-  barLength = mmToPixel(barLengthRange.value);
+  barLength = mmToPixel(parseFloat(barLengthRange.value));
   drawBarDot();
 });
 
@@ -1684,7 +1684,7 @@ const dotSizeRange = document.getElementById('dot-size-range');
 dotSizeRange.disabled = true;
 // レンジが動かされたらドットの大きさを変える ----
 dotSizeRange.addEventListener('input', () => {
-  dotRadius = mmToPixel(dotSizeRange.value);
+  dotRadius = mmToPixel(parseFloat(dotSizeRange.value));
   drawBarDot();
 });
 
@@ -1815,6 +1815,7 @@ class HandBody {
         strokeWidth: .5,
         //* 幅どうするか
         // scaleX: 
+        //* 1.8は、2だと文字盤の半径の半分の長さになるが、それより少し長くしたいので 1.8 にしている
         scaleY: dialObject.radius / 1.8 / defaultHandLength,
         //* test
         angle: hourHandAngle,
@@ -1845,7 +1846,7 @@ class HandBody {
         angle: minuteHandAngle,
         //* 幅どうするか
         // scaleX: 
-        scaleY: (dialObject.radius - mmToPixel(2)) / defaultHandLength,
+        scaleY: (dialObject.radius - mmToPixel(3)) / defaultHandLength,
         // 線幅を保つ
         strokeUniform: true,
       });
@@ -1893,7 +1894,11 @@ function drawHands() {
   // 秒針
   secondHandBodyObject = new fabric.Rect({
     width: mmToPixel(.2),
-    height: dialObject.radius - mmToPixel(2),
+    //* test
+    // height: dialObject.radius - mmToPixel(3),
+    height: defaultHandLength,
+    //* test
+    scaleY: (dialObject.radius - mmToPixel(3)) / defaultHandLength,
     fill: handsColor,
     originX: 'center',
     originY: 'bottom',
@@ -1968,12 +1973,12 @@ hourMinuteHandsDirectionRange.addEventListener('input', () => {
   // rotate()で回転させようとすると、回転の軸がオブジェクトの中心点になってしまう
   // rotate()ではなくangleプロパティで指定したら、回転の軸を bottom にできた
   //* setじゃなくてdrawHands呼び出しても良いが...
-  //* こちらの方が処理が少なくて軽量だったりするのかな?
+  //* こちらの方が処理が少なくて軽量だったりするのかな?その可能性はあるかも
   hourHandBodyObject.set({
-    angle: hourHandAngle,
+    angle: parseInt(hourHandAngle),
   });
   minuteHandBodyObject.set({
-    angle: minuteHandAngle,
+    angle: parseInt(minuteHandAngle),
   });
   mainCanvas.renderAll();
 });
@@ -1986,7 +1991,26 @@ const secondHandDirectionRange = document.getElementById('second-hand-direction-
 secondHandDirectionRange.addEventListener('input', () => {
   secondHandAngle = secondHandDirectionRange.value;
   secondHandBodyObject.set({
-    angle: secondHandAngle,
+    angle: parseInt(secondHandAngle),
+  });
+  mainCanvas.renderAll();
+});
+
+//* test
+//* 針の長さを変えるレンジ
+const handsLengthRange = document.getElementById('hands-length-range');
+handsLengthRange.addEventListener('input', () => {
+  handsLengthRange.setAttribute('max', dialObject.radius / defaultHandLength);
+  console.log(handsLengthRange.max);
+  console.log(parseFloat(handsLengthRange.value));
+  hourHandBodyObject.set({
+    scaleY: parseFloat(handsLengthRange.value) / 1.8,
+  });
+  minuteHandBodyObject.set({
+    scaleY: parseFloat(handsLengthRange.value),
+  });
+  secondHandBodyObject.set({
+    scaleY: parseFloat(handsLengthRange.value),
   });
   mainCanvas.renderAll();
 });
