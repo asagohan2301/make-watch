@@ -4,12 +4,10 @@
 
 import '../css/style.css';
 import { fabric } from "fabric";
+import opentype from 'opentype.js';
 
 import { downloadSVG } from './download.js';
 downloadSVG();
-
-//* test
-import opentype from 'opentype.js';
 
 //* common ----------------------------------------------------------------------------------------
 
@@ -51,7 +49,24 @@ function caseStackingOrder() {
       barDotObject.moveTo(20);
     });
   }
+  if (hourHandBodyObject !== undefined) {
+    hourHandBodyObject.moveTo(32);
+    hourHandCircleObject.moveTo(33);
+    minuteHandBodyObject.moveTo(34);
+    minuteHandCircleObject.moveTo(35);
+    secondHandBodyObject.moveTo(36);
+    secondHandCircleObject.moveTo(37);
+  }
 }
+
+// disabled = true のレンジをクリックした時の処理 ----------------
+document.querySelectorAll('input[type="range"]').forEach(range => {
+  range.parentElement.addEventListener('click', () => {
+    if (range.disabled) {
+      alert('該当のオブジェクトを生成してから大きさなどを調整してください');
+    }
+  });
+});
 
 //* カラーピッカー ----------------------------------------
 // カラーピッカーで色を選択したときの処理 ----
@@ -111,15 +126,31 @@ hourColorPicker.addEventListener('input', () => {
       });
     });
   }
-  // 透明にしているバーorドットには色がつかないように、
-  // それ以外のバーorドットの色を変える
+  // バーorドットの色を変える
   barDotObjects.forEach(barDotObject => {
-    // if (barDotObject.fill !== 'transparent') {
-      barDotObject.set({
-        fill: hourColor,
-      });
-    // }
+    barDotObject.set({
+      fill: hourColor,
+    });
   });
+  mainCanvas.renderAll();
+});
+//* test
+//* 針
+const handsColorPicker = document.getElementById('hands-color-picker');
+handsColorPicker.addEventListener('input', () => {
+  handsColorChangeLists = [hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject];
+  // ボタンの色を変える
+  handsColorPicker.previousElementSibling.style.backgroundColor = handsColorPicker.value;
+  // handsColorに値を入れておく
+  handsColor = handsColorPicker.value;
+  // オブジェクトに色をつける
+  // if (dialObject !== undefined) {
+    handsColorChangeLists.forEach(handsColorChangeList => {
+      handsColorChangeList.set({
+        fill: handsColor,
+      });
+    });
+  // }
   mainCanvas.renderAll();
 });
 
@@ -137,6 +168,9 @@ dialColorPicker.addEventListener('click', () => {
 });
 hourColorPicker.addEventListener('click', () => {
   hourColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
+});
+handsColorPicker.addEventListener('click', () => {
+  handsColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
 });
 
 //* style -----------------------------------------------------------------------------------------
@@ -159,6 +193,8 @@ const hourLayoutInputs = document.querySelectorAll('input[name="hour-layout"]');
 const hourFontTypeInputs = document.querySelectorAll('input[name="hour-font"]');
 const hourColorInputs = document.querySelectorAll('input[name="hour-color"]');
 const barDotInputs = document.querySelectorAll('input[name="bar-dot"]');
+const handsShapeInputs = document.querySelectorAll('input[name="hands-shape"]');
+const handsColorInputs = document.querySelectorAll('input[name="hands-color"]');
 
 // 配列 radioArray の中に、複数の要素が配列のようになった lugShapeInputs などが入っている
 // lugShapeInputs などの中に、個々の input 要素が入っている
@@ -177,6 +213,8 @@ const radioArray = [
   hourFontTypeInputs,
   hourColorInputs,
   barDotInputs,
+  handsShapeInputs,
+  handsColorInputs,
 ];
 
 // 配列の各要素(の集まり)から関数を呼び出す ----------------
@@ -216,11 +254,19 @@ tabs.forEach(tab => {
       }
     }
     // 文字盤タブをクリックしたときに、まだケース直径と文字盤見切り直径が入力されていなければ return
+    //* 文字盤見切り系だけでOKでは？
     if (tab.id === 'dial-tab') {
       if (caseObject === undefined && dialObject === undefined) {
         window.alert('先にこのページでケース直径と文字盤見切り直径を入力してから、文字盤の入力に進んでください');
         return;
       }
+      if (dialObject === undefined) {
+        window.alert('先にこのページで文字盤見切り直径を入力してから、文字盤の入力に進んでください');
+        return;
+      }
+    }
+    //*test 針タブをクリックしたときに、まだ文字盤見切り直径が入力されていなければ return
+    if (tab.id === 'hands-tab') {
       if (dialObject === undefined) {
         window.alert('先にこのページで文字盤見切り直径を入力してから、文字盤の入力に進んでください');
         return;
@@ -267,6 +313,7 @@ let caseOpeningObject;
 let dialObject;
 let crownObject; // 2種類のクラウンで同じ変数名を共有。同時には存在しないからOK？
 const lugObjects = [];
+
 // サイズ・形状・色
 let lugWidth;
 let lugShape = 'round'; //初期値
@@ -287,7 +334,8 @@ let dialSize;
 // 円のクラス ----------------------------------------
 
 // インスタンス生成時は radius,left,topなどを指定する
-// オプションは何個でも、継承元のプロパティにあるものならoptionsで受け取ってくれるみたい
+//* インスタンス生成時には radius などのプロパティをは何個でも渡して良いみたい
+//* 継承元のプロパティにあるものならoptionsで全て受け取ってくれるみたい
 class WatchCircle extends fabric.Circle {
   constructor(options) {
     super(options);
@@ -416,6 +464,14 @@ dialSizeInput.addEventListener('input', () => {
     // 文字盤サイズが変わればバーorドットの位置も変わるので、配置用円の値を計算しなおす
     barDotLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     drawBarDot();
+  }
+  //* test
+  //* すでに針が描かれていたら、再描画する
+  if (hourHandBodyObject !== undefined) {
+    //*test 拡大倍率を初期値に戻しておく?
+    hourHandScaleY = dialObject.radius / 1.8 / defaultHandLength;
+    minuteSecondHandsScaleY = (dialObject.radius - mmToPixel(3)) / defaultHandLength;
+    drawHands();
   }
   // 重なり順を直す
   caseStackingOrder();
@@ -691,6 +747,7 @@ function applyCaseColor() {
   }
   //* ここでrenderAllを書かないと、オブジェクトを生成し直さないと色が変わらない
   //* setで値を変更したとき、オブジェクトにすぐに反映させたい場合はrenderAllが必要てことかな
+  //* メソッドで値を変えた時は不要で、setでプロパティを変えた時はrenderALlが必要?
   mainCanvas.renderAll();
 }
 
@@ -1439,6 +1496,8 @@ function drawHour() {
     });
     // 回転角度を保持する変数の値を初期値に戻す
     rotateDegrees = 30;
+    //* test
+    caseStackingOrder();
   });
 }
 
@@ -1539,6 +1598,8 @@ function drawBarDot() {
   });
   // 回転角度を保持する変数の値を初期値に戻す
   rotateDegrees = 30;
+  //* test
+  caseStackingOrder();
 }
 
 //* main 数字とバーorドットの色 ----------------------------------------
@@ -1563,7 +1624,7 @@ hourColorInputs.forEach(hourColorInput => {
       default:
         hourColor = hourColorInput.value;
     }
-    // 数字もバーorドットもなければここでリターン
+    // まだ数字オブジェクトもバーorドットオブジェクトもなければここでリターン
     // アラートを表示
     if (hourObjects.length === 0 && barDotObjects.length === 0) {
       alert('「数字の配置」や「バーorドット」を入力すると、選択した色で描かれます');
@@ -1624,7 +1685,7 @@ barWidthRange.addEventListener('input', () => {
   // width: mmToPixel(barWidthRange.value) のように値をsetし直して、renderAllする方法と、
   // barWidth などの値を変更して、drawBarDot などオブジェクトを描く関数を呼び出しなおす方法がある
   // barWidth などの値を保持したいので、2つめの方法を採用している
-  barWidth = mmToPixel(barWidthRange.value);
+  barWidth = mmToPixel(parseFloat(barWidthRange.value));
   drawBarDot();
 });
 
@@ -1634,7 +1695,7 @@ const barLengthRange = document.getElementById('bar-length-range');
 barLengthRange.disabled = true;
 // レンジが動かされたらバーの長さを変える ----
 barLengthRange.addEventListener('input', () => {
-  barLength = mmToPixel(barLengthRange.value);
+  barLength = mmToPixel(parseFloat(barLengthRange.value));
   drawBarDot();
 });
 
@@ -1644,7 +1705,7 @@ const dotSizeRange = document.getElementById('dot-size-range');
 dotSizeRange.disabled = true;
 // レンジが動かされたらドットの大きさを変える ----
 dotSizeRange.addEventListener('input', () => {
-  dotRadius = mmToPixel(dotSizeRange.value);
+  dotRadius = mmToPixel(parseFloat(dotSizeRange.value));
   drawBarDot();
 });
 
@@ -1709,15 +1770,302 @@ function switchRange() {
   }
 }
 
-// disabled = true のレンジをクリックした時の処理 ----------------
-document.querySelectorAll('input[type="range"]').forEach(range => {
-  range.parentElement.addEventListener('click', () => {
-    if (range.disabled) {
-      alert('該当のオブジェクトを生成してから大きさなどを調整してください');
+//* main hands ----------------------------------------------------------------------------------
+
+// 変数定義 ----------------------------------------
+
+// オブジェクト
+let hourHandCircleObject;
+let minuteHandCircleObject;
+let secondHandCircleObject;
+let hourHandBodyObject;
+let minuteHandBodyObject;
+let secondHandBodyObject;
+
+// サイズ・形状・色
+let handsColor = 'white';
+let handsShape;
+// const defaultHandWidth = mmToPixel(1);
+const defaultHandLength = mmToPixel(10);
+let hourHandAngle = 300;
+let minuteHandAngle = 60;
+let secondHandAngle = 210;
+let hourHandScaleY;
+let minuteSecondHandsScaleY;
+let hourHandScaleX = 1.2;
+let minuteHandScaleX = 1;
+
+//* 針 ----------------------------------------
+
+// 針の中心円のクラス ----------------
+class HandCircle extends fabric.Circle {
+  constructor(options) {
+    super(options);
+    this.originX = 'center';
+    this.originY = 'center';
+    this.top = mainCanvasCenterHeight;
+    this.left = mainCanvasCenterWidth;
+    this.stroke = 'black';
+    this.strokeWidth = .5;
+    this.fill = handsColor;
+  }
+}
+
+// 針本体のクラス ----------------
+class HandBody {
+  constructor(url) {
+    this.url = url;
+  }
+  // 時針を描くメソッド ----
+  drawHourHandBody() {
+    // すでにオブジェクトが描かれていたらcanvasから削除
+    mainCanvas.remove(hourHandBodyObject);
+    // 時針本体オブジェクト生成
+    fabric.loadSVGFromURL(this.url, (objects, options) => {
+      hourHandBodyObject = fabric.util.groupSVGElements(objects, options);
+      hourHandBodyObject.set({
+        fill: handsColor,
+        originX: 'center',
+        originY: 'bottom',
+        top: mainCanvasCenterHeight,
+        left: mainCanvasCenterWidth,
+        stroke: 'black',
+        strokeWidth: .5,
+        scaleX: hourHandScaleX, // 初期値は1.2倍
+        scaleY: hourHandScaleY,
+        angle: hourHandAngle,
+        // 線幅を保つ
+        strokeUniform: true,
+      });
+      // canvasに描画
+      mainCanvas.add(hourHandBodyObject);
+      // 重なり順を直す
+      caseStackingOrder();
+    });
+  }
+  // 分針を描くメソッド ----
+  drawMinuteHandBody() {
+    // すでにオブジェクトが描かれていたらcanvasから削除
+    mainCanvas.remove(minuteHandBodyObject);
+    // 分針本体オブジェクト生成
+    fabric.loadSVGFromURL(this.url, (objects, options) => {
+      minuteHandBodyObject = fabric.util.groupSVGElements(objects, options);
+      minuteHandBodyObject.set({
+        fill: handsColor,
+        originX: 'center',
+        originY: 'bottom',
+        top: mainCanvasCenterHeight,
+        left: mainCanvasCenterWidth,
+        stroke: 'black',
+        strokeWidth: .5,
+        angle: minuteHandAngle,
+        scaleX: minuteHandScaleX, // 初期値は1倍
+        scaleY: minuteSecondHandsScaleY,
+        // 線幅を保つ
+        strokeUniform: true,
+      });
+      // canvasに描画
+      mainCanvas.add(minuteHandBodyObject);
+      // 重なり順を直す
+      caseStackingOrder();
+    });
+  }
+}
+
+// 針の形が選択されたら、針たちを描く関数呼び出し ----------------
+handsShapeInputs.forEach(handsShapeInput => {
+  handsShapeInput.addEventListener('input', () => {
+    // 変数に値を代入
+    handsShape = handsShapeInput.value; 
+    // 針の長さを変えるレンジがまだ動かされていない場合は、初期値を変数に代入
+    if (hourHandScaleY === undefined) {
+      // 'dialObject.radius / defaultHandLength' は、文字盤見切りにぴったりつく長さになる倍率を表す
+      // 2で割ると文字盤の半径の半分の長さになるが、それより少し長くしたいので1.8にしている
+      hourHandScaleY = dialObject.radius / defaultHandLength / 1.8;
     }
+    if (minuteSecondHandsScaleY === undefined) {
+      // 初期値は、文字盤見切りにぴったりつく長さから、3mm短くした長さ
+      minuteSecondHandsScaleY = (dialObject.radius - mmToPixel(3)) / defaultHandLength;
+    }
+    // レンジを入力可にする
+    hourMinuteHandsDirectionRange.disabled = false;
+    secondHandDirectionRange.disabled = false;
+    handsLengthRange.disabled = false;
+    handsWidthRange.disabled = false;
+    // 針たちを描く関数呼び出し
+    drawHands();
   });
 });
 
+// 針たちを描く関数 ----------------
+function drawHands() {
+  // すでにオブジェクトが描かれていたら、針の中心円と秒針本体をcanvasから削除
+  mainCanvas.remove(hourHandCircleObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
+  // 針の中心円オブジェクト生成
+  hourHandCircleObject = new HandCircle({
+    radius: mmToPixel(1.5),
+  });
+  minuteHandCircleObject = new HandCircle({
+    radius: mmToPixel(1.4),
+  });
+  secondHandCircleObject = new HandCircle({
+    radius: mmToPixel(1),
+  });
+  // 時針と分針のインスタンス生成
+  // hourHandBodyとhourHandBodyObjectは別物
+  // hourHandBodyはインスタンスであり、fabricオブジェクトではない
+  // hourHandBodyObjectがcanvasに描かれるfabricオブジェクト
+  // 時針分針を描くメソッドは非同期処理である事に注意
+  //* インスタンスの生成は外で？イベント内で？
+  //* 針はインスタンス生成時にhandsShape変数を使っているからイベント内で生成している
+  const hourHandBody = new HandBody(`./assets/hand-${handsShape}.svg`);
+  const minuteHandBody = new HandBody(`./assets/hand-${handsShape}.svg`);
+  hourHandBody.drawHourHandBody();
+  minuteHandBody.drawMinuteHandBody();
+  // 秒針本体オブジェクト生成
+  secondHandBodyObject = new fabric.Rect({
+    width: mmToPixel(.2),
+    //レンジで値を変えるときに分針と同じ長さにするためにheightとscaleYで長さを指定している
+    height: defaultHandLength,
+    scaleY: minuteSecondHandsScaleY,
+    fill: handsColor,
+    originX: 'center',
+    originY: 'bottom',
+    top: mainCanvasCenterHeight,
+    left: mainCanvasCenterWidth,
+    stroke: 'black',
+    strokeWidth: .5,
+    angle: secondHandAngle,
+  });
+  // canvasに描画
+  // 時針分針本体を描く処理の方が先に書かれてはいるが、非同期処理なので、
+  // 下記のオブジェクトたちが先にcanvasに描かれることもある
+  // 針オブジェクトたちがそろった状態で重なり順を直したいので、
+  // 時針分針が後から描画された時のために、時針分針を描画するメソッド内でも caseStackingOrder を呼び出すし、
+  // 下記のオブジェクトたちが後から描画された時のために、ここでも caseStackingOrder を呼び出す
+  mainCanvas.add(hourHandCircleObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
+  // 重なり順を直す
+  caseStackingOrder();
+}
+
+// 色が選択されたら、針に色をつける ----------------
+// 色を変えたいオブジェクトをまとめるための配列を準備
+let handsColorChangeLists;
+handsColorInputs.forEach(handsColorInput => {
+  handsColorInput.addEventListener('input', () => {
+    // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
+    switch(handsColorInput.value) {
+      case 'gold':
+        handsColor = goldGradation;
+        break;
+      case 'silver':
+        handsColor = silverGradation;
+        break;
+      case 'pink-gold':
+        handsColor = pinkGoldGradation;
+        break;
+      case 'custom-color':
+        handsColor = handsColorPicker.value;
+        break;
+      default:
+        handsColor = handsColorInput.value;
+    }
+    // まだ針オブジェクトがなければここでリターン
+    // アラートを表示
+    if (hourHandBodyObject === undefined) {
+      alert('「針の形」を選択すると、選択した色で描かれます');
+      return;
+    }
+    // 色を変えたいオブジェクトをまとめるための配列に値を入れる
+    handsColorChangeLists = [hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject];
+    // 針に色をつける
+    handsColorChangeLists.forEach(handsColorChangeList => {
+      handsColorChangeList.set({
+        fill: handsColor,
+      });
+    });
+    mainCanvas.renderAll();
+  });
+});
+
+// 時針分針の向きを変えるレンジ ----------------
+const hourMinuteHandsDirectionRange = document.getElementById('hour-minute-hands-direction-range');
+// 初期は入力不可
+hourMinuteHandsDirectionRange.disabled = true;
+// レンジが動かされたら針の向きを変える ----
+hourMinuteHandsDirectionRange.addEventListener('input', () => {
+  // 角度を保持したいため変数に値を入れておく
+  hourHandAngle = hourMinuteHandsDirectionRange.value / 12;
+  minuteHandAngle = hourMinuteHandsDirectionRange.value;
+  // rotate()で回転させようとすると、回転の軸がオブジェクトの中心点になってしまう
+  // rotate()ではなくangleプロパティで指定したら、回転の軸を bottom にできた
+  // setじゃなくてdrawHands呼び出しても良いが、こちらの方が処理が少なくて軽量な可能性がある
+  hourHandBodyObject.set({
+    angle: parseInt(hourHandAngle),
+  });
+  minuteHandBodyObject.set({
+    angle: parseInt(minuteHandAngle),
+  });
+  mainCanvas.renderAll();
+});
+
+// 秒針の向きを変えるレンジ ----------------
+const secondHandDirectionRange = document.getElementById('second-hand-direction-range');
+// 初期は入力不可
+secondHandDirectionRange.disabled = true;
+// レンジが動かされたら針の向きを変える ----
+secondHandDirectionRange.addEventListener('input', () => {
+  secondHandAngle = secondHandDirectionRange.value;
+  secondHandBodyObject.set({
+    angle: parseInt(secondHandAngle),
+  });
+  mainCanvas.renderAll();
+});
+
+// 針の長さを変えるレンジ ----------------
+const handsLengthRange = document.getElementById('hands-length-range');
+// 初期は入力不可
+handsLengthRange.disabled = true;
+// レンジが動かされたら針の長さを変える ----
+handsLengthRange.addEventListener('input', () => {
+  // レンジの最大値を設定
+  // 'dialObject.radius / defaultHandLength' は、文字盤見切りにぴったりつく長さになる倍率を表す
+  // レンジの最大値は、文字盤見切りにぴったりつく長さから、2mm短くした長さ
+  handsLengthRange.setAttribute('max', (dialObject.radius - mmToPixel(2)) / defaultHandLength);
+  // 値を保持するため変数に値を代入
+  hourHandScaleY = parseFloat(handsLengthRange.value) / 1.8;
+  minuteSecondHandsScaleY = parseFloat(handsLengthRange.value);
+  // 針の長さを変える
+  hourHandBodyObject.set({
+    scaleY: hourHandScaleY,
+  });
+  minuteHandBodyObject.set({
+    scaleY: minuteSecondHandsScaleY,
+  });
+  secondHandBodyObject.set({
+    scaleY: minuteSecondHandsScaleY,
+  });
+  mainCanvas.renderAll();
+});
+
+// 針の太さを変えるレンジ ----------------
+const handsWidthRange = document.getElementById('hands-width-range');
+// 初期は入力不可
+handsWidthRange.disabled = true;
+// レンジが動かされたら針の太さを変える ----
+handsWidthRange.addEventListener('input', () => {
+  // 値を保持するため変数に値を代入
+  hourHandScaleX = parseFloat(handsWidthRange.value) * 1.2;
+  minuteHandScaleX = parseFloat(handsWidthRange.value);
+  // 針の太さを変える
+  hourHandBodyObject.set({
+    scaleX: hourHandScaleX,
+  });
+  minuteHandBodyObject.set({
+    scaleX: minuteHandScaleX,
+  });
+  mainCanvas.renderAll();
+});
 
 //* case info canvas ------------------------------------------------------------------------------
 
@@ -2116,39 +2464,45 @@ const centerLine = new fabric.Polyline([
 mainCanvas.add(centerLine);
 
 
+let object;
+
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
-  // 変数
-  const hourFontType = './assets/Kanit-Medium.ttf';
-  const text = '2';
-  const fontSize = 72;
-  const x = 100;
-  const y = 100;
-
-  // フォントのパスを指定してフォントを読み込む
-  opentype.load(hourFontType, function(err, font) {
-    // 読み込みに失敗したときの処理
-    if (err) {
-      console.error('フォントの読み込みエラー:', err);
-      return;
-    }
-    // 読み込みできたときの処理 ----
-    // テキストをパスに変換
-    // Font.getPath(text, x, y, fontSize, options) : 指定されたテキストを表すパスオブジェクトを作成
-    const path = font.getPath(text, x, y, fontSize);
-    // Path.toPathData(options) : パスオブジェクトをSVGのパスデータ形式に変換
-    const pathData = path.toPathData();
-    // fabric.jsのパスオブジェクトに変換
-    const fabricPath = new fabric.Path(pathData, {
-      fill: 'red',
-      stroke: 'blue',
-      strokeWidth: 2,
-    });
-    mainCanvas.add(fabricPath);
+  object = new fabric.Rect({
+    left: 100,
+    top: 100,
+    width: 200,
+    height: 100,
+    originX: 'center',
+    originY: 'center',
+    fill: 'red'
   });
+  
+  const rotationCenterX = 150; // 回転の中心点X座標
+  const rotationCenterY = 150; // 回転の中心点Y座標
+  
+  // オブジェクトを回転の中心点に移動
+  object.set({
+    left: object.left - rotationCenterX,
+    top: object.top - rotationCenterY
+  });
+  
+  object.set('angle', 45); // 45度回転させる
+  
+  // オブジェクトを元の位置に戻す
+  object.set({
+    left: object.left + rotationCenterX,
+    top: object.top + rotationCenterY
+  });
+  
+  mainCanvas.add(object);
+  mainCanvas.renderAll();
+  
+  
+
   
   
   // ここまで試しコードを書く ----------------------------
@@ -2157,7 +2511,10 @@ testButton1.addEventListener('click', () => {
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
-
+object.set('angle', 65); // 45度回転させる
+  
+mainCanvas.add(object);
+mainCanvas.renderAll(); // キャンバスを再描画して変更を反映する
 
 
 });

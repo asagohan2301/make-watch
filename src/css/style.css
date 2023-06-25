@@ -108,6 +108,9 @@ main .component-list .component:nth-child(2) .tab {
 main .component-list .component:nth-child(3) .tab {
   left: 320px;
 }
+main .component-list .component:nth-child(4) .tab {
+  left: 480px;
+}
 main .component-list .component .workspace {
   width: 724px;
   height: 752px;
@@ -118,7 +121,7 @@ main .component-list .component .workspace {
   display: none;
   /* ----- label ----- */
   /* ----- top part ----- */
-  /* ----- shape radio ----- */
+  /* ----- design list ----- */
 }
 main .component-list .component .workspace.appear {
   display: block;
