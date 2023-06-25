@@ -59,6 +59,15 @@ function caseStackingOrder() {
   }
 }
 
+// disabled = true のレンジをクリックした時の処理 ----------------
+document.querySelectorAll('input[type="range"]').forEach(range => {
+  range.parentElement.addEventListener('click', () => {
+    if (range.disabled) {
+      alert('該当のオブジェクトを生成してから大きさなどを調整してください');
+    }
+  });
+});
+
 //* カラーピッカー ----------------------------------------
 // カラーピッカーで色を選択したときの処理 ----
 // ケース
@@ -245,11 +254,19 @@ tabs.forEach(tab => {
       }
     }
     // 文字盤タブをクリックしたときに、まだケース直径と文字盤見切り直径が入力されていなければ return
+    //* 文字盤見切り系だけでOKでは？
     if (tab.id === 'dial-tab') {
       if (caseObject === undefined && dialObject === undefined) {
         window.alert('先にこのページでケース直径と文字盤見切り直径を入力してから、文字盤の入力に進んでください');
         return;
       }
+      if (dialObject === undefined) {
+        window.alert('先にこのページで文字盤見切り直径を入力してから、文字盤の入力に進んでください');
+        return;
+      }
+    }
+    //*test 針タブをクリックしたときに、まだ文字盤見切り直径が入力されていなければ return
+    if (tab.id === 'hands-tab') {
       if (dialObject === undefined) {
         window.alert('先にこのページで文字盤見切り直径を入力してから、文字盤の入力に進んでください');
         return;
@@ -1752,15 +1769,6 @@ function switchRange() {
   }
 }
 
-// disabled = true のレンジをクリックした時の処理 ----------------
-document.querySelectorAll('input[type="range"]').forEach(range => {
-  range.parentElement.addEventListener('click', () => {
-    if (range.disabled) {
-      alert('該当のオブジェクトを生成してから大きさなどを調整してください');
-    }
-  });
-});
-
 //* main hands ----------------------------------------------------------------------------------
 
 // 変数定義 ----------------------------------------
@@ -1776,7 +1784,7 @@ let secondHandBodyObject;
 // 色など
 let handsColor = 'red';
 let handsShape;
-const defaultHandWidth = mmToPixel(1);
+// const defaultHandWidth = mmToPixel(1);
 const defaultHandLength = mmToPixel(10);
 let hourHandAngle = 300;
 let minuteHandAngle = 60;
@@ -1877,12 +1885,14 @@ handsShapeInputs.forEach(handsShapeInput => {
     if (hourHandScaleY === undefined) {
       hourHandScaleY = dialObject.radius / 1.8 / defaultHandLength; // 初期値
     }
-    // if (hourHandScaleX === undefined) {
-    //   hourHandScaleX = defaultHandLength * 1.2; // 初期値
-    // }
     if (minuteSecondHandsScaleY === undefined) {
       minuteSecondHandsScaleY = (dialObject.radius - mmToPixel(3)) / defaultHandLength;
     }
+    //* レンジを入力可に
+    hourMinuteHandsDirectionRange.disabled = false;
+    secondHandDirectionRange.disabled = false;
+    handsLengthRange.disabled = false;
+    handsWidthRange.disabled = false;
     // 針たちを描く関数呼び出し
     drawHands();
   });
@@ -1966,7 +1976,7 @@ handsColorInputs.forEach(handsColorInput => {
     // まだ針オブジェクトがなければここでリターン
     // アラートを表示
     if (hourHandBodyObject === undefined) {
-      alert('「針の形」を入力すると、選択した色で描かれます');
+      alert('「針の形」を選択すると、選択した色で描かれます');
       return;
     }
     // 色を変えたいオブジェクトをまとめるための配列に値を入れる
@@ -1984,7 +1994,7 @@ handsColorInputs.forEach(handsColorInput => {
 // 時針分針の向きを変えるレンジ ----------------
 const hourMinuteHandsDirectionRange = document.getElementById('hour-minute-hands-direction-range');
 // 初期は入力不可
-// hourMinuteHandsDirectionRange.disabled = true;
+hourMinuteHandsDirectionRange.disabled = true;
 // レンジが動かされたら針の向きを変える ----
 hourMinuteHandsDirectionRange.addEventListener('input', () => {
   //* test
@@ -2007,7 +2017,7 @@ hourMinuteHandsDirectionRange.addEventListener('input', () => {
 // 秒針の向きを変えるレンジ ----------------
 const secondHandDirectionRange = document.getElementById('second-hand-direction-range');
 // 初期は入力不可
-// secondHandDirectionRange.disabled = true;
+secondHandDirectionRange.disabled = true;
 // レンジが動かされたら針の向きを変える ----
 secondHandDirectionRange.addEventListener('input', () => {
   secondHandAngle = secondHandDirectionRange.value;
@@ -2023,6 +2033,8 @@ secondHandDirectionRange.addEventListener('input', () => {
 //* 針の形を変えた時には、変えた針の長さをキープしたい
 //* 文字盤直径を変更したときにもキープされているが...→修正済み
 const handsLengthRange = document.getElementById('hands-length-range');
+// 初期は入力不可
+handsLengthRange.disabled = true;
 handsLengthRange.addEventListener('input', () => {
   // レンジの最大値を設定
   handsLengthRange.setAttribute('max', dialObject.radius / defaultHandLength);
@@ -2043,6 +2055,8 @@ handsLengthRange.addEventListener('input', () => {
 
 //* test 針の太さを変えるレンジ
 const handsWidthRange = document.getElementById('hands-width-range');
+// 初期は入力不可
+handsWidthRange.disabled = true;
 handsWidthRange.addEventListener('input', () => {
   hourHandScaleX = parseFloat(handsWidthRange.value) * 1.2;
   minuteHandScaleX = parseFloat(handsWidthRange.value);
