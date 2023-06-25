@@ -313,6 +313,7 @@ let caseOpeningObject;
 let dialObject;
 let crownObject; // 2種類のクラウンで同じ変数名を共有。同時には存在しないからOK？
 const lugObjects = [];
+
 // サイズ・形状・色
 let lugWidth;
 let lugShape = 'round'; //初期値
@@ -1623,7 +1624,7 @@ hourColorInputs.forEach(hourColorInput => {
       default:
         hourColor = hourColorInput.value;
     }
-    // 数字もバーorドットもなければここでリターン
+    // まだ数字オブジェクトもバーorドットオブジェクトもなければここでリターン
     // アラートを表示
     if (hourObjects.length === 0 && barDotObjects.length === 0) {
       alert('「数字の配置」や「バーorドット」を入力すると、選択した色で描かれます');
@@ -1781,8 +1782,8 @@ let hourHandBodyObject;
 let minuteHandBodyObject;
 let secondHandBodyObject;
 
-// 色など
-let handsColor = 'red';
+// サイズ・形状・色
+let handsColor = 'white';
 let handsShape;
 // const defaultHandWidth = mmToPixel(1);
 const defaultHandLength = mmToPixel(10);
@@ -1791,9 +1792,10 @@ let minuteHandAngle = 60;
 let secondHandAngle = 210;
 let hourHandScaleY;
 let minuteSecondHandsScaleY;
-//* test
 let hourHandScaleX = 1.2;
 let minuteHandScaleX = 1;
+
+//* 針 ----------------------------------------
 
 // 針の中心円のクラス ----------------
 class HandCircle extends fabric.Circle {
@@ -1818,7 +1820,7 @@ class HandBody {
   drawHourHandBody() {
     // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(hourHandBodyObject);
-    // オブジェクト生成
+    // 時針本体オブジェクト生成
     fabric.loadSVGFromURL(this.url, (objects, options) => {
       hourHandBodyObject = fabric.util.groupSVGElements(objects, options);
       hourHandBodyObject.set({
@@ -1829,12 +1831,8 @@ class HandBody {
         left: mainCanvasCenterWidth,
         stroke: 'black',
         strokeWidth: .5,
-        //* 幅どうするか
-        scaleX: hourHandScaleX, //* 初期値は1.2
-        //* 1.8は、2だと文字盤の半径の半分の長さになるが、それより少し長くしたいので 1.8 にしている
-        // scaleY: dialObject.radius / 1.8 / defaultHandLength,
+        scaleX: hourHandScaleX, // 初期値は1.2倍
         scaleY: hourHandScaleY,
-        //* test
         angle: hourHandAngle,
         // 線幅を保つ
         strokeUniform: true,
@@ -1849,7 +1847,7 @@ class HandBody {
   drawMinuteHandBody() {
     // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(minuteHandBodyObject);
-    // オブジェクト生成
+    // 分針本体オブジェクト生成
     fabric.loadSVGFromURL(this.url, (objects, options) => {
       minuteHandBodyObject = fabric.util.groupSVGElements(objects, options);
       minuteHandBodyObject.set({
@@ -1861,8 +1859,7 @@ class HandBody {
         stroke: 'black',
         strokeWidth: .5,
         angle: minuteHandAngle,
-        //* 幅どうするか
-        scaleX: minuteHandScaleX, //* 初期値は1
+        scaleX: minuteHandScaleX, // 初期値は1倍
         scaleY: minuteSecondHandsScaleY,
         // 線幅を保つ
         strokeUniform: true,
@@ -1875,20 +1872,22 @@ class HandBody {
   }
 }
 
-// 針の形が選択されたらcanvasに描画する ----------------
+// 針の形が選択されたら、針たちを描く関数呼び出し ----------------
 handsShapeInputs.forEach(handsShapeInput => {
   handsShapeInput.addEventListener('input', () => {
-    // 変数に値を入れる
+    // 変数に値を代入
     handsShape = handsShapeInput.value; 
-    //* test
-    //* まだレンジが動かされていなければ初期値を変数に入れる
+    // 針の長さを変えるレンジがまだ動かされていない場合は、初期値を変数に代入
     if (hourHandScaleY === undefined) {
-      hourHandScaleY = dialObject.radius / 1.8 / defaultHandLength; // 初期値
+      // 'dialObject.radius / defaultHandLength' は、文字盤見切りにぴったりつく長さになる倍率を表す
+      // 2で割ると文字盤の半径の半分の長さになるが、それより少し長くしたいので1.8にしている
+      hourHandScaleY = dialObject.radius / defaultHandLength / 1.8;
     }
     if (minuteSecondHandsScaleY === undefined) {
+      // 初期値は、文字盤見切りにぴったりつく長さから、3mm短くした長さ
       minuteSecondHandsScaleY = (dialObject.radius - mmToPixel(3)) / defaultHandLength;
     }
-    //* レンジを入力可に
+    // レンジを入力可にする
     hourMinuteHandsDirectionRange.disabled = false;
     secondHandDirectionRange.disabled = false;
     handsLengthRange.disabled = false;
@@ -1900,10 +1899,9 @@ handsShapeInputs.forEach(handsShapeInput => {
 
 // 針たちを描く関数 ----------------
 function drawHands() {
-  // すでにオブジェクトが描かれていたら中心円と秒針本体をcanvasから削除
+  // すでにオブジェクトが描かれていたら、針の中心円と秒針本体をcanvasから削除
   mainCanvas.remove(hourHandCircleObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
-  // 針の中心円オブジェクトの生成
-  //* サイズ確認
+  // 針の中心円オブジェクト生成
   hourHandCircleObject = new HandCircle({
     radius: mmToPixel(1.5),
   });
@@ -1918,17 +1916,17 @@ function drawHands() {
   // hourHandBodyはインスタンスであり、fabricオブジェクトではない
   // hourHandBodyObjectがcanvasに描かれるfabricオブジェクト
   // 時針分針を描くメソッドは非同期処理である事に注意
+  //* インスタンスの生成は外で？イベント内で？
+  //* 針はインスタンス生成時にhandsShape変数を使っているからイベント内で生成している
   const hourHandBody = new HandBody(`./assets/hand-${handsShape}.svg`);
   const minuteHandBody = new HandBody(`./assets/hand-${handsShape}.svg`);
   hourHandBody.drawHourHandBody();
   minuteHandBody.drawMinuteHandBody();
-  // 秒針
+  // 秒針本体オブジェクト生成
   secondHandBodyObject = new fabric.Rect({
     width: mmToPixel(.2),
-    //* test
-    // height: dialObject.radius - mmToPixel(3),
+    //レンジで値を変えるときに分針と同じ長さにするためにheightとscaleYで長さを指定している
     height: defaultHandLength,
-    //* test
     scaleY: minuteSecondHandsScaleY,
     fill: handsColor,
     originX: 'center',
@@ -1939,7 +1937,7 @@ function drawHands() {
     strokeWidth: .5,
     angle: secondHandAngle,
   });
-  // canvasに描画 ----
+  // canvasに描画
   // 時針分針本体を描く処理の方が先に書かれてはいるが、非同期処理なので、
   // 下記のオブジェクトたちが先にcanvasに描かれることもある
   // 針オブジェクトたちがそろった状態で重なり順を直したいので、
@@ -1953,7 +1951,6 @@ function drawHands() {
 // 色が選択されたら、針に色をつける ----------------
 // 色を変えたいオブジェクトをまとめるための配列を準備
 let handsColorChangeLists;
-// 針に色をつける
 handsColorInputs.forEach(handsColorInput => {
   handsColorInput.addEventListener('input', () => {
     // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
@@ -1981,7 +1978,7 @@ handsColorInputs.forEach(handsColorInput => {
     }
     // 色を変えたいオブジェクトをまとめるための配列に値を入れる
     handsColorChangeLists = [hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject];
-    // オブジェクトに色をつける
+    // 針に色をつける
     handsColorChangeLists.forEach(handsColorChangeList => {
       handsColorChangeList.set({
         fill: handsColor,
@@ -1997,14 +1994,12 @@ const hourMinuteHandsDirectionRange = document.getElementById('hour-minute-hands
 hourMinuteHandsDirectionRange.disabled = true;
 // レンジが動かされたら針の向きを変える ----
 hourMinuteHandsDirectionRange.addEventListener('input', () => {
-  //* test
-  //* 角度を保持したいため変数に値を入れておく
+  // 角度を保持したいため変数に値を入れておく
   hourHandAngle = hourMinuteHandsDirectionRange.value / 12;
   minuteHandAngle = hourMinuteHandsDirectionRange.value;
   // rotate()で回転させようとすると、回転の軸がオブジェクトの中心点になってしまう
   // rotate()ではなくangleプロパティで指定したら、回転の軸を bottom にできた
-  //* setじゃなくてdrawHands呼び出しても良いが...
-  //* こちらの方が処理が少なくて軽量だったりするのかな?その可能性はあるかも
+  // setじゃなくてdrawHands呼び出しても良いが、こちらの方が処理が少なくて軽量な可能性がある
   hourHandBodyObject.set({
     angle: parseInt(hourHandAngle),
   });
@@ -2027,20 +2022,20 @@ secondHandDirectionRange.addEventListener('input', () => {
   mainCanvas.renderAll();
 });
 
-//* test
-//* 針の長さを変えるレンジ
-//* 文字盤径を変更したときには、針の長さは初期値に戻ってOKだが
-//* 針の形を変えた時には、変えた針の長さをキープしたい
-//* 文字盤直径を変更したときにもキープされているが...→修正済み
+// 針の長さを変えるレンジ ----------------
 const handsLengthRange = document.getElementById('hands-length-range');
 // 初期は入力不可
 handsLengthRange.disabled = true;
+// レンジが動かされたら針の長さを変える ----
 handsLengthRange.addEventListener('input', () => {
   // レンジの最大値を設定
-  handsLengthRange.setAttribute('max', dialObject.radius / defaultHandLength);
-  //*test
+  // 'dialObject.radius / defaultHandLength' は、文字盤見切りにぴったりつく長さになる倍率を表す
+  // レンジの最大値は、文字盤見切りにぴったりつく長さから、2mm短くした長さ
+  handsLengthRange.setAttribute('max', (dialObject.radius - mmToPixel(2)) / defaultHandLength);
+  // 値を保持するため変数に値を代入
   hourHandScaleY = parseFloat(handsLengthRange.value) / 1.8;
   minuteSecondHandsScaleY = parseFloat(handsLengthRange.value);
+  // 針の長さを変える
   hourHandBodyObject.set({
     scaleY: hourHandScaleY,
   });
@@ -2053,13 +2048,16 @@ handsLengthRange.addEventListener('input', () => {
   mainCanvas.renderAll();
 });
 
-//* test 針の太さを変えるレンジ
+// 針の太さを変えるレンジ ----------------
 const handsWidthRange = document.getElementById('hands-width-range');
 // 初期は入力不可
 handsWidthRange.disabled = true;
+// レンジが動かされたら針の太さを変える ----
 handsWidthRange.addEventListener('input', () => {
+  // 値を保持するため変数に値を代入
   hourHandScaleX = parseFloat(handsWidthRange.value) * 1.2;
   minuteHandScaleX = parseFloat(handsWidthRange.value);
+  // 針の太さを変える
   hourHandBodyObject.set({
     scaleX: hourHandScaleX,
   });
