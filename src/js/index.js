@@ -450,6 +450,9 @@ dialSizeInput.addEventListener('input', () => {
   //* test
   //* すでに針が描かれていたら、再描画する
   if (hourHandBodyObject !== undefined) {
+    //*test 拡大倍率を初期値に戻しておく?
+    hourHandScaleY = dialObject.radius / 1.8 / defaultHandLength;
+    minuteSecondHandsScaleY = (dialObject.radius - mmToPixel(3)) / defaultHandLength;
     drawHands();
   }
   // 重なり順を直す
@@ -1778,6 +1781,9 @@ const defaultHandLength = mmToPixel(10);
 let hourHandAngle = 300;
 let minuteHandAngle = 60;
 let secondHandAngle = 210;
+//* test
+let hourHandScaleY;
+let minuteSecondHandsScaleY;
 
 // 針の中心円のクラス ----------------
 class HandCircle extends fabric.Circle {
@@ -1798,7 +1804,7 @@ class HandBody {
   constructor(url) {
     this.url = url;
   }
-  // 時針を描くメソッド
+  // 時針を描くメソッド ----
   drawHourHandBody() {
     // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(hourHandBodyObject);
@@ -1816,7 +1822,8 @@ class HandBody {
         //* 幅どうするか
         // scaleX: 
         //* 1.8は、2だと文字盤の半径の半分の長さになるが、それより少し長くしたいので 1.8 にしている
-        scaleY: dialObject.radius / 1.8 / defaultHandLength,
+        // scaleY: dialObject.radius / 1.8 / defaultHandLength,
+        scaleY: hourHandScaleY,
         //* test
         angle: hourHandAngle,
         // 線幅を保つ
@@ -1828,7 +1835,7 @@ class HandBody {
       caseStackingOrder();
     });
   }
-  // 分針を描くメソッド
+  // 分針を描くメソッド ----
   drawMinuteHandBody() {
     // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(minuteHandBodyObject);
@@ -1846,7 +1853,7 @@ class HandBody {
         angle: minuteHandAngle,
         //* 幅どうするか
         // scaleX: 
-        scaleY: (dialObject.radius - mmToPixel(3)) / defaultHandLength,
+        scaleY: minuteSecondHandsScaleY,
         // 線幅を保つ
         strokeUniform: true,
       });
@@ -1863,6 +1870,14 @@ handsShapeInputs.forEach(handsShapeInput => {
   handsShapeInput.addEventListener('input', () => {
     // 変数に値を入れる
     handsShape = handsShapeInput.value; 
+    //* test
+    //* まだレンジが動かされていなければ初期値を変数に入れる
+    if (hourHandScaleY === undefined) {
+      hourHandScaleY = dialObject.radius / 1.8 / defaultHandLength; // 初期値
+    }
+    if (minuteSecondHandsScaleY === undefined) {
+      minuteSecondHandsScaleY = (dialObject.radius - mmToPixel(3)) / defaultHandLength;
+    }
     // 針たちを描く関数呼び出し
     drawHands();
   });
@@ -1898,7 +1913,7 @@ function drawHands() {
     // height: dialObject.radius - mmToPixel(3),
     height: defaultHandLength,
     //* test
-    scaleY: (dialObject.radius - mmToPixel(3)) / defaultHandLength,
+    scaleY: minuteSecondHandsScaleY,
     fill: handsColor,
     originX: 'center',
     originY: 'bottom',
@@ -1998,19 +2013,24 @@ secondHandDirectionRange.addEventListener('input', () => {
 
 //* test
 //* 針の長さを変えるレンジ
+//* 文字盤径を変更したときには、針の長さは初期値に戻ってOKだが
+//* 針の形を変えた時には、変えた針の長さをキープしたい
+//* 文字盤直径を変更したときにもキープされているが...→修正済み
 const handsLengthRange = document.getElementById('hands-length-range');
 handsLengthRange.addEventListener('input', () => {
+  // レンジの最大値を設定
   handsLengthRange.setAttribute('max', dialObject.radius / defaultHandLength);
-  console.log(handsLengthRange.max);
-  console.log(parseFloat(handsLengthRange.value));
+  //*test
+  hourHandScaleY = parseFloat(handsLengthRange.value) / 1.8;
+  minuteSecondHandsScaleY = parseFloat(handsLengthRange.value);
   hourHandBodyObject.set({
-    scaleY: parseFloat(handsLengthRange.value) / 1.8,
+    scaleY: hourHandScaleY,
   });
   minuteHandBodyObject.set({
-    scaleY: parseFloat(handsLengthRange.value),
+    scaleY: minuteSecondHandsScaleY,
   });
   secondHandBodyObject.set({
-    scaleY: parseFloat(handsLengthRange.value),
+    scaleY: minuteSecondHandsScaleY,
   });
   mainCanvas.renderAll();
 });
