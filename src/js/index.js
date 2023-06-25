@@ -23,8 +23,8 @@ function mmToPixel(mm) {
   return pixel;
 }
 
-// ケースなどの重なり順を直す関数 ----------------
-function caseStackingOrder() {
+// オブジェクトの重なり順を直す関数 ----------------
+function stackingOrder() {
   if (lugObjects !== undefined) {
     lugObjects.forEach(lugObject => {
       lugObject.moveTo(1);
@@ -59,6 +59,18 @@ function caseStackingOrder() {
   }
 }
 
+// 配列に入ったオブジェクトたちに色を付ける関数 ----------------
+function applyColorToArrayObjects(array, color) {
+  array.forEach(object => {
+    if (object !== undefined) {
+      object.set({
+        fill: color,
+      });
+      mainCanvas.renderAll();
+    }
+  });
+}
+
 // disabled = true のレンジをクリックした時の処理 ----------------
 document.querySelectorAll('input[type="range"]').forEach(range => {
   range.parentElement.addEventListener('click', () => {
@@ -69,39 +81,41 @@ document.querySelectorAll('input[type="range"]').forEach(range => {
 });
 
 //* カラーピッカー ----------------------------------------
-// カラーピッカーで色を選択したときの処理 ----
-// ケース
+// カラーピッカーで色を選択したときの処理 ----------------
+// ケース(とラグとリュウズとバックル) ----
 const caseColorPicker = document.getElementById('case-color-picker');
 caseColorPicker.addEventListener('input', () => {
   // ボタンの色を変える
   caseColorPicker.previousElementSibling.style.backgroundColor = caseColorPicker.value;
-  // caseColorに値を入れておく
+  // 変数に値を入れておく
   caseColor = caseColorPicker.value;
   // オブジェクトに色をつける
   applyCaseColor();
 });
-// ベルト
+// ベルト ----
 const strapColorPicker = document.getElementById('strap-color-picker');
 strapColorPicker.addEventListener('input', () => {
   // カラーピッカーから色が選択されたら、色を変えたいリスト(strapColorChangeLists)を更新しておく
-  // ここで更新しないと、
-  // 例えば上ベルトの長さを変えた時には、上ベルトは書き直されて新しいオブジェクトになっているのに
+  // ここで更新しないと、例えば上ベルトの長さを変えた時には、上ベルトは書き直されて新しいオブジェクトになっているのに
   // strapColorChangeListsの値が更新されていないので、色を変えても前のオブジェクトに色が適用され続けて、
   // 長さを変えた後の上ベルトには色が適用されないことになる
   strapColorChangeLists = [upperStrapObject, lowerStrapObject, fixedStrapLoopObject, moveableStrapLoopObject];
   // ボタンの色を変える
   strapColorPicker.previousElementSibling.style.backgroundColor = strapColorPicker.value;
-  // inputStrapColorに値を入れておく
-  inputStrapColor = strapColorPicker.value;
+  // 変数に値を入れておく
+  strapColor = strapColorPicker.value;
   // オブジェクトに色をつける
-  applyStrapColor(strapColorChangeLists);
+  //*test
+  //オブジェクトの有無は呼び出し先の関数でしているのでここでは不要
+  // applyStrapColor(strapColorChangeLists);
+  applyColorToArrayObjects(strapColorChangeLists, strapColor);
 });
-// 文字盤
+// 文字盤 ----
 const dialColorPicker = document.getElementById('dial-color-picker');
 dialColorPicker.addEventListener('input', () => {
   // ボタンの色を変える
   dialColorPicker.previousElementSibling.style.backgroundColor = dialColorPicker.value;
-  // dialColorに値を入れておく
+  // 変数に値を入れておく
   dialColor = dialColorPicker.value;
   // オブジェクトに色をつける
   if (dialObject !== undefined) {
@@ -111,14 +125,14 @@ dialColorPicker.addEventListener('input', () => {
   }
   mainCanvas.renderAll();
 });
-// 数字とバーorドット
+// 数字とバーorドット ----
 const hourColorPicker = document.getElementById('hour-color-picker');
 hourColorPicker.addEventListener('input', () => {
   // ボタンの色を変える
   hourColorPicker.previousElementSibling.style.backgroundColor = hourColorPicker.value;
-  // hourColorに値を入れておく
+  // 変数に値を入れておく
   hourColor = hourColorPicker.value;
-  // 数字たちに色をつける
+  // オブジェクトに色をつける
   if (hourObjects.length !== 0) {
     hourObjects.forEach(hourObject => {
       hourObject.set({
@@ -126,7 +140,6 @@ hourColorPicker.addEventListener('input', () => {
       });
     });
   }
-  // バーorドットの色を変える
   barDotObjects.forEach(barDotObject => {
     barDotObject.set({
       fill: hourColor,
@@ -134,23 +147,25 @@ hourColorPicker.addEventListener('input', () => {
   });
   mainCanvas.renderAll();
 });
-//* test
-//* 針
+// 針 ----
 const handsColorPicker = document.getElementById('hands-color-picker');
 handsColorPicker.addEventListener('input', () => {
+  // カラーピッカーから色が選択されたら、色を変えたいリストを更新しておく
   handsColorChangeLists = [hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject];
   // ボタンの色を変える
   handsColorPicker.previousElementSibling.style.backgroundColor = handsColorPicker.value;
-  // handsColorに値を入れておく
+  // 変数に値を入れておく
   handsColor = handsColorPicker.value;
   // オブジェクトに色をつける
   // if (dialObject !== undefined) {
-    handsColorChangeLists.forEach(handsColorChangeList => {
-      handsColorChangeList.set({
-        fill: handsColor,
-      });
-    });
+    // handsColorChangeLists.forEach(handsColorChangeList => {
+    //   handsColorChangeList.set({
+    //     fill: handsColor,
+    //   });
+    // });
   // }
+  applyColorToArrayObjects(handsColorChangeLists, handsColor);
+
   mainCanvas.renderAll();
 });
 
@@ -416,7 +431,7 @@ caseSizeInput.addEventListener('input', () => {
     }
   }
   // 重なり順を直す
-  caseStackingOrder();
+  stackingOrder();
   // ラグ幅を入力できるようにする
   lugWidthInput.disabled = false;
 });
@@ -432,7 +447,7 @@ caseOpeningSizeInput.addEventListener('input', () => {
     top: mainCanvasCenterHeight,
   });
   mainCanvas.add(caseOpeningObject);
-  caseStackingOrder();
+  stackingOrder();
 });
 
 //* main 文字盤 ----------------------------------------
@@ -474,7 +489,7 @@ dialSizeInput.addEventListener('input', () => {
     drawHands();
   }
   // 重なり順を直す
-  caseStackingOrder();
+  stackingOrder();
 });
 
 //* main ラグ ----------------------------------------
@@ -597,7 +612,7 @@ class WatchLug {
         // canvasに描画
         mainCanvas.add(lugObjects[i]);
         // 重なり順を直す
-        caseStackingOrder();
+        stackingOrder();
       });
     }
     //* renderAllは必要なのかどうか
@@ -760,7 +775,7 @@ let strapWidth;
 let upperStrapObject;
 let lowerStrapObject;
 let strapShape = 'taper'; // 初期値
-let inputStrapColor = 'white'; // 初期値
+let strapColor = 'white'; // 初期値
 // ベルトサイズ
 const defaultStrapWidth = mmToPixel(16); // 用意したSVGのベルト幅
 const defaultUpperStrapLength = mmToPixel(70); // 用意したSVGのベルト長さ
@@ -803,7 +818,7 @@ class WatchUpperStrap {
       upperStrapObject.set({
         originX: 'center',
         originY: 'bottom',
-        fill: inputStrapColor,
+        fill: strapColor,
         left: mainCanvasCenterWidth,
         // strapを描く位置(高さ)を、ケースの位置から取得する
         top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
@@ -859,7 +874,7 @@ class WatchLowerStrap {
       strapWidth = lugWidth;
       lowerStrapObject.set({
         originX: 'center',
-        fill: inputStrapColor,
+        fill: strapColor,
         left: mainCanvasCenterWidth,
         // strapを描く位置(高さ)を、ケースの位置から取得する
         top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
@@ -964,7 +979,7 @@ function drawStrapLoop() {
     width: strapWidth + mmToPixel(2),
     height: mmToPixel(5),
     originX: 'center',
-    fill: inputStrapColor,
+    fill: strapColor,
     left: mainCanvasCenterWidth,
     top: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(8),
     stroke: 'black',
@@ -1221,16 +1236,16 @@ strapColorInputs.forEach(strapColorInput => {
     //* ここ直せそう
     switch(strapColorInput.value) {
       case 'black':
-        inputStrapColor = 'black';
+        strapColor = 'black';
         break;
       case 'brown':
-        inputStrapColor = 'brown';
+        strapColor = 'brown';
         break;
       case 'gray':
-        inputStrapColor = 'gray';
+        strapColor = 'gray';
         break;
       case 'custom-color':
-        inputStrapColor = strapColorPicker.value;
+        strapColor = strapColorPicker.value;
         break;
     }
     // まだ上下どちらのベルトもなければここでリターン
@@ -1240,21 +1255,10 @@ strapColorInputs.forEach(strapColorInput => {
       return;
     }
     // オブジェクトに色をつける
-    applyStrapColor(strapColorChangeLists);
+    // applyStrapColor(strapColorChangeLists);
+    applyColorToArrayObjects(strapColorChangeLists, strapColor);
   });
 });
-
-// ベルトに色をつける関数 --------
-function applyStrapColor(array) {
-  array.forEach(object => {
-    if (object !== undefined) {
-      object.set({
-        fill: inputStrapColor,
-      });
-      mainCanvas.renderAll();
-    }
-  });
-}
 
 //* main バックル ----------------------------------------
 
@@ -1497,7 +1501,7 @@ function drawHour() {
     // 回転角度を保持する変数の値を初期値に戻す
     rotateDegrees = 30;
     //* test
-    caseStackingOrder();
+    stackingOrder();
   });
 }
 
@@ -1599,7 +1603,7 @@ function drawBarDot() {
   // 回転角度を保持する変数の値を初期値に戻す
   rotateDegrees = 30;
   //* test
-  caseStackingOrder();
+  stackingOrder();
 }
 
 //* main 数字とバーorドットの色 ----------------------------------------
@@ -1840,7 +1844,7 @@ class HandBody {
       // canvasに描画
       mainCanvas.add(hourHandBodyObject);
       // 重なり順を直す
-      caseStackingOrder();
+      stackingOrder();
     });
   }
   // 分針を描くメソッド ----
@@ -1867,7 +1871,7 @@ class HandBody {
       // canvasに描画
       mainCanvas.add(minuteHandBodyObject);
       // 重なり順を直す
-      caseStackingOrder();
+      stackingOrder();
     });
   }
 }
@@ -1941,11 +1945,11 @@ function drawHands() {
   // 時針分針本体を描く処理の方が先に書かれてはいるが、非同期処理なので、
   // 下記のオブジェクトたちが先にcanvasに描かれることもある
   // 針オブジェクトたちがそろった状態で重なり順を直したいので、
-  // 時針分針が後から描画された時のために、時針分針を描画するメソッド内でも caseStackingOrder を呼び出すし、
-  // 下記のオブジェクトたちが後から描画された時のために、ここでも caseStackingOrder を呼び出す
+  // 時針分針が後から描画された時のために、時針分針を描画するメソッド内でも stackingOrder を呼び出すし、
+  // 下記のオブジェクトたちが後から描画された時のために、ここでも stackingOrder を呼び出す
   mainCanvas.add(hourHandCircleObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
   // 重なり順を直す
-  caseStackingOrder();
+  stackingOrder();
 }
 
 // 色が選択されたら、針に色をつける ----------------
@@ -1979,11 +1983,13 @@ handsColorInputs.forEach(handsColorInput => {
     // 色を変えたいオブジェクトをまとめるための配列に値を入れる
     handsColorChangeLists = [hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject];
     // 針に色をつける
-    handsColorChangeLists.forEach(handsColorChangeList => {
-      handsColorChangeList.set({
-        fill: handsColor,
-      });
-    });
+    // handsColorChangeLists.forEach(handsColorChangeList => {
+    //   handsColorChangeList.set({
+    //     fill: handsColor,
+    //   });
+    // });
+    //*test
+    applyColorToArrayObjects(handsColorChangeLists, handsColor);
     mainCanvas.renderAll();
   });
 });
