@@ -816,61 +816,94 @@ const lowerStrapLengthInput = document.getElementById('lower-strap-length');
 class WatchUpperStrap {
   constructor(url) {
     this.url = url;
+    this.loadingPromise = null;
   }
   // 上ベルトを描くメソッド ----
   drawUpperStrap() {
     // すでにオブジェクトが描かれていたらcanvasから削除
-    //* 非同期処理だから、削除が後から行われる可能性はある？→それはないぽいかな？
-    mainCanvas.remove(upperStrapObject);
-    console.log('test1');
-    // 上ベルトオブジェクト生成
-    fabric.loadSVGFromURL(this.url, (objects, options) =>{
-      upperStrapObject = fabric.util.groupSVGElements(objects, options);
-      strapWidth = lugWidth;
-      upperStrapObject.set({
-        originX: 'center',
-        originY: 'bottom',
-        fill: strapColor,
-        left: mainCanvasCenterWidth,
-        // strapを描く位置(高さ)を、ケースの位置から取得する
-        top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
-        // 入力値にあわせて幅と長さを拡大縮小
-        scaleX: strapWidth / defaultStrapWidth,
-        scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
-        // 線幅を保つ
-        strokeUniform: true,
+    //! svg読み込みは非同期処理だから、キーを二つほぼ同時に押してしまうと、一回目の非同期処理が(一回目のsvg読み込みが)終わらないうちに、二回目のmainCanvas.remove()が呼ばれてしまうのでは
+    //! 一回目のsvg読み込みが終わっていないのに、すぐキーが押されて、mainCanvas.remove()が実行されてしまうてきな
+    //! 消す→消す→読み込み→読み込みになっているからオブジェクト2つになっちゃう
+    //! 消す→読み込み→消す→読み込みにしないと
+
+    if (this.loadingPromise) {
+      return this.loadingPromise.then(() => {
+        this.drawUpperStrap();
       });
-      // canvasに描画
-      mainCanvas.add(upperStrapObject);
-      console.log('test2');
+    }
+
+    mainCanvas.remove(upperStrapObject);
+
+    this.loadingPromise = new Promise((resolve, reject) => {
+      fabric.loadSVGFromURL(this.url, (objects, options) => {
+        upperStrapObject = fabric.util.groupSVGElements(objects, options);
+        strapWidth = lugWidth;
+        upperStrapObject.set({
+          originX: 'center',
+          originY: 'bottom',
+          fill: strapColor,
+          left: mainCanvasCenterWidth,
+          top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
+          scaleX: strapWidth / defaultStrapWidth,
+          scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
+          strokeUniform: true,
+        });
+
+        mainCanvas.add(upperStrapObject);
+        this.loadingPromise = null; // Promiseの解決後にnullに戻す
+        resolve(); // Promiseを解決する
+      });
+    });
+
+
+    // 上ベルトオブジェクト生成
+    // fabric.loadSVGFromURL(this.url, (objects, options) =>{
+    //   upperStrapObject = fabric.util.groupSVGElements(objects, options);
+    //   strapWidth = lugWidth;
+    //   upperStrapObject.set({
+    //     originX: 'center',
+    //     originY: 'bottom',
+    //     fill: strapColor,
+    //     left: mainCanvasCenterWidth,
+    //     // strapを描く位置(高さ)を、ケースの位置から取得する
+    //     top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
+    //     // 入力値にあわせて幅と長さを拡大縮小
+    //     scaleX: strapWidth / defaultStrapWidth,
+    //     scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
+    //     // 線幅を保つ
+    //     strokeUniform: true,
+    //   });
+    //   // canvasに描画
+    //   mainCanvas.add(upperStrapObject);
       // ステッチ再描画 ----
-      if (strapStitchExist === true) {
-        switch(strapShape) {
-          case 'straight':
-            upperStraightStitch.drawUpperStitch();
-            break;
-          case 'taper':
-            upperTaperStitch.drawUpperStitch();
-            break;
-        }
-      }
+      // if (strapStitchExist === true) {
+      //   switch(strapShape) {
+      //     case 'straight':
+      //       upperStraightStitch.drawUpperStitch();
+      //       break;
+      //     case 'taper':
+      //       upperTaperStitch.drawUpperStitch();
+      //       break;
+      //   }
+      // }
       // ループ再描画 ----
-      drawStrapLoop();
+      // drawStrapLoop();
       // バックル再描画 ----
       // バックルがまだ描かれていなくても、すでにバックル形状が選択されているなら描画する
       // すでにバックルが描かれている場合は、条件式に当てはまるので再描画することになる
       // バックルがまだ描かれておらず、バックル形状が選択されていないなら何もしない
-      if (buckleShape !== undefined) {
-        switch(buckleShape) {
-          case 'round':
-            roundBuckle.drawBuckle();
-            break;
-          case 'square':
-            squareBuckle.drawBuckle();
-            break;
-        }
-      }
-    });
+      // if (buckleShape !== undefined) {
+      //   switch(buckleShape) {
+      //     case 'round':
+      //       roundBuckle.drawBuckle();
+      //       break;
+      //     case 'square':
+      //       squareBuckle.drawBuckle();
+      //       break;
+      //   }
+      // }
+    // });
+    return this.loadingPromise; // Promiseを返す
   }
 }
 // 下ベルトクラス ----
