@@ -597,45 +597,62 @@ lugShapeInputs.forEach(lugShapeInput => {
 class WatchLug {
   constructor(url) {
     this.url = url;
+    this.loadingPromises = [];
   }
   // ラグを描くメソッド ----
-  drawLug() {
+  async drawLug() {
     const lugPositionAdjustValue = 1.7; //! 要検討
+    // loadingPromises に Promise オブジェクトが入っていたら待機
+    if (this.loadingPromises.length > 0) {
+      return Promise.all(this.loadingPromises).then(() => {
+        // ロード処理が完了した後に何かしらの処理を行う
+      });
+    }
     // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする
     lugObjects.forEach(lugObject => {
-      console.log('削除');
       mainCanvas.remove(lugObject);
     });
     lugObjects = [];
     // ラグオブジェクト生成
     for (let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
-      fabric.loadSVGFromURL(this.url, (objects, options) => {
-        let lugObject = fabric.util.groupSVGElements(objects, options);
-        lugObject.set({
-          originX: 'center',
-          left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2,
-          top: mainCanvasCenterHeight - caseObject.height / lugPositionAdjustValue,
-          fill: caseColor,
+      const loadingPromise = new Promise((resolve) => {
+        fabric.loadSVGFromURL(this.url, (objects, options) => {
+          let lugObject = fabric.util.groupSVGElements(objects, options);
+          lugObject.set({
+            originX: 'center',
+            left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2,
+            top: mainCanvasCenterHeight - caseObject.height / lugPositionAdjustValue,
+            fill: caseColor,
+          });
+          if (i === 1 || i === 3) {
+            lugObject.set({
+              left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2 + lugWidth + defaultLugThickness,
+            });
+          }
+          if(i === 2 || i === 3) {
+            lugObject.set({
+              flipY: true,
+              top: mainCanvasCenterHeight + caseObject.height / lugPositionAdjustValue - defaultLugLength,
+            });
+          }
+          // 配列に追加
+          lugObjects.push(lugObject);
+          // canvasに描画
+          mainCanvas.add(lugObject);
+          // 重なり順を直す
+          stackingOrder();
+          resolve();
         });
-        if (i === 1 || i === 3) {
-          lugObject.set({
-            left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2 + lugWidth + defaultLugThickness,
-          });
-        }
-        if(i === 2 || i === 3) {
-          lugObject.set({
-            flipY: true,
-            top: mainCanvasCenterHeight + caseObject.height / lugPositionAdjustValue - defaultLugLength,
-          });
-        }
-        // 配列に追加
-        lugObjects.push(lugObject);
-        // canvasに描画
-        mainCanvas.add(lugObject);
-        // 重なり順を直す
-        stackingOrder();
       });
+    this.loadingPromises.push(loadingPromise);
     }
+    // 全てのロード処理が完了するのを待機
+    return Promise.all(this.loadingPromises).then(() => {
+      // ロード処理が完了した後に何かしらの処理を行う
+    }).finally(() => {
+      // ロード処理が終了したら loadingPromises をクリア
+      this.loadingPromises = [];
+    });
   }
 }
 
