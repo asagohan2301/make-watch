@@ -16,6 +16,15 @@
   // プロパティを変えるだけのときはset + renderAll
   // setでは変えられないプロパティ以外の値を変更するときはオブジェクトを書き直すために関数を呼ぶことにするか
 
+//! SVGを読み込むときの処理について
+// ベルトの長さなどの入力時に、複数のキーをほぼ同時に押してしまうと、オブジェクトが複数できてしまう問題
+// fabric.loadSVGFromURLは非同期処理だから、一回目のloadSVGが終わらないうちに、
+// 二回目の mainCanvas.remove() が実行されてしまい、
+// 一回目のオブジェクトが削除されずに二回目のオブジェクトも描かれてしまっていたと思われる
+// つまり 消す→消す→読み込み→読み込み になっているからオブジェクトが2つになってしまう
+// 消す→読み込み→消す→読み込みにしないといけない
+// ので Promise を導入した けどどういう動きになっているかはよくわかっていない
+
 //* import ----------------------------------------------------------------------------------------
 
 import '../css/style.css';
@@ -816,25 +825,31 @@ const lowerStrapLengthInput = document.getElementById('lower-strap-length');
 class WatchUpperStrap {
   constructor(url) {
     this.url = url;
+    // ロード処理の状態を管理する変数を準備 初期値は null
     this.loadingPromise = null;
   }
   // 上ベルトを描くメソッド ----
   drawUpperStrap() {
-    // すでにオブジェクトが描かれていたらcanvasから削除
-    //! svg読み込みは非同期処理だから、キーを二つほぼ同時に押してしまうと、一回目の非同期処理が(一回目のsvg読み込みが)終わらないうちに、二回目のmainCanvas.remove()が呼ばれてしまうのでは
-    //! 一回目のsvg読み込みが終わっていないのに、すぐキーが押されて、mainCanvas.remove()が実行されてしまうてきな
-    //! 消す→消す→読み込み→読み込みになっているからオブジェクト2つになっちゃう
-    //! 消す→読み込み→消す→読み込みにしないと
-
+    // ロード処理の状態をチェックする
+    // 初回は loadingPromise は null なので、if文の中には進まず、ロード処理へと進む
+    // 2回目以降で、ロード処理がまだ実行中の場合は、loadingPromise が
+    // null ではない(Promiseオブジェクトが入っている)のでif文の中に進み、待機状態に入る
     if (this.loadingPromise) {
+      // loadingPromise に対して .then() メソッドを呼び出す
+      // then メソッドは、Promise の状態が Fulfilled（解決済み）になったときに、指定したコールバック関数を実行する
+      // この場合、this.loadingPromise の状態が Fulfilled になったら、this.drawUpperStrap() メソッドを実行する
+      // return 文は、メソッド内で値を返す際に使用されるだけでなく、非同期処理の制御フローを制御するためにも使用される
+      // この場合、return 文によって現在のメソッドの実行が一時停止され、Promise の解決を待つことで非同期処理の順序を制御している
       return this.loadingPromise.then(() => {
         this.drawUpperStrap();
       });
     }
-
+    // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(upperStrapObject);
-
+    // 新しい Promise を作成
+    // この Promise は fabric.loadSVGFromURL() のコールバック関数内で解決される
     this.loadingPromise = new Promise((resolve, reject) => {
+      // ロード処理
       fabric.loadSVGFromURL(this.url, (objects, options) => {
         upperStrapObject = fabric.util.groupSVGElements(objects, options);
         strapWidth = lugWidth;
@@ -848,113 +863,120 @@ class WatchUpperStrap {
           scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
           strokeUniform: true,
         });
-
+        // canvasに描画
         mainCanvas.add(upperStrapObject);
-        this.loadingPromise = null; // Promiseの解決後にnullに戻す
-        resolve(); // Promiseを解決する
+        // ステッチ再描画 ----
+        if (strapStitchExist === true) {
+          switch(strapShape) {
+            case 'straight':
+              upperStraightStitch.drawUpperStitch();
+              break;
+            case 'taper':
+              upperTaperStitch.drawUpperStitch();
+              break;
+          }
+        }
+        // ループ再描画 ----
+        drawStrapLoop();
+        // バックル再描画 ----
+        // バックルがまだ描かれていなくても、すでにバックル形状が選択されているなら描画する
+        // すでにバックルが描かれている場合は、条件式に当てはまるので再描画することになる
+        // バックルがまだ描かれておらず、バックル形状が選択されていないなら何もしない
+        if (buckleShape !== undefined) {
+          switch(buckleShape) {
+            case 'round':
+              roundBuckle.drawBuckle();
+              break;
+            case 'square':
+              squareBuckle.drawBuckle();
+              break;
+          }
+        }
+        // canvasに描画されたら、次のロード処理に進んで良いことになるので、
+        // ロード処理の状態を管理する変数をnullに戻す
+        // これにより次のロード処理を許可する
+        // 内部の状態変数をリセットし、次の非同期処理の準備をする役割
+        console.log(this.loadingPromise);
+        this.loadingPromise = null;
+        // resolve() がでてくるまでは次の処理に進まない
+        // resolve() を呼び出すことで、Promise の状態が Fulfilled（解決済み）になる
+        // これにより、this.loadingPromise の then() メソッド内で指定したコールバック関数が実行され、次の非同期処理が開始される
+        // Promise を解決して次の処理を進めるシグナルを送る役割
+        resolve();
+        console.log(this.loadingPromise);
       });
     });
-
-
-    // 上ベルトオブジェクト生成
-    // fabric.loadSVGFromURL(this.url, (objects, options) =>{
-    //   upperStrapObject = fabric.util.groupSVGElements(objects, options);
-    //   strapWidth = lugWidth;
-    //   upperStrapObject.set({
-    //     originX: 'center',
-    //     originY: 'bottom',
-    //     fill: strapColor,
-    //     left: mainCanvasCenterWidth,
-    //     // strapを描く位置(高さ)を、ケースの位置から取得する
-    //     top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
-    //     // 入力値にあわせて幅と長さを拡大縮小
-    //     scaleX: strapWidth / defaultStrapWidth,
-    //     scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
-    //     // 線幅を保つ
-    //     strokeUniform: true,
-    //   });
-    //   // canvasに描画
-    //   mainCanvas.add(upperStrapObject);
-      // ステッチ再描画 ----
-      // if (strapStitchExist === true) {
-      //   switch(strapShape) {
-      //     case 'straight':
-      //       upperStraightStitch.drawUpperStitch();
-      //       break;
-      //     case 'taper':
-      //       upperTaperStitch.drawUpperStitch();
-      //       break;
-      //   }
-      // }
-      // ループ再描画 ----
-      // drawStrapLoop();
-      // バックル再描画 ----
-      // バックルがまだ描かれていなくても、すでにバックル形状が選択されているなら描画する
-      // すでにバックルが描かれている場合は、条件式に当てはまるので再描画することになる
-      // バックルがまだ描かれておらず、バックル形状が選択されていないなら何もしない
-      // if (buckleShape !== undefined) {
-      //   switch(buckleShape) {
-      //     case 'round':
-      //       roundBuckle.drawBuckle();
-      //       break;
-      //     case 'square':
-      //       squareBuckle.drawBuckle();
-      //       break;
-      //   }
-      // }
-    // });
-    return this.loadingPromise; // Promiseを返す
+    // this.loadingPromise を返す
+    // つまり、このメソッドを呼び出した際には、this.loadingPromise (ロード処理の状態) を受け取ることができる
+    // これにより、次の drawUpperStrap() 呼び出し時に待機状態に入る
+    return this.loadingPromise;
   }
 }
 // 下ベルトクラス ----
 class WatchLowerStrap {
   constructor(url) {
     this.url = url;
+    this.loadingPromise = null;
   }
+  // 下ベルトを描くメソッド ----
   drawLowerStrap() {
+    if (this.loadingPromise) {
+      return this.loadingPromise.then(() => {
+        this.drawLowerStrap();
+      });
+    }
     // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(lowerStrapObject);
-    // 下ベルトを描くメソッド ----
-    fabric.loadSVGFromURL(this.url, (objects, options) =>{
-      lowerStrapObject = fabric.util.groupSVGElements(objects, options);
-      strapWidth = lugWidth;
-      lowerStrapObject.set({
-        originX: 'center',
-        fill: strapColor,
-        left: mainCanvasCenterWidth,
-        // strapを描く位置(高さ)を、ケースの位置から取得する
-        top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
-        // 入力値にあわせて幅と長さを拡大縮小
-        scaleX: strapWidth / defaultStrapWidth,
-        scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
-        // 線幅を保つ
-        strokeUniform: true,
-      });
-      // canvasに描画
-      mainCanvas.add(lowerStrapObject);
-      // ステッチ再描画
-      if (strapStitchExist === true) {
-        switch(strapShape) {
-          case 'straight':
-            lowerStraightStitch.drawLowerStitch();
-            break;
-          case 'taper':
-            lowerTaperStitch.drawLowerStitch();
-            break;
+
+    // 新しい Promise を作成
+    this.loadingPromise = new Promise((resolve, reject) => {
+      // ロード処理
+      fabric.loadSVGFromURL(this.url, (objects, options) => {
+        lowerStrapObject = fabric.util.groupSVGElements(objects, options);
+        strapWidth = lugWidth;
+        lowerStrapObject.set({
+          originX: 'center',
+          fill: strapColor,
+          left: mainCanvasCenterWidth,
+          // strapを描く位置(高さ)を、ケースの位置から取得する
+          top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
+          // 入力値にあわせて幅と長さを拡大縮小
+          scaleX: strapWidth / defaultStrapWidth,
+          scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
+          // 線幅を保つ
+          strokeUniform: true,
+        });
+        // canvasに描画
+        mainCanvas.add(lowerStrapObject);
+        // ステッチ再描画
+        if (strapStitchExist === true) {
+          switch(strapShape) {
+            case 'straight':
+              lowerStraightStitch.drawLowerStitch();
+              break;
+            case 'taper':
+              lowerTaperStitch.drawLowerStitch();
+              break;
+          }
         }
-      }
-      // ベルト穴再描画 ----
-      // ベルト穴がまだ描かれていなくても、すでにベルト穴個数と間隔が両方選択されているなら描画する
-      // すでにベルト穴が描かれている場合は、条件式に当てはまるので再描画することになる
-      // ベルト穴がまだ描かれておらず、ベルト穴個数と間隔どちらかが選択されていないなら何もしない
-      if (strapHoleQuantity !== undefined && strapHoleDistance !== undefined) {
-        drawStrapHoles();
-      }
+        // ベルト穴再描画 ----
+        // ベルト穴がまだ描かれていなくても、すでにベルト穴個数と間隔が両方選択されているなら描画する
+        // すでにベルト穴が描かれている場合は、条件式に当てはまるので再描画することになる
+        // ベルト穴がまだ描かれておらず、ベルト穴個数と間隔どちらかが選択されていないなら何もしない
+        if (strapHoleQuantity !== undefined && strapHoleDistance !== undefined) {
+          drawStrapHoles();
+        }
+        // ロード処理の状態を管理する変数をnullに戻す
+        this.loadingPromise = null;
+        // resolve() を呼び出すことで、Promise の状態が Fulfilled（解決済み）になる
+        resolve();
+      });
     });
     // loadSVGFromURLは非同期処理である事に注意
     // {}外はloadSVGFromURLのコールバック関数外なので、SVGの読み込みより前に実行される可能性がある
     // そのためここに書いた処理が行われるとき、まだlowerStrapObjectは存在していない
     // よってlowerStrapObjectを使うような処理は{}内に書くこと
+    return this.loadingPromise;
   }
 }
 
@@ -1193,102 +1215,128 @@ strapStitchInputs.forEach(stitchInput => {
 class WatchUpperStitch {
   constructor(url) {
     this.url = url;
+    this.loadingPromise = null;
   }
   drawUpperStitch() {
+    if (this.loadingPromise) {
+      return this.loadingPromise.then(() => {
+        this.drawUpperStitch();
+      });
+    }
     // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(upperStrapStitchObject);
     mainCanvas.remove(topStitchObject);
     // 上ベルトステッチオブジェクト生成
     // 基本はupperStrapObjectと同じで、位置の調整と点線に変更
-    fabric.loadSVGFromURL(this.url, (objects, options) =>{
-      upperStrapStitchObject = fabric.util.groupSVGElements(objects, options);
-      strapWidth = lugWidth;
-      upperStrapStitchObject.set({
-        originX: 'center',
-        originY: 'bottom',
-        left: mainCanvasCenterWidth,
-        // strapを描く位置(高さ)を、ケースの位置から取得する 3mm上に移動する
-        top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
-        // 入力値にあわせて幅と長さを拡大縮小
-        scaleX: strapWidth / defaultStrapWidth,
-        scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
-        // 線幅を保つ
-        strokeUniform: true,
-        // 点線にする
-        strokeDashArray: [8, 2],
-      });
-      // canvasに描画
-      mainCanvas.add(upperStrapStitchObject);
-      // 重なり順を直す ステッチよりループが上にくるように
-      if (fixedStrapLoopObject !== undefined) {
-        fixedStrapLoopObject.bringToFront();
-      }
-      if (moveableStrapLoopObject !== undefined) {
-        moveableStrapLoopObject.bringToFront();
-      }
-    });
-    // バックル近くのステッチオブジェクト生成
-    topStitchObject = new fabric.Polyline([
-      {
-        x: mainCanvasCenterWidth - strapWidth / 2 + mmToPixel(2.5),
-        y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
-      },
-      {
-        x: mainCanvasCenterWidth + strapWidth / 2 - mmToPixel(2.5),
-        y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
-      }],
-      {
-        stroke: 'black',
-        strokeDashArray: [8, 2],
-      }
-    );
-    // ベルト形状がストレートの場合、バックル近くのステッチオブジェクトの幅を長くする
-    if (strapShape === 'straight') {
-      topStitchObject.set({
-        points: [
+    this.loadingPromise = new Promise((resolve, reject) => {
+      fabric.loadSVGFromURL(this.url, (objects, options) => {
+        upperStrapStitchObject = fabric.util.groupSVGElements(objects, options);
+        strapWidth = lugWidth;
+        upperStrapStitchObject.set({
+          originX: 'center',
+          originY: 'bottom',
+          left: mainCanvasCenterWidth,
+          // strapを描く位置(高さ)を、ケースの位置から取得する 3mm上に移動する
+          top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
+          // 入力値にあわせて幅と長さを拡大縮小
+          scaleX: strapWidth / defaultStrapWidth,
+          scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
+          // 線幅を保つ
+          strokeUniform: true,
+          // 点線にする
+          strokeDashArray: [8, 2],
+        });
+        // canvasに描画
+        mainCanvas.add(upperStrapStitchObject);
+        // 重なり順を直す ステッチよりループが上にくるように
+        if (fixedStrapLoopObject !== undefined) {
+          fixedStrapLoopObject.bringToFront();
+        }
+        if (moveableStrapLoopObject !== undefined) {
+          moveableStrapLoopObject.bringToFront();
+        }
+        // バックル近くのステッチオブジェクト生成
+        topStitchObject = new fabric.Polyline([
           {
-            x: mainCanvasCenterWidth - strapWidth / 2 + mmToPixel(1.5),
+            x: mainCanvasCenterWidth - strapWidth / 2 + mmToPixel(2.5),
             y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
           },
           {
-            x: mainCanvasCenterWidth + strapWidth / 2 - mmToPixel(1.5),
+            x: mainCanvasCenterWidth + strapWidth / 2 - mmToPixel(2.5),
             y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
+          }],
+          {
+            stroke: 'black',
+            strokeDashArray: [8, 2],
           }
-        ]
+        );
+        // ベルト形状がストレートの場合、バックル近くのステッチオブジェクトの幅を長くする
+        if (strapShape === 'straight') {
+          topStitchObject.set({
+            points: [
+              {
+                x: mainCanvasCenterWidth - strapWidth / 2 + mmToPixel(1.5),
+                y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
+              },
+              {
+                x: mainCanvasCenterWidth + strapWidth / 2 - mmToPixel(1.5),
+                y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
+              }
+            ]
+          });
+        }
+        // canvasに描画
+        mainCanvas.add(topStitchObject);
+        // 次のロード処理を許可する
+        this.loadingPromise = null;
+        resolve();
       });
-    }
-    // canvasに描画
-    mainCanvas.add(topStitchObject);
+    });
+    // this.loadingPromise を返す
+    return this.loadingPromise;
   }
 }
 // 下ベルトステッチクラス ----
 class WatchLowerStitch {
   constructor(url) {
     this.url = url;
+    this.loadingPromise = null;
   }
   drawLowerStitch() {
+    if (this.loadingPromise) {
+      return this.loadingPromise.then(() => {
+        this.drawLowerStitch();
+      });
+    }
     // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(lowerStrapStitchObject);
     // 下ベルトステッチオブジェクト生成
-    fabric.loadSVGFromURL(this.url, (objects, options) =>{
-      lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
-      strapWidth = lugWidth;
-      lowerStrapStitchObject.set({
-        originX: 'center',
-        left: mainCanvasCenterWidth,
-        // strapを描く位置(高さ)を、ケースの位置から取得する 3mm下に移動する
-        top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
-        // 入力値にあわせて幅と長さを拡大縮小
-        scaleX: strapWidth / defaultStrapWidth,
-        scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
-        // 線幅を保つ
-        strokeUniform: true,
-        // 点線にする
-        strokeDashArray: [8, 2],
+    this.loadingPromise = new Promise((resolve, reject) => {
+      fabric.loadSVGFromURL(this.url, (objects, options) => {
+        lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
+        strapWidth = lugWidth;
+        lowerStrapStitchObject.set({
+          originX: 'center',
+          left: mainCanvasCenterWidth,
+          // strapを描く位置(高さ)を、ケースの位置から取得する 3mm下に移動する
+          top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
+          // 入力値にあわせて幅と長さを拡大縮小
+          scaleX: strapWidth / defaultStrapWidth,
+          scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
+          // 線幅を保つ
+          strokeUniform: true,
+          // 点線にする
+          strokeDashArray: [8, 2],
+        });
+        // canvasに描画
+        mainCanvas.add(lowerStrapStitchObject);
+        // ロード処理の状態を管理する変数をnullに戻す
+        this.loadingPromise = null;
+        // resolve() を呼び出すことで、Promise の状態が Fulfilled（解決済み）になる
+        resolve();
       });
-      // canvasに描画
-      mainCanvas.add(lowerStrapStitchObject);
     });
+    return this.loadingPromise;
   }
 }
 
