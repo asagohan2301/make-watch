@@ -1,29 +1,31 @@
 'use strict';
 
-//* オブジェクトの有無の判定caseObjectやlugObjectsでするのか、caseSize.valueやlugWidthでするのか検討
-//* →基本caseObjectやhourObjects.lengthでいいと思うがどうか
+//* memo ----------------
 
-//* dialSizeのような変数に、入力値を入れておいて使うのか、dialObjectのradiusなどを使う方が良いか要検討
-//* caseObjectのradiusは変数を使わず入力値をそのまま、dialObjectのradiusは変数dialSizeを使っている
-//* 位置を計算するときに、直接入力値を使うのか、それともケースオブジェクトのheightなどを使うのか
-    //* lugではケースオブジェクトのプロパティ(caseObject.height)を使っているが、
-    //* heightだけではなくradiusなどもあるし、どれを使うべきか
-    //* 今のところ混在してごちゃごちゃしている
-//* レンジを動かしたときの処理について
-// width: mmToPixel(barWidthRange.value) のように値をsetし直して、renderAllする方法と、
-  // barWidth などの値を変更して、drawBarDot などオブジェクトを描く関数を呼び出しなおす方法がある
-  // 複雑な関数を呼び出すよりsetの方が処理が軽量になる可能性があるため、
-  // プロパティを変えるだけのときはset + renderAll
-  // setでは変えられないプロパティ以外の値を変更するときはオブジェクトを書き直すために関数を呼ぶことにするか
-
-//! SVGを読み込むときの処理について
+//* SVGを読み込むときの処理について
 // ベルトの長さなどの入力時に、複数のキーをほぼ同時に押してしまうと、オブジェクトが複数できてしまう問題
 // fabric.loadSVGFromURLは非同期処理だから、一回目のloadSVGが終わらないうちに、
 // 二回目の mainCanvas.remove() が実行されてしまい、
 // 一回目のオブジェクトが削除されずに二回目のオブジェクトも描かれてしまっていたと思われる
 // つまり 消す→消す→読み込み→読み込み になっているからオブジェクトが2つになってしまう
 // 消す→読み込み→消す→読み込みにしないといけない
-// ので Promise を導入した けどどういう動きになっているかはよくわかっていない
+// ので Promise を導入した けどどういう動きになっているかよくわかっていない
+
+//* レンジを動かしたときの処理について
+// width: mmToPixel(barWidthRange.value) のように値をsetし直してrenderAllする方法と、
+// barWidth などの値を変更して、drawBarDot などオブジェクトを描く関数を呼び出しなおす方法がある
+// 複雑な関数を呼び出すよりsetの方が処理が軽量になる可能性があるため、
+// プロパティを変えるだけのときはset + renderAll
+// setでは変えられないプロパティ以外の値を変更するときはオブジェクトを書き直すために関数を呼ぶことにする
+
+//* オブジェクトの有無の判定について
+//  caseObjectやlugObjectsでするのか、caseSize.valueやlugWidthでするのか検討
+// →基本caseObjectやhourObjects.lengthで、必要に応じてcaseSize.valueなどを使う?
+
+//* 文字盤直径などの値について
+// dialSizeのような変数に入力値を入れておいて使うのか、dialObjectのradiusなどを使うのか検討
+// 現時点では例えば caseObjectのradiusは変数を使わず入力値をそのまま、dialObjectのradiusは変数dialSizeを使っている
+// lugではケースオブジェクトのプロパティ(caseObject.height)を使っているが、heightだけではなくradiusなどもあるし、どれを使うべきか
 
 //* import ----------------------------------------------------------------------------------------
 
@@ -338,7 +340,6 @@ let caseObject;
 let caseOpeningObject;
 let dialObject;
 let crownObject;
-// const lugObjects = [];
 let lugObjects = [];
 
 // サイズ・形状・色
@@ -419,25 +420,9 @@ caseSizeInput.addEventListener('input', () => {
   // すでにベルトが描かれていたら、再描画する
   // まだベルトが描かれていないなら、何もしない
   if (upperStrapObject !== undefined) {
-    // switch(strapShape) {
-    //   case 'straight':
-    //     upperStraightStrap.drawUpperStrap();
-    //     break;
-    //   case 'taper':
-    //     upperTaperStrap.drawUpperStrap();
-    //     break;
-    // }
     callDrawUpperStrap();
   }
   if (lowerStrapObject !== undefined) {
-    // switch(strapShape) {
-    //   case 'straight':
-    //     lowerStraightStrap.drawLowerStrap();
-    //     break;
-    //   case 'taper':
-    //     lowerTaperStrap.drawLowerStrap();
-    //     break;
-    // }
     callDrawLowerStrap();
   }
   // 重なり順を直す
@@ -542,26 +527,9 @@ lugWidthInput.addEventListener('input', () => {
   // ラグ幅が変更されたらベルトの幅も変わるので再描画する
   // すでにベルトが描かれているなら再描画、描かれていないなら何もしない
   if (upperStrapObject !== undefined) {
-    // switch(strapShape) {
-    //   case 'straight':
-    //     upperStraightStrap.drawUpperStrap();
-    //     break;
-    //   case 'taper':
-    //     upperTaperStrap.drawUpperStrap();
-    //     break;
-    // }
-    //* test
     callDrawUpperStrap();
   }
   if (lowerStrapObject !== undefined) {
-    // switch(strapShape) {
-    //   case 'straight':
-    //     lowerStraightStrap.drawLowerStrap();
-    //     break;
-    //   case 'taper':
-    //     lowerTaperStrap.drawLowerStrap();
-    //     break;
-    // }
     callDrawLowerStrap();
   }
 });
@@ -1018,23 +986,12 @@ strapShapeInputs.forEach(strapShapeInput => {
       alert('ベルトの長さを上側下側両方入力すると、選択した形のベルトが描かれます');
       return;
     }
-    // ベルトを描く関数呼び出し
-    // switch(strapShape) {
-    //   case 'straight':
-    //     upperStraightStrap.drawUpperStrap();
-    //     lowerStraightStrap.drawLowerStrap();
-    //     break;
-    //   case 'taper':
-    //     upperTaperStrap.drawUpperStrap();
-    //     lowerTaperStrap.drawLowerStrap();
-    //     break;
-    // }
     callDrawUpperStrap();
     callDrawLowerStrap();
   });
 });
 
-//*test --------
+// ベルトを描く関数 を呼び出す関数
 function callDrawUpperStrap() {
   switch(strapShape) {
     case 'straight':
@@ -1059,29 +1016,11 @@ function callDrawLowerStrap() {
 // ベルトの長さが入力されたらcanvasに描画 ----------------
 // 上ベルト本体
 upperStrapLengthInput.addEventListener('input', () => {
-  // switch(strapShape) {
-  //   case 'straight':
-  //     upperStraightStrap.drawUpperStrap();
-  //     break;
-  //   case 'taper':
-  //     upperTaperStrap.drawUpperStrap();
-  //     break;
-  // }
-
   // 上ベルトを描く関数を呼び出す関数 を呼び出し
   callDrawUpperStrap();
 });
 // 下ベルト本体
 lowerStrapLengthInput.addEventListener('input', () => {
-  // switch(strapShape) {
-  //   case 'straight':
-  //     lowerStraightStrap.drawLowerStrap();
-  //     break;
-  //   case 'taper':
-  //     lowerTaperStrap.drawLowerStrap();
-  //     break;
-  // }
-
   // 下ベルトを描く関数を呼び出す関数 を呼び出し
   callDrawLowerStrap();
 });
@@ -1379,22 +1318,6 @@ strapColorInputs.forEach(strapColorInput => {
     // 色が選択された時点で配列にオブジェクトを入れる
     strapColorChangeLists = [upperStrapObject, lowerStrapObject, fixedStrapLoopObject, moveableStrapLoopObject];
     // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
-    //* ここ直せそう
-    // switch(strapColorInput.value) {
-    //   case 'black':
-    //     strapColor = 'black';
-    //     break;
-    //   case 'brown':
-    //     strapColor = 'brown';
-    //     break;
-    //   case 'gray':
-    //     strapColor = 'gray';
-    //     break;
-    //   case 'custom-color':
-    //     strapColor = strapColorPicker.value;
-    //     break;
-    // }
-    //* test
     strapColor = strapColorInput.value;
     if (strapColorInput.value === 'custom-color') {
       strapColor = strapColorPicker.value;
@@ -1406,7 +1329,6 @@ strapColorInputs.forEach(strapColorInput => {
       return;
     }
     // オブジェクトに色をつける関数呼び出し
-    // applyStrapColor(strapColorChangeLists);
     applyColorToArrayObjects(strapColorChangeLists, strapColor);
   });
 });
@@ -2154,12 +2076,6 @@ handsColorInputs.forEach(handsColorInput => {
     // 色を変えたいオブジェクトをまとめるための配列に値を入れる
     handsColorChangeLists = [hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject];
     // 針に色をつける
-    // handsColorChangeLists.forEach(handsColorChangeList => {
-    //   handsColorChangeList.set({
-    //     fill: handsColor,
-    //   });
-    // });
-    //*test
     applyColorToArrayObjects(handsColorChangeLists, handsColor);
     mainCanvas.renderAll();
   });
