@@ -338,7 +338,8 @@ let caseObject;
 let caseOpeningObject;
 let dialObject;
 let crownObject;
-const lugObjects = [];
+// const lugObjects = [];
+let lugObjects = [];
 
 // サイズ・形状・色
 let caseColor = 'white';
@@ -600,33 +601,37 @@ class WatchLug {
   // ラグを描くメソッド ----
   drawLug() {
     const lugPositionAdjustValue = 1.7; //! 要検討
-    // すでにオブジェクトが描かれていたらcanvasから削除
+    // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする
     lugObjects.forEach(lugObject => {
+      console.log('削除');
       mainCanvas.remove(lugObject);
     });
+    lugObjects = [];
     // ラグオブジェクト生成
-    for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
+    for (let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
       fabric.loadSVGFromURL(this.url, (objects, options) => {
-        lugObjects[i] = fabric.util.groupSVGElements(objects, options);
-        lugObjects[i].set({
+        let lugObject = fabric.util.groupSVGElements(objects, options);
+        lugObject.set({
           originX: 'center',
           left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2,
           top: mainCanvasCenterHeight - caseObject.height / lugPositionAdjustValue,
           fill: caseColor,
         });
         if (i === 1 || i === 3) {
-          lugObjects[i].set({
+          lugObject.set({
             left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2 + lugWidth + defaultLugThickness,
           });
         }
         if(i === 2 || i === 3) {
-          lugObjects[i].set({
+          lugObject.set({
             flipY: true,
             top: mainCanvasCenterHeight + caseObject.height / lugPositionAdjustValue - defaultLugLength,
           });
         }
+        // 配列に追加
+        lugObjects.push(lugObject);
         // canvasに描画
-        mainCanvas.add(lugObjects[i]);
+        mainCanvas.add(lugObject);
         // 重なり順を直す
         stackingOrder();
       });
