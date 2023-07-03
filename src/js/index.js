@@ -171,19 +171,7 @@ hourColorPicker.addEventListener('input', () => {
   // 変数に値を入れておく
   hourColor = hourColorPicker.value;
   // オブジェクトに色をつける
-  // if (hourObjects.length !== 0) {
-  //   hourObjects.forEach(hourObject => {
-  //     hourObject.set({
-  //       fill: hourColor,
-  //     });
-  //   });
-  // }
   applyColorToArrayObjects(hourObjects, hourColor);
-  // barDotObjects.forEach(barDotObject => {
-  //   barDotObject.set({
-  //     fill: hourColor,
-  //   });
-  // });
   applyColorToArrayObjects(barDotObjects, hourColor);
   mainCanvas.renderAll();
 });
@@ -1698,18 +1686,8 @@ hourColorInputs.forEach(hourColorInput => {
       return;
     }
     // 数字に色をつける
-    // hourObjects.forEach(hourObject => {
-    //   hourObject.set({
-    //     fill: hourColor,
-    //   });
-    // });
     applyColorToArrayObjects(hourObjects, hourColor);
     // バーorドットに色をつける
-    // barDotObjects.forEach(barDotObject => {
-    //   barDotObject.set({
-    //     fill: hourColor,
-    //   });
-    // });
     applyColorToArrayObjects(barDotObjects, hourColor);
     mainCanvas.renderAll();
   });
