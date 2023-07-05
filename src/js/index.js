@@ -1,6 +1,40 @@
 'use strict';
 
-//* import ----------------------------------------------------------------------------------------
+//* memo ---------------------------------------------------------------------------------------------
+
+//* SVGを読み込むときの処理について
+// ベルトの長さなどの入力時に、複数のキーをほぼ同時に押してしまうと、オブジェクトが複数できてしまう問題
+// fabric.loadSVGFromURLは非同期処理だから、一回目のloadSVGが終わらないうちに、
+// 二回目の mainCanvas.remove() が実行されてしまい、
+// 一回目のオブジェクトが削除されずに二回目のオブジェクトも描かれてしまっていたと思われる
+// つまり 消す→消す→読み込み→読み込み になっているからオブジェクトが2つになってしまう
+// 消す→読み込み→消す→読み込みにしないといけない
+// ので Promise を導入した けどどういう動きになっているかよくわかっていない
+
+//* レンジを動かしたときの処理について
+// width: mmToPixel(barWidthRange.value) のように値をsetし直してrenderAllする方法と、
+// barWidth などの値を変更して、drawBarDot などオブジェクトを描く関数を呼び出しなおす方法がある
+// 複雑な関数を呼び出すよりsetの方が処理が軽量になる可能性があるため、
+// プロパティを変えるだけのときはset + renderAll
+// setでは変えられないプロパティ以外の値を変更するときはオブジェクトを書き直すために関数を呼ぶことにする
+
+//* オブジェクトの有無の判定について
+//  caseObjectやlugObjectsでするのか、caseSize.valueやlugWidthでするのか検討
+// →基本caseObjectやhourObjects.lengthで、必要に応じてcaseSize.valueなどを使う?
+
+//* 文字盤直径などの値について
+// 基本は dialSize のような変数を用意して、入力値を代入して使う
+// caseOpeningObject の radius は、変数を使わず入力値をそのまま使っているが、
+// このように別のところで使いまわさない値については、変数を用意しなくても良さそうかな
+// caseObjectのサイズも変数に入れて使うように修正した方が良い?
+// 現状は変数に入れずに、他のオブジェクトではcaseObjectのプロパティを使っている
+// lugObject ではcaseObject.height、crownObject では caseObject.left など
+// どちらでも問題はなさそうだけど統一するべきか?
+
+//* オブジェクト毎のイベントなどの並び順
+// クラス → インスタンス → メインの関数 → inputなどメインのイベント → その他サブ的なイベントや関数
+
+//* import -------------------------------------------------------------------------------------------
 
 import '../css/style.css';
 import { fabric } from "fabric";
@@ -9,7 +43,9 @@ import opentype from 'opentype.js';
 import { downloadSVG } from './download.js';
 downloadSVG();
 
-//* common ----------------------------------------------------------------------------------------
+//* common -------------------------------------------------------------------------------------------
+
+//* 共通で使う関数など ----------------------------------------
 
 // mmからpixelに変換する関数 ----------------
 // 引数にmmを受け取って、pixelにして返す
@@ -23,8 +59,8 @@ function mmToPixel(mm) {
   return pixel;
 }
 
-// ケースなどの重なり順を直す関数 ----------------
-function caseStackingOrder() {
+// オブジェクトの重なり順を直す関数 ----------------
+function stackingOrder() {
   if (lugObjects !== undefined) {
     lugObjects.forEach(lugObject => {
       lugObject.moveTo(1);
@@ -59,6 +95,18 @@ function caseStackingOrder() {
   }
 }
 
+// 配列に入ったオブジェクトたちに色をつける関数 ----------------
+function applyColorToArrayObjects(array, color) {
+  array.forEach(object => {
+    if (object !== undefined) {
+      object.set({
+        fill: color,
+      });
+    }
+  });
+  mainCanvas.renderAll();
+}
+
 // disabled = true のレンジをクリックした時の処理 ----------------
 document.querySelectorAll('input[type="range"]').forEach(range => {
   range.parentElement.addEventListener('click', () => {
@@ -69,39 +117,43 @@ document.querySelectorAll('input[type="range"]').forEach(range => {
 });
 
 //* カラーピッカー ----------------------------------------
-// カラーピッカーで色を選択したときの処理 ----
-// ケース
+
+// カラーピッカーで色を選択したときの処理 ----------------
+// ケース(とラグとリュウズとバックル) ----
 const caseColorPicker = document.getElementById('case-color-picker');
 caseColorPicker.addEventListener('input', () => {
   // ボタンの色を変える
   caseColorPicker.previousElementSibling.style.backgroundColor = caseColorPicker.value;
-  // caseColorに値を入れておく
+  // 変数に値を入れておく
   caseColor = caseColorPicker.value;
-  // オブジェクトに色をつける
+  // オブジェクトに色をつける関数呼び出し
+  // ラグやバックルは配列になっていて処理が複雑なため、
+  // ここでは applyColorToArrayObjects 関数ではなく独自の関数を使用する
+  // オブジェクトの有無は呼び出し先の関数でしているのでここでは不要
   applyCaseColor();
 });
-// ベルト
+// ベルト ----
 const strapColorPicker = document.getElementById('strap-color-picker');
 strapColorPicker.addEventListener('input', () => {
   // カラーピッカーから色が選択されたら、色を変えたいリスト(strapColorChangeLists)を更新しておく
-  // ここで更新しないと、
-  // 例えば上ベルトの長さを変えた時には、上ベルトは書き直されて新しいオブジェクトになっているのに
+  // ここで更新しないと、例えば上ベルトの長さを変えた時には、上ベルトは書き直されて新しいオブジェクトになっているのに
   // strapColorChangeListsの値が更新されていないので、色を変えても前のオブジェクトに色が適用され続けて、
   // 長さを変えた後の上ベルトには色が適用されないことになる
   strapColorChangeLists = [upperStrapObject, lowerStrapObject, fixedStrapLoopObject, moveableStrapLoopObject];
   // ボタンの色を変える
   strapColorPicker.previousElementSibling.style.backgroundColor = strapColorPicker.value;
-  // inputStrapColorに値を入れておく
-  inputStrapColor = strapColorPicker.value;
-  // オブジェクトに色をつける
-  applyStrapColor(strapColorChangeLists);
+  // 変数に値を入れておく
+  strapColor = strapColorPicker.value;
+  // オブジェクトに色をつける関数呼び出し
+  // オブジェクトの有無は呼び出し先の関数でしているのでここでは不要
+  applyColorToArrayObjects(strapColorChangeLists, strapColor);
 });
-// 文字盤
+// 文字盤 ----
 const dialColorPicker = document.getElementById('dial-color-picker');
 dialColorPicker.addEventListener('input', () => {
   // ボタンの色を変える
   dialColorPicker.previousElementSibling.style.backgroundColor = dialColorPicker.value;
-  // dialColorに値を入れておく
+  // 変数に値を入れておく
   dialColor = dialColorPicker.value;
   // オブジェクトに色をつける
   if (dialObject !== undefined) {
@@ -111,52 +163,34 @@ dialColorPicker.addEventListener('input', () => {
   }
   mainCanvas.renderAll();
 });
-// 数字とバーorドット
+// 数字とバーorドット ----
 const hourColorPicker = document.getElementById('hour-color-picker');
 hourColorPicker.addEventListener('input', () => {
   // ボタンの色を変える
   hourColorPicker.previousElementSibling.style.backgroundColor = hourColorPicker.value;
-  // hourColorに値を入れておく
+  // 変数に値を入れておく
   hourColor = hourColorPicker.value;
-  // 数字たちに色をつける
-  if (hourObjects.length !== 0) {
-    hourObjects.forEach(hourObject => {
-      hourObject.set({
-        fill: hourColor,
-      });
-    });
-  }
-  // バーorドットの色を変える
-  barDotObjects.forEach(barDotObject => {
-    barDotObject.set({
-      fill: hourColor,
-    });
-  });
+  // オブジェクトに色をつける
+  applyColorToArrayObjects(hourObjects, hourColor);
+  applyColorToArrayObjects(barDotObjects, hourColor);
   mainCanvas.renderAll();
 });
-//* test
-//* 針
+// 針 ----
 const handsColorPicker = document.getElementById('hands-color-picker');
 handsColorPicker.addEventListener('input', () => {
+  // カラーピッカーから色が選択されたら、色を変えたいリストを更新しておく
   handsColorChangeLists = [hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject];
   // ボタンの色を変える
   handsColorPicker.previousElementSibling.style.backgroundColor = handsColorPicker.value;
-  // handsColorに値を入れておく
+  // 変数に値を入れておく
   handsColor = handsColorPicker.value;
-  // オブジェクトに色をつける
-  // if (dialObject !== undefined) {
-    handsColorChangeLists.forEach(handsColorChangeList => {
-      handsColorChangeList.set({
-        fill: handsColor,
-      });
-    });
-  // }
-  mainCanvas.renderAll();
+  // オブジェクトに色をつける関数呼び出し
+  // オブジェクトの有無は呼び出し先の関数でしているのでここでは不要
+  applyColorToArrayObjects(handsColorChangeLists, handsColor);
 });
 
-// カラーピッカー(input type="color")をクリックしたときにも、radioをクリックしたことにする ----
-// 以下のコードがないと、
-// ゴールドなど他の色を選択した後、「その他の色」ボタンをクリックしたときに、すぐに色が変わらない
+// カラーピッカー(input type="color")をクリックしたときにも、radioをクリックしたことにする ----------------
+// 以下のコードがないと、ゴールドなど他の色を選択した後、「その他の色」ボタンをクリックしたときに、すぐに色が変わらない
 caseColorPicker.addEventListener('click', () => {
   caseColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
 });
@@ -173,11 +207,9 @@ handsColorPicker.addEventListener('click', () => {
   handsColorPicker.previousElementSibling.previousElementSibling.firstElementChild.click();
 });
 
-//* style -----------------------------------------------------------------------------------------
+//* 選択されたラジオボタンに枠線をつける処理 ----------------------------------------
 
-// 選択されたラジオボタンに枠線をつける ----------------------------------------
-
-// 配列を準備 ----------------
+// 配列を準備
 // ラジオボタン要素が増えたらここに変数を追加して、radioArray にも追加する
 const lugShapeInputs = document.querySelectorAll('input[name="lug-shape"]');
 const crownShapeInputs = document.querySelectorAll('input[name="crown-shape"]');
@@ -233,7 +265,7 @@ function selectRadio(radios) {
   });
 }
 
-// タブを切り替える ----------------------------------------
+//* タブを切り替える処理 ----------------------------------------
 
 // 一つめのworkspaceを表示させておく
 document.querySelector('.component:first-child .workspace').classList.add('appear');
@@ -241,9 +273,8 @@ document.querySelector('.component:first-child .workspace').classList.add('appea
 const tabs = document.querySelectorAll('.tab');
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
-    // ベルトタブをクリックしたときに、まだケース直径とラグ幅が入力されていなければ return
+    // ベルトタブをクリックしたときに、まだケース直径とラグ幅が入力されていない場合はここでリターン
     if (tab.id === 'strap-tab') {
-      //* 判定をcaseObjectやlugObjectsでするのか、caseSize.valueやlugWidthでするのか検討
       if (caseObject === undefined && lugWidth === undefined) {
         window.alert('先にこのページでケース直径とラグ幅を入力してから、ベルトの入力に進んでください');
         return;
@@ -253,19 +284,14 @@ tabs.forEach(tab => {
         return;
       }
     }
-    // 文字盤タブをクリックしたときに、まだケース直径と文字盤見切り直径が入力されていなければ return
-    //* 文字盤見切り系だけでOKでは？
+    // 文字盤タブをクリックしたときに、まだ文字盤見切り直径が入力されていない場合はここでリターン
     if (tab.id === 'dial-tab') {
-      if (caseObject === undefined && dialObject === undefined) {
-        window.alert('先にこのページでケース直径と文字盤見切り直径を入力してから、文字盤の入力に進んでください');
-        return;
-      }
       if (dialObject === undefined) {
         window.alert('先にこのページで文字盤見切り直径を入力してから、文字盤の入力に進んでください');
         return;
       }
     }
-    //*test 針タブをクリックしたときに、まだ文字盤見切り直径が入力されていなければ return
+    // 針タブをクリックしたときに、まだ文字盤見切り直径が入力されていない場合はここでリターン
     if (tab.id === 'hands-tab') {
       if (dialObject === undefined) {
         window.alert('先にこのページで文字盤見切り直径を入力してから、文字盤の入力に進んでください');
@@ -286,13 +312,13 @@ tabs.forEach(tab => {
   });
 });
 
-// 数字フォントのサンプル"2"を各フォントで表示 ----------------------------------------
+// 数字フォントのサンプル"2"を各フォントで表示する処理 ----------------------------------------
 
 hourFontTypeInputs.forEach(hourFontTypeInput => {
   hourFontTypeInput.parentElement.nextElementSibling.style.fontFamily = hourFontTypeInput.value;
 });
 
-//* main canvas ----------------------------------------------------------------------------------
+//* main canvas --------------------------------------------------------------------------------------
 
 // fabricインスタンス ----------------------------------------
 
@@ -303,7 +329,7 @@ const mainCanvas = new fabric.Canvas('main-canvas');
 const mainCanvasCenterWidth = 192;
 const mainCanvasCenterHeight = mmToPixel(125);
 
-//* main case ------------------------------------------------------------------------------------
+//* ケースタブ ----------------------------------------------------------------------------------------
 
 // 変数定義 ----------------------------------------
 
@@ -311,56 +337,50 @@ const mainCanvasCenterHeight = mmToPixel(125);
 let caseObject;
 let caseOpeningObject;
 let dialObject;
-let crownObject; // 2種類のクラウンで同じ変数名を共有。同時には存在しないからOK？
-const lugObjects = [];
+let crownObject;
+let lugObjects = [];
 
-// サイズ・形状・色
+// サイズ・形状・色など
+let caseColor = 'white';
+let dialColor = 'white';
+let dialSize;
+let crownShape;
 let lugWidth;
-let lugShape = 'round'; //初期値
-let crownShape; //初期値無し
+let lugShape = 'round';
 const defaultLugThickness = mmToPixel(2);
 const defaultLugLength = mmToPixel(8);
-let caseColor = 'white'; //初期値
-let dialColor = 'white'; //初期値
+
 // Node
 const caseSizeInput = document.getElementById('case-size');
 const caseOpeningSizeInput = document.getElementById('case-opening-size');
 const dialSizeInput = document.getElementById('dial-size');
 const lugWidthInput = document.getElementById('lug-width');
 
-//* このdialSizeのような変数に、入力値を入れておいて使うのか、dialObjectのradiusなどを使う方が良いか要検討
-let dialSize;
-
 // 円のクラス ----------------------------------------
-
-// インスタンス生成時は radius,left,topなどを指定する
-//* インスタンス生成時には radius などのプロパティをは何個でも渡して良いみたい
-//* 継承元のプロパティにあるものならoptionsで全て受け取ってくれるみたい
-class WatchCircle extends fabric.Circle {
+// mainCanvasの ケース・ケース見切・文字盤 に使用
+// インスタンス生成時は radius,left,top などのプロパティを何個でも渡して良いみたい
+// 継承元のプロパティにあるものなら options で全て受け取ってくれるみたい
+class WatchCircleForMain extends fabric.Circle {
   constructor(options) {
     super(options);
     this.originX = 'center';
     this.originY = 'center';
+    this.left = mainCanvasCenterWidth,
+    this.top = mainCanvasCenterHeight,
     this.stroke = 'black';
     this.strokeWidth = 1;
-    this.fill = 'white';
   }
 }
 
-//* main ケース ----------------------------------------
+//*  main canvas ケース ----------------------------------------
 
 // ケースサイズが入力されたらcanvasに描画 ----------------
 caseSizeInput.addEventListener('input', () => {
   // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(caseObject);
   // ケースオブジェクト生成
-  caseObject = new WatchCircle({
+  caseObject = new WatchCircleForMain({
     radius: mmToPixel(caseSizeInput.value) / 2,
-    left: mainCanvasCenterWidth,
-    top: mainCanvasCenterHeight,
-  });
-  // すでに色が選ばれていた場合はその色にする
-  caseObject.set({
     fill: caseColor,
   });
   // canvasに描画
@@ -370,86 +390,63 @@ caseSizeInput.addEventListener('input', () => {
   // まだラグが描かれていないなら、何もしない
   // ただしラグ幅さえ入力されていれば、ラグ形状がまだ選択されていなくても初期値の round で描画する
   if (lugObjects.length !== 0) {
-    switch(lugShape) { // 初期値は'round'
-      case 'round':
-        roundLug.drawLug();
-        break;
-      case 'square':
-        squareLug.drawLug();
-        break;
-    }
+    // ラグを描く関数 drawLug を呼び出す関数 callDrawLug を呼び出す
+    callDrawLug();
   }
   // リュウズ再描画 ----
+  // すでにリュウズが描かれていたら、再描画する
   // リュウズがまだ描かれていなくても、すでにリュウズ形状が選択されているなら描画する
-  // すでにリュウズが描かれている場合は、条件式に当てはまるので再描画することになる
+  // そのためここでは crownShape に値が入っているかどうかで条件分岐している
+  // すでにリュウズが描かれている場合は、条件式に当てはまる(crownShapeに値が入っている)ので再描画することになる
   if (crownShape !== undefined) {
-    switch(crownShape) {
-      case 'round':
-        roundCrown.drawCrown();
-        break;
-      case 'square':
-        squareCrown.drawCrown();
-        break;
-    }
+    callDrawCrown();
   }
   // ベルト再描画 ----
   // すでにベルトが描かれていたら、再描画する
   // まだベルトが描かれていないなら、何もしない
   if (upperStrapObject !== undefined) {
-    switch(strapShape) {
-      case 'straight':
-        upperStraightStrap.drawUpperStrap();
-        break;
-      case 'taper':
-        upperTaperStrap.drawUpperStrap();
-        break;
-    }
+    callDrawUpperStrap();
   }
   if (lowerStrapObject !== undefined) {
-    switch(strapShape) {
-      case 'straight':
-        lowerStraightStrap.drawLowerStrap();
-        break;
-      case 'taper':
-        lowerTaperStrap.drawLowerStrap();
-        break;
-    }
+    callDrawLowerStrap();
   }
   // 重なり順を直す
-  caseStackingOrder();
-  // ラグ幅を入力できるようにする
+  stackingOrder();
+  // ラグ幅を入力可にする
   lugWidthInput.disabled = false;
 });
 
-//* main ケース見切り ----------------------------------------
+//* main canvas ケース見切り ----------------------------------------
 
 // ケース見切りサイズが入力されたらcanvasに描画 ----------------
 caseOpeningSizeInput.addEventListener('input', () => {
+  // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(caseOpeningObject);
-  caseOpeningObject = new WatchCircle({
+  // ケース見切りオブジェクト生成
+  caseOpeningObject = new WatchCircleForMain({
     radius: mmToPixel(caseOpeningSizeInput.value) / 2,
-    left: mainCanvasCenterWidth,
-    top: mainCanvasCenterHeight,
+    fill: 'white',
   });
+  // canvasに描画
   mainCanvas.add(caseOpeningObject);
-  caseStackingOrder();
+  // 重なり順を直す
+  stackingOrder();
 });
 
-//* main 文字盤 ----------------------------------------
+//* main canvas 文字盤 ----------------------------------------
 
 // 文字盤サイズが入力されたらcanvasに描画 ----------------
 dialSizeInput.addEventListener('input', () => {
   // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(dialObject);
-  // dialSizeに値を代入
+  // 変数に値を入れておく
   dialSize = mmToPixel(dialSizeInput.value);
-  // オブジェクト生成
-  dialObject = new WatchCircle({
+  // 文字盤オブジェクト生成
+  dialObject = new WatchCircleForMain({
     radius: dialSize / 2,
-    left: mainCanvasCenterWidth,
-    top: mainCanvasCenterHeight,
     fill: dialColor,
   });
+  // canvasに描画
   mainCanvas.add(dialObject);
   // 数字再描画 ----
   // すでに数字が描かれていたら、再描画する
@@ -465,143 +462,81 @@ dialSizeInput.addEventListener('input', () => {
     barDotLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     drawBarDot();
   }
-  //* test
-  //* すでに針が描かれていたら、再描画する
+  // 針再描画 ----
+  // すでに針が描かれていたら、再描画する
   if (hourHandBodyObject !== undefined) {
-    //*test 拡大倍率を初期値に戻しておく?
-    hourHandScaleY = dialObject.radius / 1.8 / defaultHandLength;
-    minuteSecondHandsScaleY = (dialObject.radius - mmToPixel(3)) / defaultHandLength;
+    // 針長さの拡大倍率を初期値に戻しておく
+    hourHandScaleY = dialObject.radius / defaultHandLength / hourHandScaleYAdjustValue;
+    minuteSecondHandsScaleY = (dialObject.radius - minuteSecondHandsScaleYAdjustValue) / defaultHandLength;
+    // 針たちを描く関数呼び出し
     drawHands();
   }
   // 重なり順を直す
-  caseStackingOrder();
+  stackingOrder();
 });
 
-//* main ラグ ----------------------------------------
-
-// ラグ幅の入力の順番を制限 ----------------
-// 初期値は入力不可
-lugWidthInput.disabled = true;
-// ラグ幅の入力部分をクリックしたときの処理
-lugWidthInput.parentElement.addEventListener('click', () => {
-  // すでにケースが描かれていたら、何もしない
-  if (caseObject !== undefined) {
-    return;
-  }
-  // まだケースが描かれていなければアラートを表示
-  window.alert('先にケース直径を入力してから、ラグ幅を入力してください');
-});
-
-// ラグ幅が入力されたらcanvasに描画 ----------------
-lugWidthInput.addEventListener('input', () => {
-  // lugWidthに値を代入
-  lugWidth = mmToPixel(lugWidthInput.value);
-  // ラグを描く関数呼び出し
-  // ラグの形がまだ選択されていない場合は、lugShapeの初期値 round で描画されることになる
-  switch(lugShape) { 
-    case 'round':
-      roundLug.drawLug();
-      break;
-    case 'square':
-      squareLug.drawLug();
-      break;
-  }
-  // ベルト(再)描画
-  // ラグ幅が変更されたらベルトの幅も変わるので再描画する
-  // すでにベルトが描かれているなら再描画、描かれていないなら何もしない
-  if (upperStrapObject !== undefined) {
-    switch(strapShape) {
-      case 'straight':
-        upperStraightStrap.drawUpperStrap();
-        break;
-      case 'taper':
-        upperTaperStrap.drawUpperStrap();
-        break;
-    }
-  }
-  if (lowerStrapObject !== undefined) {
-    switch(strapShape) {
-      case 'straight':
-        lowerStraightStrap.drawLowerStrap();
-        break;
-      case 'taper':
-        lowerTaperStrap.drawLowerStrap();
-        break;
-    }
-  }
-});
-
-// ラグの形状が選ばれたらcanvasに描画 ----------------
-lugShapeInputs.forEach(lugShapeInput => {
-  lugShapeInput.addEventListener('input', () => {
-    // lugShapeに値を代入
-    lugShape = lugShapeInput.value;
-    // アラートを表示
-    if (caseObject === undefined && lugWidth === undefined) {
-      window.alert('ケース直径とラグ幅を入力するとラグが描かれます');
-      return;
-    }
-    if (lugWidth === undefined) {
-      window.alert('ラグ幅を入力するとラグが描かれます');
-      return;
-    }
-    // ラグを描く関数呼び出し
-    switch(lugShape) {
-      case 'round':
-        roundLug.drawLug();
-        break;
-      case 'square':
-        squareLug.drawLug();
-        break;
-    }
-  });
-});
+//* main canvas ラグ ----------------------------------------
 
 // ラグのクラス ----------------
-//? ラグ4つをグループ化したいがうまくできない
 class WatchLug {
   constructor(url) {
     this.url = url;
+    this.loadingPromises = [];
   }
-  drawLug() {
-    const adjustValue = 1.7; //! 要検討
-    // すでにオブジェクトが描かれていたらcanvasから削除
+  // ラグを描くメソッド ----
+  async drawLug() {
+    const lugPositionAdjustValue = 1.7; //! 要検討
+    // loadingPromises に Promise オブジェクトが入っていたら待機
+    if (this.loadingPromises.length > 0) {
+      return Promise.all(this.loadingPromises).then(() => {
+        // ロード処理が完了した後に何かしらの処理を行う
+      });
+    }
+    // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする
     lugObjects.forEach(lugObject => {
       mainCanvas.remove(lugObject);
     });
+    lugObjects = [];
     // ラグオブジェクト生成
-    //* 位置を計算するときに、直接入力値を使うのか、それともケースオブジェクトのheightなどを使うのか
-    //* ここではケースオブジェクトのプロパティ(caseObject.height)を使っているが、
-    //* heightだけではなくradiusなどもあるし、どれを使うべきか
-    //* 今のところ混在してごちゃごちゃしている
-    for(let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
-      fabric.loadSVGFromURL(this.url, (objects, options) => {
-        lugObjects[i] = fabric.util.groupSVGElements(objects, options);
-        lugObjects[i].set({
-          originX: 'center',
-          left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2,
-          top: mainCanvasCenterHeight - caseObject.height / adjustValue,
-          fill: caseColor,
+    for (let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
+      const loadingPromise = new Promise((resolve) => {
+        fabric.loadSVGFromURL(this.url, (objects, options) => {
+          let lugObject = fabric.util.groupSVGElements(objects, options);
+          lugObject.set({
+            originX: 'center',
+            left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2,
+            top: mainCanvasCenterHeight - caseObject.height / lugPositionAdjustValue,
+            fill: caseColor,
+          });
+          if (i === 1 || i === 3) {
+            lugObject.set({
+              left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2 + lugWidth + defaultLugThickness,
+            });
+          }
+          if(i === 2 || i === 3) {
+            lugObject.set({
+              flipY: true,
+              top: mainCanvasCenterHeight + caseObject.height / lugPositionAdjustValue - defaultLugLength,
+            });
+          }
+          // 配列に追加
+          lugObjects.push(lugObject);
+          // canvasに描画
+          mainCanvas.add(lugObject);
+          // 重なり順を直す
+          stackingOrder();
+          resolve();
         });
-        if (i === 1 || i === 3) {
-          lugObjects[i].set({
-            left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2 + lugWidth + defaultLugThickness,
-          });
-        }
-        if(i === 2 || i === 3) {
-          lugObjects[i].set({
-            flipY: true,
-            top: mainCanvasCenterHeight + caseObject.height / adjustValue - defaultLugLength,
-          });
-        }
-        // canvasに描画
-        mainCanvas.add(lugObjects[i]);
-        // 重なり順を直す
-        caseStackingOrder();
       });
+    this.loadingPromises.push(loadingPromise);
     }
-    //* renderAllは必要なのかどうか
-    // mainCanvas.renderAll();
+    // 全てのロード処理が完了するのを待機
+    return Promise.all(this.loadingPromises).then(() => {
+      // ロード処理が完了した後に何かしらの処理を行う
+    }).finally(() => {
+      // ロード処理が終了したら loadingPromises をクリア
+      this.loadingPromises = [];
+    });
   }
 }
 
@@ -609,37 +544,80 @@ class WatchLug {
 const roundLug = new WatchLug('./assets/lug-round.svg');
 const squareLug = new WatchLug('./assets/lug-square.svg');
 
-//* main リュウズ ----------------------------------------
+// ラグを描く関数 を呼び出す関数 ----------------
+function callDrawLug() {
+  switch(lugShape) { // 初期値は'round'
+    case 'round':
+      roundLug.drawLug();
+      break;
+    case 'square':
+      squareLug.drawLug();
+      break;
+  }
+}
 
-// リュウズの形状が選ばれたらcanvasに描画 ----------------
-crownShapeInputs.forEach(crownShapeInput => {
-  crownShapeInput.addEventListener('input', () => {
-    // crownShapeに値を代入
-    crownShape = crownShapeInput.value;
-    // アラートを表示
-    if (caseObject === undefined) {
-      window.alert('ケース直径を入力するとリュウズが描かれます');
+// ラグ幅が入力されたらcanvasに描画 ----------------
+lugWidthInput.addEventListener('input', () => {
+  // 変数に値を入れておく
+  lugWidth = mmToPixel(lugWidthInput.value);
+  // ラグを描く関数 drawLug  callDrawLug を呼び出す ----
+  callDrawLug();
+  // ベルト再描画 ----
+  // ラグ幅が変更されたらベルトの幅も変わるので再描画する
+  // すでにベルトが描かれているなら再描画、描かれていないなら何もしない
+  if (upperStrapObject !== undefined) {
+    callDrawUpperStrap();
+  }
+  if (lowerStrapObject !== undefined) {
+    callDrawLowerStrap();
+  }
+});
+
+// ラグの形状が選択されたらcanvasに描画 ----------------
+lugShapeInputs.forEach(lugShapeInput => {
+  lugShapeInput.addEventListener('input', () => {
+    // 変数に値を入れておく
+    lugShape = lugShapeInput.value;
+    // ケースオブジェクトがまだなく、ラグ幅もまだ入力されていない場合はここでリターン
+    if (caseObject === undefined && lugWidth === undefined) {
+      window.alert('ケース直径とラグ幅を入力するとラグが描かれます');
       return;
     }
-    // リュウズを描く関数呼び出し
-    switch(crownShape) {
-      case 'round':
-        roundCrown.drawCrown();
-        break;
-      case 'square':
-        squareCrown.drawCrown();
-        break;
+    // ラグ幅がまだ入力されていない場合はここでリターン
+    if (lugWidth === undefined) {
+      window.alert('ラグ幅を入力するとラグが描かれます');
+      return;
     }
+    // ラグを描く関数 を呼び出す関数 を呼び出し
+    callDrawLug();
   });
 });
+
+// ラグ幅の入力の順番を制限 ----------------
+// 初期は入力不可
+lugWidthInput.disabled = true;
+// ラグ幅の入力部分をクリックしたときの処理
+lugWidthInput.parentElement.addEventListener('click', () => {
+  // すでにケースが描かれていたら、何もしない
+  if (caseObject !== undefined) {
+    return;
+  }
+  // ケースオブジェクトがまだない場合はアラートを表示
+  window.alert('先にケース直径を入力してから、ラグ幅を入力してください');
+});
+
+//* main canvas リュウズ ----------------------------------------
 
 // リュウズのクラス ----------------
 class WatchCrown {
   constructor(url) {
     this.url = url;
   }
+  // リュウズを描くメソッド ----
   drawCrown() {
+    // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(crownObject);
+    // リュウズオブジェクト生成
     fabric.loadSVGFromURL(this.url, (objects, options) => {
       crownObject = fabric.util.groupSVGElements(objects, options);
       crownObject.set({
@@ -648,15 +626,44 @@ class WatchCrown {
         top: mainCanvasCenterHeight,
         fill: caseColor,
       });
+      // canvasに描画
       mainCanvas.add(crownObject);
     });
   }
 }
+
 // リュウズのインスタンス生成 ----------------
 const roundCrown = new WatchCrown('./assets/crown-round_re.svg');
 const squareCrown = new WatchCrown('./assets/crown-square_re.svg');
 
-//* main ケース色 ----------------------------------------
+// リュウズを描く関数 を呼び出す関数 ----------------
+function callDrawCrown() {
+  switch(crownShape) {
+    case 'round':
+      roundCrown.drawCrown();
+      break;
+    case 'square':
+      squareCrown.drawCrown();
+      break;
+  }
+}
+
+// リュウズの形状が選択されたらcanvasに描画 ----------------
+crownShapeInputs.forEach(crownShapeInput => {
+  crownShapeInput.addEventListener('input', () => {
+    // 変数に値を入れておく
+    crownShape = crownShapeInput.value;
+    // ケースオブジェクトがまだない場合はここでリターン
+    if (caseObject === undefined) {
+      window.alert('ケース直径を入力するとリュウズが描かれます');
+      return;
+    }
+    // リュウズを描く関数 を呼び出す関数 を呼び出し
+    callDrawCrown();
+  });
+});
+
+//* main canvas ケース色 ----------------------------------------
 
 // グラデーションクラス ----------------
 class Gradation extends fabric.Gradient {
@@ -667,6 +674,8 @@ class Gradation extends fabric.Gradient {
     this.coords = { x1: 0, y1: 0, x2: 1, y2: 0 };
   }
 }
+
+// グラデーションインスタンス生成 ----------------
 const goldGradation = new Gradation({
   colorStops:[
     { offset: 0, color: 'rgb(238,215,71)'},
@@ -689,43 +698,13 @@ const pinkGoldGradation = new Gradation({
   ]
 });
 
-// 色が選択されたら、ケース(とラグとリュウズとバックル)に色をつける関数呼び出し ----------------
-// 色が選択されたとき、オブジェクトがすでにあれば色を付ける
-// オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色を付ける
-caseColorInputs.forEach(caseColorInput => {
-  caseColorInput.addEventListener('input', () => {
-    // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
-    switch(caseColorInput.value) {
-      case 'gold':
-        caseColor = goldGradation;
-        break;
-      case 'silver':
-        caseColor = silverGradation;
-        break;
-      case 'pink-gold':
-        caseColor = pinkGoldGradation;
-        break;
-      case 'custom-color':
-        caseColor = caseColorPicker.value;
-        break;
-    }
-    //* ケースさえもまだ描かれていない(色を付けるオブジェクトがまだ何もない)場合は、アラートを表示
-    if (caseObject === undefined) {
-      window.alert('ケース直径などを入力すると、選択した色がつきます');
-      return;
-    }
-    // オブジェクトに色をつける関数呼び出し
-    // オブジェクトの有無は呼び出し先の関数で判定
-    applyCaseColor();
-  });
-});
-
 // ケース(とラグとリュウズとバックル)に色をつける関数 ----------------
 function applyCaseColor() {
-  // caseObjectの有無は、呼び出し元で判定済みなのでここでは判定不要
-  caseObject.set({
-    fill: caseColor,
-  });
+  if (caseObject !== undefined) {
+    caseObject.set({
+      fill: caseColor,
+    });
+  }
   if (crownObject !== undefined) {
     crownObject.set({
       fill: caseColor,
@@ -745,155 +724,234 @@ function applyCaseColor() {
       });
     });
   }
-  //* ここでrenderAllを書かないと、オブジェクトを生成し直さないと色が変わらない
-  //* setで値を変更したとき、オブジェクトにすぐに反映させたい場合はrenderAllが必要てことかな
-  //* メソッドで値を変えた時は不要で、setでプロパティを変えた時はrenderALlが必要?
+  // ここでrenderAllを書かなかった場合、オブジェクトを生成し直さないと色が変わらない
+  // rotate()などのメソッドで値を変えた時は不要で、setでプロパティを変えた時はrenderALlが必要かと思われる
+  // ただしrenderAllはcanvas上の全てのオブジェクトを再描画するため、パフォーマンスの面では注意が必要
   mainCanvas.renderAll();
 }
 
-//* main strap -----------------------------------------------------------------------------------
+// 色が選択されたら、ケース(とラグとリュウズとバックル)に色をつける関数呼び出し ----------------
+// 色が選択されたとき、オブジェクトがすでにあれば色をつける
+// オブジェクトがまだなければ色を保持しておいて、オブジェクトが生成されたときに色をつける
+caseColorInputs.forEach(caseColorInput => {
+  caseColorInput.addEventListener('input', () => {
+    // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
+    switch(caseColorInput.value) {
+      case 'gold':
+        caseColor = goldGradation;
+        break;
+      case 'silver':
+        caseColor = silverGradation;
+        break;
+      case 'pink-gold':
+        caseColor = pinkGoldGradation;
+        break;
+      case 'custom-color':
+        caseColor = caseColorPicker.value;
+        break;
+    }
+    // ケースオブジェクトさえもまだない(色をつけるオブジェクトがまだ何もない)場合はここでリターン
+    if (caseObject === undefined) {
+      window.alert('ケース直径などを入力すると、選択した色がつきます');
+      return;
+    }
+    // オブジェクトに色をつける関数呼び出し
+    // オブジェクトの有無は呼び出し先の関数で判定
+    applyCaseColor();
+  });
+});
+
+//* ベルトタブ ----------------------------------------------------------------------------------------
 
 // 変数定義 ----------------------------------------
 
-// ベルト本体
-let strapWidth;
+// オブジェクト
 let upperStrapObject;
 let lowerStrapObject;
-let strapShape = 'taper'; // 初期値
-let inputStrapColor = 'white'; // 初期値
-// ベルトサイズ
-const defaultStrapWidth = mmToPixel(16); // 用意したSVGのベルト幅
-const defaultUpperStrapLength = mmToPixel(70); // 用意したSVGのベルト長さ
-const defaultLowerStrapLength = mmToPixel(110); // 用意したSVGのベルト長さ
-// ベルトループ
 let fixedStrapLoopObject;
 let moveableStrapLoopObject;
-// ベルト穴
 let strapHoleObjects = [];
-let strapHoleQuantity; // ベルト穴の個数 初期値なし
-let strapHoleDistance; // ベルト穴の間隔 初期値なし
-let countDistance = 0; // 一番下の穴からどれくらい移動するかを保持する変数
-// ステッチ
 let upperStrapStitchObject;
 let lowerStrapStitchObject;
 let topStitchObject;
-let strapStitchExist = false; // ストラップ有無 初期値はfalse
-// バックル
 let buckleObject;
+
+// サイズ・形状・色など
+let strapWidth;
+const defaultStrapWidth = mmToPixel(16); // 用意したSVGのベルト幅
+const defaultUpperStrapLength = mmToPixel(70); // 用意したSVGのベルト長さ
+const defaultLowerStrapLength = mmToPixel(110); // 用意したSVGのベルト長さ
+let strapShape = 'taper';
+let strapColor = 'white';
+let strapHoleQuantity; // ベルト穴の個数
+let strapHoleDistance; // ベルト穴の間隔
+let strapHoleCountDistance = 0; // 一番下の穴からどれくらい移動するかを保持する変数
+let strapStitchExist = false; // ステッチの有無 初期値はfalse
 let buckleShape;
+
 // Node
 const upperStrapLengthInput = document.getElementById('upper-strap-length');
 const lowerStrapLengthInput = document.getElementById('lower-strap-length');
 
-//* main ベルト本体 ----------------------------------------
+//* main canvas ベルト本体 ----------------------------------------
 
 // ベルト本体のクラス ----------------
-// 上ベルトクラス
+// 上ベルトクラス ----
 class WatchUpperStrap {
   constructor(url) {
     this.url = url;
+    // ロード処理の状態を管理する変数を準備 初期値は null
+    this.loadingPromise = null;
   }
+  // 上ベルトを描くメソッド ----
   drawUpperStrap() {
+    // ロード処理の状態をチェックする
+    // 初回は loadingPromise は null なので、if文の中には進まず、ロード処理へと進む
+    // 2回目以降で、ロード処理がまだ実行中の場合は、loadingPromise が
+    // null ではない(Promiseオブジェクトが入っている)のでif文の中に進み、待機状態に入る
+    if (this.loadingPromise) {
+      // loadingPromise に対して .then() メソッドを呼び出す
+      // then メソッドは、Promise の状態が Fulfilled（解決済み）になったときに、指定したコールバック関数を実行する
+      // この場合、this.loadingPromise の状態が Fulfilled になったら、this.drawUpperStrap() メソッドを実行する
+      // return 文は、メソッド内で値を返す際に使用されるだけでなく、非同期処理の制御フローを制御するためにも使用される
+      // この場合、return 文によって現在のメソッドの実行が一時停止され、Promise の解決を待つことで非同期処理の順序を制御している
+      return this.loadingPromise.then(() => {
+        this.drawUpperStrap();
+      });
+    }
     // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(upperStrapObject);
-    // SVGファイル読み込み
-    fabric.loadSVGFromURL(this.url, (objects, options) =>{
-      upperStrapObject = fabric.util.groupSVGElements(objects, options);
-      strapWidth = lugWidth;
-      upperStrapObject.set({
-        originX: 'center',
-        originY: 'bottom',
-        fill: inputStrapColor,
-        left: mainCanvasCenterWidth,
-        // strapを描く位置(高さ)を、ケースの位置から取得する
-        top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
-        // 入力値にあわせて幅と長さを拡大縮小
-        scaleX: strapWidth / defaultStrapWidth,
-        scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
-        // 線幅を保つ
-        strokeUniform: true,
+    // 新しい Promise を作成
+    // この Promise は fabric.loadSVGFromURL() のコールバック関数内で解決される
+    this.loadingPromise = new Promise((resolve, reject) => {
+      // ロード処理
+      fabric.loadSVGFromURL(this.url, (objects, options) => {
+        upperStrapObject = fabric.util.groupSVGElements(objects, options);
+        strapWidth = lugWidth;
+        upperStrapObject.set({
+          originX: 'center',
+          originY: 'bottom',
+          fill: strapColor,
+          left: mainCanvasCenterWidth,
+          top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
+          scaleX: strapWidth / defaultStrapWidth,
+          scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
+          strokeUniform: true,
+        });
+        // canvasに描画
+        mainCanvas.add(upperStrapObject);
+        // ステッチ再描画 ----
+        if (strapStitchExist === true) {
+          switch(strapShape) {
+            case 'straight':
+              upperStraightStitch.drawUpperStitch();
+              break;
+            case 'taper':
+              upperTaperStitch.drawUpperStitch();
+              break;
+          }
+        }
+        // ループ再描画 ----
+        drawStrapLoop();
+        // バックル再描画 ----
+        // バックルがまだ描かれていなくても、すでにバックル形状が選択されているなら描画する
+        // すでにバックルが描かれている場合は、条件式に当てはまるので再描画することになる
+        // バックルがまだ描かれておらず、バックル形状が選択されていないなら何もしない
+        if (buckleShape !== undefined) {
+          switch(buckleShape) {
+            case 'round':
+              roundBuckle.drawBuckle();
+              break;
+            case 'square':
+              squareBuckle.drawBuckle();
+              break;
+          }
+        }
+        // canvasに描画されたら、次のロード処理に進んで良いことになるので、
+        // ロード処理の状態を管理する変数をnullに戻す
+        // これにより次のロード処理を許可する
+        // 内部の状態変数をリセットし、次の非同期処理の準備をする役割
+        console.log(this.loadingPromise);
+        this.loadingPromise = null;
+        // resolve() がでてくるまでは次の処理に進まない
+        // resolve() を呼び出すことで、Promise の状態が Fulfilled（解決済み）になる
+        // これにより、this.loadingPromise の then() メソッド内で指定したコールバック関数が実行され、次の非同期処理が開始される
+        // Promise を解決して次の処理を進めるシグナルを送る役割
+        resolve();
+        console.log(this.loadingPromise);
       });
-      // canvasに描画
-      mainCanvas.add(upperStrapObject);
-      // ステッチ(再)描画
-      if (strapStitchExist === true) {
-        switch(strapShape) {
-          case 'straight':
-            upperStraightStitch.drawUpperStitch();
-            break;
-          case 'taper':
-            upperTaperStitch.drawUpperStitch();
-            break;
-        }
-      }
-      // ループ(再)描画 ----
-      drawStrapLoop();
-      // バックル再描画 ----
-      // バックルがまだ描かれていなくても、すでにバックル形状が選択されているなら描画する
-      // すでにバックルが描かれている場合は、条件式に当てはまるので再描画することになる
-      // バックルがまだ描かれておらず、バックル形状が選択されていないなら何もしない
-      if (buckleShape !== undefined) {
-        switch(buckleShape) {
-          case 'round':
-            roundBuckle.drawBuckle();
-            break;
-          case 'square':
-            squareBuckle.drawBuckle();
-            break;
-        }
-      }
     });
+    // this.loadingPromise を返す
+    // つまり、このメソッドを呼び出した際には、this.loadingPromise (ロード処理の状態) を受け取ることができる
+    // これにより、次の drawUpperStrap() 呼び出し時に待機状態に入る
+    return this.loadingPromise;
   }
 }
-// 下ベルトクラス
+// 下ベルトクラス ----
 class WatchLowerStrap {
   constructor(url) {
     this.url = url;
+    this.loadingPromise = null;
   }
+  // 下ベルトを描くメソッド ----
   drawLowerStrap() {
+    if (this.loadingPromise) {
+      return this.loadingPromise.then(() => {
+        this.drawLowerStrap();
+      });
+    }
     // すでにオブジェクトが描かれていたらcanvasから削除
     mainCanvas.remove(lowerStrapObject);
-    // SVGファイル読み込み
-    fabric.loadSVGFromURL(this.url, (objects, options) =>{
-      lowerStrapObject = fabric.util.groupSVGElements(objects, options);
-      strapWidth = lugWidth;
-      lowerStrapObject.set({
-        originX: 'center',
-        fill: inputStrapColor,
-        left: mainCanvasCenterWidth,
-        // strapを描く位置(高さ)を、ケースの位置から取得する
-        top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
-        // 入力値にあわせて幅と長さを拡大縮小
-        scaleX: strapWidth / defaultStrapWidth,
-        scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
-        // 線幅を保つ
-        strokeUniform: true,
-      });
-      // canvasに描画
-      mainCanvas.add(lowerStrapObject);
-      // ステッチ(再)描画
-      if (strapStitchExist === true) {
-        switch(strapShape) {
-          case 'straight':
-            lowerStraightStitch.drawLowerStitch();
-            break;
-          case 'taper':
-            lowerTaperStitch.drawLowerStitch();
-            break;
+
+    // 新しい Promise を作成
+    this.loadingPromise = new Promise((resolve, reject) => {
+      // ロード処理
+      fabric.loadSVGFromURL(this.url, (objects, options) => {
+        lowerStrapObject = fabric.util.groupSVGElements(objects, options);
+        strapWidth = lugWidth;
+        lowerStrapObject.set({
+          originX: 'center',
+          fill: strapColor,
+          left: mainCanvasCenterWidth,
+          // strapを描く位置(高さ)を、ケースの位置から取得する
+          top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
+          // 入力値にあわせて幅と長さを拡大縮小
+          scaleX: strapWidth / defaultStrapWidth,
+          scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
+          // 線幅を保つ
+          strokeUniform: true,
+        });
+        // canvasに描画
+        mainCanvas.add(lowerStrapObject);
+        // ステッチ再描画
+        if (strapStitchExist === true) {
+          switch(strapShape) {
+            case 'straight':
+              lowerStraightStitch.drawLowerStitch();
+              break;
+            case 'taper':
+              lowerTaperStitch.drawLowerStitch();
+              break;
+          }
         }
-      }
-      // ベルト穴(再)描画 ----
-      // ベルト穴がまだ描かれていなくても、すでにベルト穴個数と間隔が両方選択されているなら描画する
-      // すでにベルト穴が描かれている場合は、条件式に当てはまるので再描画することになる
-      // ベルト穴がまだ描かれておらず、ベルト穴個数と間隔どちらかが選択されていないなら何もしない
-      if (strapHoleQuantity !== undefined && strapHoleDistance !== undefined) {
-        drawStrapHoles();
-      }
+        // ベルト穴再描画 ----
+        // ベルト穴がまだ描かれていなくても、すでにベルト穴個数と間隔が両方選択されているなら描画する
+        // すでにベルト穴が描かれている場合は、条件式に当てはまるので再描画することになる
+        // ベルト穴がまだ描かれておらず、ベルト穴個数と間隔どちらかが選択されていないなら何もしない
+        if (strapHoleQuantity !== undefined && strapHoleDistance !== undefined) {
+          drawStrapHoles();
+        }
+        // ロード処理の状態を管理する変数をnullに戻す
+        this.loadingPromise = null;
+        // resolve() を呼び出すことで、Promise の状態が Fulfilled（解決済み）になる
+        resolve();
+      });
     });
     // loadSVGFromURLは非同期処理である事に注意
     // {}外はloadSVGFromURLのコールバック関数外なので、SVGの読み込みより前に実行される可能性がある
     // そのためここに書いた処理が行われるとき、まだlowerStrapObjectは存在していない
     // よってlowerStrapObjectを使うような処理は{}内に書くこと
+    return this.loadingPromise;
   }
 }
 
@@ -903,33 +961,8 @@ const upperTaperStrap = new WatchUpperStrap('./assets/upper-taper-strap.svg');
 const lowerStraightStrap = new WatchLowerStrap('./assets/lower-straight-strap.svg');
 const lowerTaperStrap = new WatchLowerStrap('./assets/lower-taper-strap.svg');
 
-// ベルトの形状が入力されたら、ベルト本体を描く関数呼び出し ----------------
-strapShapeInputs.forEach(strapShapeInput => {
-  strapShapeInput.addEventListener('input', () => {
-    // 変数に値を代入
-    strapShape = strapShapeInput.value;
-    // ストラップがまだ無い場合はここでリターン
-    if(upperStrapObject === undefined || lowerStrapObject === undefined) {
-      alert('ベルトの長さを上側下側両方入力すると、選択した形のベルトが描かれます');
-      return;
-    }
-    // ベルトを描く関数呼び出し
-    switch(strapShape) {
-      case 'straight':
-        upperStraightStrap.drawUpperStrap();
-        lowerStraightStrap.drawLowerStrap();
-        break;
-      case 'taper':
-        upperTaperStrap.drawUpperStrap();
-        lowerTaperStrap.drawLowerStrap();
-        break;
-    }
-  });
-});
-
-// ベルトの長さが入力されたら、ベルト本体を描く関数呼び出し ----------------
-// 上ベルト本体
-upperStrapLengthInput.addEventListener('input', () => {
+// ベルトを描く関数 を呼び出す関数 ----------------
+function callDrawUpperStrap() {
   switch(strapShape) {
     case 'straight':
       upperStraightStrap.drawUpperStrap();
@@ -938,9 +971,8 @@ upperStrapLengthInput.addEventListener('input', () => {
       upperTaperStrap.drawUpperStrap();
       break;
   }
-});
-// 下ベルト本体
-lowerStrapLengthInput.addEventListener('input', () => {
+}
+function callDrawLowerStrap() {
   switch(strapShape) {
     case 'straight':
       lowerStraightStrap.drawLowerStrap();
@@ -949,22 +981,49 @@ lowerStrapLengthInput.addEventListener('input', () => {
       lowerTaperStrap.drawLowerStrap();
       break;
   }
+}
+
+// ベルトの長さが入力されたらcanvasに描画 ----------------
+// 上ベルト本体
+upperStrapLengthInput.addEventListener('input', () => {
+  // 上ベルトを描く関数を呼び出す関数 を呼び出し
+  callDrawUpperStrap();
+});
+// 下ベルト本体
+lowerStrapLengthInput.addEventListener('input', () => {
+  // 下ベルトを描く関数を呼び出す関数 を呼び出し
+  callDrawLowerStrap();
 });
 
-//* main ベルトループ ----------------------------------------
+// ベルトの形状が選択されたらcanvasに描画 ----------------
+strapShapeInputs.forEach(strapShapeInput => {
+  strapShapeInput.addEventListener('input', () => {
+    // 変数に値を入れておく
+    strapShape = strapShapeInput.value;
+    // ストラップオブジェクトがまだない場合はここでリターン
+    if(upperStrapObject === undefined || lowerStrapObject === undefined) {
+      alert('ベルトの長さを上側下側両方入力すると、選択した形のベルトが描かれます');
+      return;
+    }
+    callDrawUpperStrap();
+    callDrawLowerStrap();
+  });
+});
+
+//* main canvas ベルトループ ----------------------------------------
 
 // ループを描く関数 ----------------
 function drawStrapLoop() {
   // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(fixedStrapLoopObject);
   mainCanvas.remove(moveableStrapLoopObject);
-  // ループオブジェクトを生成
+  // ループオブジェクト生成
   // 固定ループ ----
   fixedStrapLoopObject = new fabric.Rect({
     width: strapWidth + mmToPixel(2),
     height: mmToPixel(5),
     originX: 'center',
-    fill: inputStrapColor,
+    fill: strapColor,
     left: mainCanvasCenterWidth,
     top: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(8),
     stroke: 'black',
@@ -985,14 +1044,46 @@ function drawStrapLoop() {
   mainCanvas.add(moveableStrapLoopObject);
 }
 
-//* main ベルト穴 ----------------------------------------
+//* main canvas ベルト穴 ----------------------------------------
 
-// ベルト穴個数が選択されたら、ベルト穴を描く関数を呼び出し ----------------
+// ベルト穴を描く関数 ----------------
+function drawStrapHoles() {
+  // すでにオブジェクトが描かれていたらcanvasから削除
+  strapHoleObjects.forEach(strapHoleObject => {
+    mainCanvas.remove(strapHoleObject);
+  });
+  // canvasから取り除いても配列内にはオブジェクトが残ったままなので、
+  // 前回分もあわせた、例えば14個のオブジェクトが描画されてしまう
+  // よってここで配列を空にしておく
+  strapHoleObjects = [];
+  // ベルト穴オブジェクト生成
+  for(let i = 0; i < strapHoleQuantity ; i++) {
+    const strapHoleObject = new fabric.Circle({
+      radius: mmToPixel(0.75),
+      originX: 'center',
+      originY: 'center',
+      left: mainCanvasCenterWidth,
+      top: lowerStrapObject.top + (lowerStrapObject.height * mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength) - mmToPixel(25) - strapHoleCountDistance,
+      stroke: 'black',
+      fill: 'white',
+    });
+    strapHoleObjects.push(strapHoleObject);
+    strapHoleCountDistance += strapHoleDistance;
+  }
+  // canvasに描画
+  strapHoleObjects.forEach(strapHoleObject => {
+    mainCanvas.add(strapHoleObject);
+  });
+  // 一番下の穴からどれくらい移動するかを保持する変数を0に戻す
+  strapHoleCountDistance = 0;
+}
+
+// ベルト穴個数が選択されたらcanvasに描画 ----------------
 strapHoleQuantityInputs.forEach(strapHoleQuantityInput => {
   strapHoleQuantityInput.addEventListener('input', () => {
-    // 変数に値を代入
+    // 変数に値を入れておく
     strapHoleQuantity = parseInt(strapHoleQuantityInput.value);
-    // 下ストラップがまだ無い場合はここでリターン
+    // 下ストラップオブジェクトがまだない場合はここでリターン
     if(lowerStrapObject === undefined) {
       alert('ベルト長さ(下側)を入力するとベルト穴が描かれます');
       return;
@@ -1006,12 +1097,12 @@ strapHoleQuantityInputs.forEach(strapHoleQuantityInput => {
   });
 });
 
-// ベルト穴間隔が選択されたら、ベルト穴を描く関数を呼び出し ----------------
+// ベルト穴間隔が選択されたらcanvasに描画 ----------------
 strapHoleDistanceInputs.forEach(holeDistanceInput => {
   holeDistanceInput.addEventListener('input', () => {
-    // 変数に値を代入
+    // 変数に値を入れておく
     strapHoleDistance = mmToPixel(parseInt(holeDistanceInput.value));
-    /// 下ストラップがまだ無い場合はここでリターン
+    // 下ストラップオブジェクトがまだない場合はここでリターン
     if(lowerStrapObject === undefined) {
       alert('ベルト長さ(下側)を入力するとベルト穴が描かれます');
       return;
@@ -1025,52 +1116,156 @@ strapHoleDistanceInputs.forEach(holeDistanceInput => {
   });
 });
 
-// ベルト穴を描く関数 ----------------
-function drawStrapHoles() {
-  // すでにオブジェクトが描かれていたらcanvasから削除
-  strapHoleObjects.forEach(strapHoleObject => {
-    mainCanvas.remove(strapHoleObject);
-  });
-  // canvasから取り除いても配列内にはオブジェクトが残ったままなので、
-  // 前回分もあわせた、例えば14個のオブジェクトが描画されてしまう
-  // よってここで配列を空にしておく
-  strapHoleObjects = [];
-  // ベルト穴オブジェクトを生成
-  for(let i = 0; i < strapHoleQuantity ; i++) {
-    const strapHoleObject = new fabric.Circle({
-      radius: mmToPixel(0.75),
-      originX: 'center',
-      originY: 'center',
-      left: mainCanvasCenterWidth,
-      top: lowerStrapObject.top + (lowerStrapObject.height * mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength) - mmToPixel(25) - countDistance,
-      stroke: 'black',
-      fill: 'white',
-    });
-    strapHoleObjects.push(strapHoleObject);
-    countDistance += strapHoleDistance;
+//* main canvas ベルトステッチ ----------------------------------------
+
+// ステッチのクラス ----------------
+// 上ベルトステッチクラス ----
+class WatchUpperStitch {
+  constructor(url) {
+    this.url = url;
+    this.loadingPromise = null;
   }
-  // ベルト穴オブジェクトを描画
-  strapHoleObjects.forEach(strapHoleObject => {
-    mainCanvas.add(strapHoleObject);
-  });
-  // 一番下の穴からどれくらい移動するかを保持する変数を0に戻す
-  countDistance = 0;
+  drawUpperStitch() {
+    if (this.loadingPromise) {
+      return this.loadingPromise.then(() => {
+        this.drawUpperStitch();
+      });
+    }
+    // すでにオブジェクトが描かれていたらcanvasから削除
+    mainCanvas.remove(upperStrapStitchObject);
+    mainCanvas.remove(topStitchObject);
+    // 上ベルトステッチオブジェクト生成
+    // 基本はupperStrapObjectと同じで、位置の調整と点線に変更
+    this.loadingPromise = new Promise((resolve, reject) => {
+      fabric.loadSVGFromURL(this.url, (objects, options) => {
+        upperStrapStitchObject = fabric.util.groupSVGElements(objects, options);
+        strapWidth = lugWidth;
+        upperStrapStitchObject.set({
+          originX: 'center',
+          originY: 'bottom',
+          left: mainCanvasCenterWidth,
+          // strapを描く位置(高さ)を、ケースの位置から取得する 3mm上に移動する
+          top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
+          // 入力値にあわせて幅と長さを拡大縮小
+          scaleX: strapWidth / defaultStrapWidth,
+          scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
+          // 線幅を保つ
+          strokeUniform: true,
+          // 点線にする
+          strokeDashArray: [8, 2],
+        });
+        // canvasに描画
+        mainCanvas.add(upperStrapStitchObject);
+        // 重なり順を直す ステッチよりループが上にくるように
+        if (fixedStrapLoopObject !== undefined) {
+          fixedStrapLoopObject.bringToFront();
+        }
+        if (moveableStrapLoopObject !== undefined) {
+          moveableStrapLoopObject.bringToFront();
+        }
+        // バックル近くのステッチオブジェクト生成
+        topStitchObject = new fabric.Polyline([
+          {
+            x: mainCanvasCenterWidth - strapWidth / 2 + mmToPixel(2.5),
+            y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
+          },
+          {
+            x: mainCanvasCenterWidth + strapWidth / 2 - mmToPixel(2.5),
+            y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
+          }],
+          {
+            stroke: 'black',
+            strokeDashArray: [8, 2],
+          }
+        );
+        // ベルト形状がストレートの場合、バックル近くのステッチオブジェクトの幅を長くする
+        if (strapShape === 'straight') {
+          topStitchObject.set({
+            points: [
+              {
+                x: mainCanvasCenterWidth - strapWidth / 2 + mmToPixel(1.5),
+                y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
+              },
+              {
+                x: mainCanvasCenterWidth + strapWidth / 2 - mmToPixel(1.5),
+                y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
+              }
+            ]
+          });
+        }
+        // canvasに描画
+        mainCanvas.add(topStitchObject);
+        // 次のロード処理を許可する
+        this.loadingPromise = null;
+        resolve();
+      });
+    });
+    // this.loadingPromise を返す
+    return this.loadingPromise;
+  }
+}
+// 下ベルトステッチクラス ----
+class WatchLowerStitch {
+  constructor(url) {
+    this.url = url;
+    this.loadingPromise = null;
+  }
+  drawLowerStitch() {
+    if (this.loadingPromise) {
+      return this.loadingPromise.then(() => {
+        this.drawLowerStitch();
+      });
+    }
+    // すでにオブジェクトが描かれていたらcanvasから削除
+    mainCanvas.remove(lowerStrapStitchObject);
+    // 下ベルトステッチオブジェクト生成
+    this.loadingPromise = new Promise((resolve, reject) => {
+      fabric.loadSVGFromURL(this.url, (objects, options) => {
+        lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
+        strapWidth = lugWidth;
+        lowerStrapStitchObject.set({
+          originX: 'center',
+          left: mainCanvasCenterWidth,
+          // strapを描く位置(高さ)を、ケースの位置から取得する 3mm下に移動する
+          top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
+          // 入力値にあわせて幅と長さを拡大縮小
+          scaleX: strapWidth / defaultStrapWidth,
+          scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
+          // 線幅を保つ
+          strokeUniform: true,
+          // 点線にする
+          strokeDashArray: [8, 2],
+        });
+        // canvasに描画
+        mainCanvas.add(lowerStrapStitchObject);
+        // ロード処理の状態を管理する変数をnullに戻す
+        this.loadingPromise = null;
+        // resolve() を呼び出すことで、Promise の状態が Fulfilled（解決済み）になる
+        resolve();
+      });
+    });
+    return this.loadingPromise;
+  }
 }
 
-//* main ベルトステッチ ----------------------------------------
+// ステッチのインスタンス生成 ----------------
+const upperStraightStitch = new WatchUpperStitch('./assets/upper-straight-stitch.svg');
+const upperTaperStitch = new WatchUpperStitch('./assets/upper-taper-stitch.svg');
+const lowerStraightStitch = new WatchLowerStitch('./assets/lower-straight-stitch.svg');
+const lowerTaperStitch = new WatchLowerStitch('./assets/lower-taper-stitch.svg');
 
-// ステッチの有無が選択されたら、ステッチを描く関数を呼び出し ----------------
+// ステッチの有無が選択されたらcanvasに描画 ----------------
 strapStitchInputs.forEach(stitchInput => {
   stitchInput.addEventListener('input', () => {
-    // ステッチの有無を変数に代入 inputする前の初期値はfalse
+    // 変数に値を入れておく inputする前の初期値はfalse
     strapStitchExist = stitchInput.value;
     if (strapStitchExist === 'true') {
       strapStitchExist = true;
     } else {
       strapStitchExist = false;
     }
-    // 上下両方もしくはどちらかのストラップがまだ無い場合はここでリターン
-    // 上下両方のストラップがなければ、ステッチを描く関数は呼ばれない
+    // 上下両方もしくはどちらかのストラップオブジェクトがまだない場合はここでリターン
+    // 上下両方のストラップオブジェクトがある場合だけ、ステッチを描く関数が呼ばれる
     if (upperStrapObject === undefined || lowerStrapObject === undefined) {
       alert('ベルトの長さを上側下側両方入力すると、ステッチが描かれます');
       return;
@@ -1097,117 +1292,7 @@ strapStitchInputs.forEach(stitchInput => {
   });
 });
 
-// ステッチのクラス ----------------
-// 上ベルトステッチクラス ----
-class WatchUpperStitch {
-  constructor(url) {
-    this.url = url;
-  }
-  drawUpperStitch() {
-    // すでにオブジェクトが描かれていたらcanvasから削除
-    mainCanvas.remove(upperStrapStitchObject);
-    mainCanvas.remove(topStitchObject);
-    // 上ベルトステッチ生成
-    // 基本はlowerStrapObjectと同じで、位置の調整と点線に変更
-    fabric.loadSVGFromURL(this.url, (objects, options) =>{
-      upperStrapStitchObject = fabric.util.groupSVGElements(objects, options);
-      strapWidth = lugWidth;
-      upperStrapStitchObject.set({
-        originX: 'center',
-        originY: 'bottom',
-        left: mainCanvasCenterWidth,
-        // strapを描く位置(高さ)を、ケースの位置から取得する 3mm上に移動する
-        top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
-        // 入力値にあわせて幅と長さを拡大縮小
-        scaleX: strapWidth / defaultStrapWidth,
-        scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
-        // 線幅を保つ
-        strokeUniform: true,
-        // 点線に
-        strokeDashArray: [8, 2],
-      });
-      // canvasに描画
-      mainCanvas.add(upperStrapStitchObject);
-      // 重なり順を直す ステッチよりループが上にくるように
-      if (fixedStrapLoopObject !== undefined) {
-        fixedStrapLoopObject.bringToFront();
-      }
-      if (moveableStrapLoopObject !== undefined) {
-        moveableStrapLoopObject.bringToFront();
-      }
-    });
-    // バックル近くのステッチ生成
-    topStitchObject = new fabric.Polyline([
-      {
-        x: mainCanvasCenterWidth - strapWidth / 2 + mmToPixel(2.5),
-        y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
-      },
-      {
-        x: mainCanvasCenterWidth + strapWidth / 2 - mmToPixel(2.5),
-        y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
-      }],
-      {
-        stroke: 'black',
-        strokeDashArray: [8, 2],
-      }
-    );
-    // ベルト形状がストレートの場合、バックル近くのステッチの幅を長くする
-    if (strapShape === 'straight') {
-      topStitchObject.set({
-        points: [
-          {
-            x: mainCanvasCenterWidth - strapWidth / 2 + mmToPixel(1.5),
-            y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
-          },
-          {
-            x: mainCanvasCenterWidth + strapWidth / 2 - mmToPixel(1.5),
-            y: upperStrapObject.top - mmToPixel(upperStrapLengthInput.value) + mmToPixel(6)
-          }
-        ]
-      });
-    }
-    // canvasに描画
-    mainCanvas.add(topStitchObject);
-  }
-}
-// 下ベルトステッチクラス ----
-class WatchLowerStitch {
-  constructor(url) {
-    this.url = url;
-  }
-  drawLowerStitch() {
-    // すでにオブジェクトが描かれていたらcanvasから削除
-    mainCanvas.remove(lowerStrapStitchObject);
-    // 下ベルトステッチ生成
-    fabric.loadSVGFromURL(this.url, (objects, options) =>{
-      lowerStrapStitchObject = fabric.util.groupSVGElements(objects, options);
-      strapWidth = lugWidth;
-      lowerStrapStitchObject.set({
-        originX: 'center',
-        left: mainCanvasCenterWidth,
-        // strapを描く位置(高さ)を、ケースの位置から取得する 3mm下に移動する
-        top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
-        // 入力値にあわせて幅と長さを拡大縮小
-        scaleX: strapWidth / defaultStrapWidth,
-        scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
-        // 線幅を保つ
-        strokeUniform: true,
-        // 点線に
-        strokeDashArray: [8, 2],
-      });
-      // canvasに描画
-      mainCanvas.add(lowerStrapStitchObject);
-    });
-  }
-}
-
-// ステッチのインスタンス生成 ----
-const upperStraightStitch = new WatchUpperStitch('./assets/upper-straight-stitch.svg');
-const upperTaperStitch = new WatchUpperStitch('./assets/upper-taper-stitch.svg');
-const lowerStraightStitch = new WatchLowerStitch('./assets/lower-straight-stitch.svg');
-const lowerTaperStitch = new WatchLowerStitch('./assets/lower-taper-stitch.svg');
-
-//* main ベルト色 ----------------------------------------
+//* main canvas ベルト色 ----------------------------------------
 
 // 色を変えたいオブジェクトをまとめるための配列を準備
 let strapColorChangeLists;
@@ -1218,45 +1303,22 @@ strapColorInputs.forEach(strapColorInput => {
     // 色が選択された時点で配列にオブジェクトを入れる
     strapColorChangeLists = [upperStrapObject, lowerStrapObject, fixedStrapLoopObject, moveableStrapLoopObject];
     // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
-    //* ここ直せそう
-    switch(strapColorInput.value) {
-      case 'black':
-        inputStrapColor = 'black';
-        break;
-      case 'brown':
-        inputStrapColor = 'brown';
-        break;
-      case 'gray':
-        inputStrapColor = 'gray';
-        break;
-      case 'custom-color':
-        inputStrapColor = strapColorPicker.value;
-        break;
-    }
-    // まだ上下どちらのベルトもなければここでリターン
-    // 上下どちらかのベルトがあれば、オブジェクトに色を付ける関数呼び出し
+    strapColor = strapColorInput.value;
+    if (strapColorInput.value === 'custom-color') {
+      strapColor = strapColorPicker.value;
+    } 
+    // 上下両方のストラップオブジェクトがまだない場合はここでリターン
+    // 上下どちらかのストラップオブジェクトがあれば、オブジェクトに色をつける関数呼び出し
     if (upperStrapObject === undefined && lowerStrapObject === undefined) {
       alert('ベルトの長さを入力すると、選択した色がつきます');
       return;
     }
-    // オブジェクトに色をつける
-    applyStrapColor(strapColorChangeLists);
+    // オブジェクトに色をつける関数呼び出し
+    applyColorToArrayObjects(strapColorChangeLists, strapColor);
   });
 });
 
-// ベルトに色をつける関数 --------
-function applyStrapColor(array) {
-  array.forEach(object => {
-    if (object !== undefined) {
-      object.set({
-        fill: inputStrapColor,
-      });
-      mainCanvas.renderAll();
-    }
-  });
-}
-
-//* main バックル ----------------------------------------
+//* main canvas バックル ----------------------------------------
 
 // バックルのクラス ----------------
 class WatchBuckle {
@@ -1301,12 +1363,12 @@ class WatchBuckle {
 const roundBuckle = new WatchBuckle('./assets/buckle-round.svg');
 const squareBuckle = new WatchBuckle('./assets/buckle-square.svg');
 
-// バックルの形状が選択されたら、バックルを描く関数を呼び出し ----------------
+// バックルの形状が選択されたらcanvasに描画 ----------------
 buckleShapeInputs.forEach(buckleShapeInput => {
   buckleShapeInput.addEventListener('input', () => {
-    // 変数に値を代入
+    // 変数に値を入れておく
     buckleShape = buckleShapeInput.value;
-    /// 上ストラップがまだ無い場合はここでリターン
+    /// 上ストラップオブジェクトがまだない場合はここでリターン
     if(upperStrapObject === undefined) {
       alert('ベルト長さ(上側)を入力するとバックルが描かれます');
       return;
@@ -1323,9 +1385,7 @@ buckleShapeInputs.forEach(buckleShapeInput => {
   });
 });
 
-//* main dial ----------------------------------------------------------------------------------
-
-// memo: dialObject の描画は、caseのところで定義してある
+//* 文字盤タブ ----------------------------------------------------------------------------------------
 
 // 変数定義 ----------------------------------------
 
@@ -1333,33 +1393,31 @@ buckleShapeInputs.forEach(buckleShapeInput => {
 let hourObjects = [];
 let barDotObjects = [];
 
-// 値・サイズ・色
-let hourFontSize = 12; // 初期値12
+// サイズ・形状・色など
+let hourFontSize = 12;
 let hourLayout; // 全数字 or 4ポイント or 2ポイント
-let hourLayoutCircleRadius; // 数字たちを配置するための(数字それぞれの中心がこの円の円周上にくる)円の半径
+let hourLayoutCircleRadius; // 数字を配置するための(数字それぞれの中心がこの円の円周上にくる)円の半径
 let barDotLayoutCircleRadius; // バードットを配置するための(それぞれの中心がこの円の円周上にくる)円の半径
-let hourColor = 'black'; // 初期値
+let hourColor = 'black';
 let barOrDot; // バーかドットかを保持する変数
 let barWidth = mmToPixel(1);
 let barLength = mmToPixel(5);
 let dotRadius = mmToPixel(1);
 // 文字盤の中心座標(=バーなどを回転させるときの中心点)
 const centerPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight);
-// バーなどを配置するための円の、円周上の点の初期位置(12時位置)
-let barDotInitialPoint;
-let hourInitialPoint;
-// 回転角度を保持する変数
-let rotateDegrees = 30;
-let hourFontType = './assets/Kanit-Medium.ttf'; //* 初期値どうするか
+let hourInitialPoint; // 数字を配置するための円の、円周上の点の初期位置(12時位置)
+let barDotInitialPoint; // バードットを配置するための円の、円周上の点の初期位置(12時位置)
+let rotateDegrees = 30; // 回転角度を保持する変数 初期値は1時位置の30度
+let hourFontType = './assets/Kanit-Medium.ttf';
 
-//* main 文字盤色 ----------------------------------------
+//* main canvas 文字盤色 ----------------------------------------
 
-// 文字盤ベース色が選択されたら、色を付ける ----------------
+// 文字盤ベース色が選択されたら、色をつける ----------------
 dialColorInputs.forEach(dialColorInput => {
   dialColorInput.addEventListener('input', () => {
-    // dialColor に input の value を代入
+    // 変数に値を入れておく
     dialColor = dialColorInput.value;
-    // 「その他の色」が選択された時は dialColor にカラーピッカーの値を代入
+    // 「その他の色」が選択された時は dialColor にカラーピッカーの値を入れる
     // ↓のコードがなかったので、カスタムカラーを選択したときにすぐに色が変わらない問題が起きていた
     // dialColor( dialColorInput.value )は、すでに用意した色の値はblackやwhiteだが、
     // カスタムカラーの時は custom-color という文字列なので、
@@ -1367,7 +1425,7 @@ dialColorInputs.forEach(dialColorInput => {
     if (dialColorInput.value === 'custom-color') {
       dialColor = dialColorPicker.value;
     }
-    // アラートを表示
+    // 文字盤オブジェクトがまだない場合はここでリターン
     if (dialObject === undefined) {
       alert('「ケース」タブの「文字盤見切り直径」を入力すると、選択した色がつきます');
       return;
@@ -1380,50 +1438,7 @@ dialColorInputs.forEach(dialColorInput => {
   });
 });
 
-//* main 文字盤数字 ----------------------------------------
-
-// 数字の配置が選択されたらcanvasに描画する ----------------
-hourLayoutInputs.forEach(hourLayoutInput => {
-  hourLayoutInput.addEventListener('input', () => {
-    // hourLayout に値を代入
-    hourLayout = hourLayoutInput.value;
-    // hourLayoutCircleRadius を計算
-    // 文字盤半径から数字のフォントサイズの半分を引くと、ちょうど数字の外側が文字盤の円に触れる位置になる
-    // そこから内側に少し調整した円の半径
-    hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
-    // レンジの入力可・不可の切り替え ----
-    switchRange();
-    // 数字を描く関数呼び出し
-    drawHour();
-    // すでにバーorドットが描かれている場合は、再描画する
-    // (barDotObjects.length !== 0) での条件分岐だと、
-    // 前回全数字を選んでいた場合に barDotObjects.length は 0 だから バーorドットを描く関数が呼ばれない
-    // なので barOrDot に値が入っているかどうかで条件分岐する
-    if (barOrDot !== undefined) {
-      drawBarDot();
-    }
-  });
-});
-
-// 数字のフォントが選択されたらcanvasに描画する ----------------
-hourFontTypeInputs.forEach(hourFontTypeInput => {
-  hourFontTypeInput.addEventListener('input', () => {
-    // hourFontType に値(フォントファイルへのパス)を代入
-    hourFontType = hourFontTypeInput.dataset.path;
-    // 数字の配置がまだ選択されていない場合にアラートを表示
-    if (hourLayout === undefined) {
-      alert('数字の配置を選択すると、数字が描画されます');
-      return;
-    }
-    // 数字なしが選択されている場合にアラートを表示
-    if (hourLayout === 'no-hour') {
-      alert('数字なしが選択されています。数字があるデザインを選択すると指定のフォントで描かれます。');
-      return;
-    }
-    // 数字を描く関数呼び出し
-    drawHour();
-  });
-});
+//* main canvas 文字盤数字 ----------------------------------------
 
 // 数字を描く関数 ----------------
 function drawHour() {
@@ -1437,13 +1452,11 @@ function drawHour() {
     }
     // これ以降、読み込み完了後に行われる処理(コールバック関数) ----
     // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする
-    if (hourObjects.length !== 0) {
-      hourObjects.forEach(hourObject => {
-        mainCanvas.remove(hourObject);
-      });
-      hourObjects = [];
-    }
-    // 数字なしの場合はここで return
+    hourObjects.forEach(hourObject => {
+      mainCanvas.remove(hourObject);
+    });
+    hourObjects = [];
+    // 数字なしが選択されている場合はここでリターン
     if (hourLayout === 'no-hour') {
       return;
     }
@@ -1451,7 +1464,7 @@ function drawHour() {
     // 数字を配置するための円の、円周上の点の初期位置(12時位置)
     // fabric.Point(x座標, y座標)
     hourInitialPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - hourLayoutCircleRadius);
-    // ループをまわして hourObject を生成
+    // 数字オブジェクト生成
     for (let i = 1; i <= 12; i++) {
       // fabric.util.rotatePointメソッドを使用して、
       // 初期位置の点 hourInitialPoint を、centerPoint を 中心に、指定の度数回転させた位置を取得
@@ -1474,7 +1487,9 @@ function drawHour() {
         stroke: 'rgb(118,99,4)',
         strokeWidth: .5,
       });
+      // 配列に入れる
       hourObjects.push(hourObject);
+      // 回転角度を更新
       rotateDegrees += 30;
     }
     // ループ後、選択されている数字の配置によって、該当する位置の数字を配列から削除
@@ -1496,35 +1511,59 @@ function drawHour() {
     });
     // 回転角度を保持する変数の値を初期値に戻す
     rotateDegrees = 30;
-    //* test
-    caseStackingOrder();
+    // 重なり順を直す
+    stackingOrder();
   });
 }
 
-//* main 文字盤 バー・ドット ----------------------------------------
-// ドットを2つ一組でグループ化して、それをcloneして回転させていきたいけどうまくcloneできなかった
-// fabric.Pointを使って点の位置を取得する方法を採用
-
-// バーorドットが選択されたらcanvasに描画する ----------------
-barDotInputs.forEach(barDotInput => {
-  barDotInput.addEventListener('input', () => {
-    // 変数に値を代入
-    barOrDot = barDotInput.value;
-    // 計算に必要な数値を準備する ----
-    // バーorドットを配置するための円の半径を計算
-    // 呼び出し先の drawBarDot 内でこの値を計算してしまうと、レンジを変えても再計算されるため値が変わらない
-    // そのため呼び出し元で計算する
-    barDotLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
-    // レンジの入力可・不可の切り替え ----
+// 数字の配置が選択されたらcanvasに描画 ----------------
+hourLayoutInputs.forEach(hourLayoutInput => {
+  hourLayoutInput.addEventListener('input', () => {
+    // 変数に値を入れておく
+    hourLayout = hourLayoutInput.value;
+    // hourLayoutCircleRadius を計算
+    // 文字盤半径から数字のフォントサイズの半分を引くと、ちょうど数字の外側が文字盤の円に触れる位置になる
+    // そこから内側に少し調整した円の半径
+    hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+    // レンジの入力可・不可の切り替え
     switchRange();
-    // バーorドットを描く関数呼び出し
-    drawBarDot();
+    // 数字を描く関数呼び出し
+    drawHour();
+    // すでにバーorドットが描かれている場合は、再描画する
+    // (barDotObjects.length !== 0) での条件分岐だと、
+    // 前回全数字を選んでいた場合に barDotObjects.length は 0 だから バーorドットを描く関数が呼ばれない
+    // なので barOrDot に値が入っているかどうかで条件分岐する
+    if (barOrDot !== undefined) {
+      drawBarDot();
+    }
   });
 });
 
+// 数字のフォントが選択されたらcanvasに描画 ----------------
+hourFontTypeInputs.forEach(hourFontTypeInput => {
+  hourFontTypeInput.addEventListener('input', () => {
+    // 変数に値(フォントファイルへのパス)を入れておく
+    hourFontType = hourFontTypeInput.dataset.path;
+    // 数字の配置がまだ選択されていない場合はここでリターン
+    if (hourLayout === undefined) {
+      alert('数字の配置を選択すると、数字が描画されます');
+      return;
+    }
+    // 数字なしが選択されている場合はここでリターン
+    if (hourLayout === 'no-hour') {
+      alert('数字なしが選択されています。数字があるデザインを選択すると指定のフォントで描かれます。');
+      return;
+    }
+    // 数字を描く関数呼び出し
+    drawHour();
+  });
+});
+
+//* main canvas 文字盤バー・ドット ----------------------------------------
+
 // バーorドットを描く関数 ----------------
 function drawBarDot() {
-  // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする ----
+  // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする
   barDotObjects.forEach(barDotObject => {
     mainCanvas.remove(barDotObject);
   });
@@ -1533,7 +1572,7 @@ function drawBarDot() {
   // バーorドットを配置するための円の、円周上の点の初期位置(12時位置)
   // fabric.Point(x座標, y座標)
   barDotInitialPoint = new fabric.Point(mainCanvasCenterWidth, mainCanvasCenterHeight - barDotLayoutCircleRadius);
-  // ループを回してバーorドットを描く ----
+  // バーorドットオブジェクト生成
   for (let i = 0; i < 12; i++) {
     // barDotObject は、このループ内でしか使わない、個々のバーorドットオブジェクトの変数名
     // バーorドットが不要な位置を透明にsetするときに名前が必要なのでつけている
@@ -1545,7 +1584,7 @@ function drawBarDot() {
     // fabric.util.rotatePoint(回転前の元の座標, 回転の中心座標, 回転角度)
     // 取得したrotatedPoint は、プロパティにx座標とy座標を持つので、rotatedPoint.x のように使う
     const rotatedPoint = fabric.util.rotatePoint(barDotInitialPoint, centerPoint, fabric.util.degreesToRadians(rotateDegrees));
-    // 全数字が選択されていたら何も描かない
+    // 全数字が選択されている場合はここでリターン
     if (hourLayout === 'all-hour') {
       return;
     }
@@ -1574,7 +1613,7 @@ function drawBarDot() {
         left: rotatedPoint.x,
       });
     }
-    // barDotObjects 配列に入れる
+    // 配列に入れる
     barDotObjects.push(barDotObject);
     // 回転角度を更新
     rotateDegrees += 30;
@@ -1598,13 +1637,30 @@ function drawBarDot() {
   });
   // 回転角度を保持する変数の値を初期値に戻す
   rotateDegrees = 30;
-  //* test
-  caseStackingOrder();
+  // 重なり順を直す
+  stackingOrder();
 }
 
-//* main 数字とバーorドットの色 ----------------------------------------
+// バーorドットが選択されたらcanvasに描画 ----------------
+barDotInputs.forEach(barDotInput => {
+  barDotInput.addEventListener('input', () => {
+    // 変数に値を入れておく
+    barOrDot = barDotInput.value;
+    // 計算に必要な数値を準備する ----
+    // バーorドットを配置するための円の半径を計算
+    // 呼び出し先の drawBarDot 内でこの値を計算してしまうと、レンジを変えても再計算されるため値が変わらない
+    // そのため呼び出し元で計算する
+    barDotLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
+    // レンジの入力可・不可の切り替え
+    switchRange();
+    // バーorドットを描く関数呼び出し
+    drawBarDot();
+  });
+});
 
-// 数字色が選択されたら、色を付ける ----------------
+//* main canvas 数字とバーorドットの色 ----------------------------------------
+
+// 数字色が選択されたら、色をつける ----------------
 hourColorInputs.forEach(hourColorInput => {
   hourColorInput.addEventListener('input', () => {
     // 色が選択された時点で、(オブジェクトがまだなくても)変数に値を入れておく
@@ -1624,29 +1680,20 @@ hourColorInputs.forEach(hourColorInput => {
       default:
         hourColor = hourColorInput.value;
     }
-    // まだ数字オブジェクトもバーorドットオブジェクトもなければここでリターン
-    // アラートを表示
+    // 数字オブジェクトとバーorドットオブジェクトどちらもまだない場合はここでリターン
     if (hourObjects.length === 0 && barDotObjects.length === 0) {
       alert('「数字の配置」や「バーorドット」を入力すると、選択した色で描かれます');
       return;
     }
     // 数字に色をつける
-    hourObjects.forEach(hourObject => {
-      hourObject.set({
-        fill: hourColor,
-      });
-    });
+    applyColorToArrayObjects(hourObjects, hourColor);
     // バーorドットに色をつける
-    barDotObjects.forEach(barDotObject => {
-      barDotObject.set({
-        fill: hourColor,
-      });
-    });
+    applyColorToArrayObjects(barDotObjects, hourColor);
     mainCanvas.renderAll();
   });
 });
 
-//* main 文字盤レンジ ----------------------------------------
+//* main canvas 文字盤レンジ ----------------------------------------
 
 // 数字のサイズを変えるレンジ ----------------
 const hourFontSizeRange = document.getElementById('hour-font-size-range');
@@ -1655,12 +1702,14 @@ hourFontSizeRange.disabled = true;
 // レンジが動かされたら数字のサイズを変える ----
 hourFontSizeRange.addEventListener('input', () => {
   // hourFontSizeにレンジの値を代入した上で、
-  //! 数字をパス化したけど...fontSizeきいてる？→フォント読み込み時につかわれるからきいてる
+  // 数字をパス化したけど...fontSizeきいてる？→フォント読み込み時につかわれるからきいてる
   hourFontSize = parseInt(hourFontSizeRange.value);
+  // 数字を描く関数呼び出し
   // 数字のサイズが変わると配置用円の半径も変わることになるが、
   // ここではそのままの位置で数字のサイズだけ変えたいので、配置用円の半径は変更しないことにする
-  // hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
-  // 数字を描く関数呼び出し
+  // drawHourだと処理が多いのでsetでfontSizeだけ変えたいところだけど、
+  // fontSizeは、テキストからパスを生成するときに指定しているから効くのであって
+  // setですでにパス化されているオブジェクトには効かない
   drawHour();
 });
 
@@ -1673,6 +1722,7 @@ hourLayoutCircleRadiusRange.addEventListener('input', () => {
   // 数字たちを配置する円の半径を、レンジの値に合わせて変える
   hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 + parseInt(hourLayoutCircleRadiusRange.value);
   // 数字を描く関数呼び出し
+  // プロパティではないのでsetで描きなおすのは難しそう
   drawHour();
 });
 
@@ -1682,11 +1732,14 @@ const barWidthRange = document.getElementById('bar-width-range');
 barWidthRange.disabled = true;
 // レンジが動かされたらバーの幅を変える ----
 barWidthRange.addEventListener('input', () => {
-  // width: mmToPixel(barWidthRange.value) のように値をsetし直して、renderAllする方法と、
-  // barWidth などの値を変更して、drawBarDot などオブジェクトを描く関数を呼び出しなおす方法がある
-  // barWidth などの値を保持したいので、2つめの方法を採用している
   barWidth = mmToPixel(parseFloat(barWidthRange.value));
-  drawBarDot();
+  // 値をsetし直す
+  barDotObjects.forEach(barDotObject => {
+    barDotObject.set({
+      width: barWidth,
+    });
+  });
+  mainCanvas.renderAll();
 });
 
 // バーの長さを変えるレンジ ----------------
@@ -1696,7 +1749,13 @@ barLengthRange.disabled = true;
 // レンジが動かされたらバーの長さを変える ----
 barLengthRange.addEventListener('input', () => {
   barLength = mmToPixel(parseFloat(barLengthRange.value));
-  drawBarDot();
+  // 値をsetし直す
+  barDotObjects.forEach(barDotObject => {
+    barDotObject.set({
+      height: barLength,
+    });
+  });
+  mainCanvas.renderAll();
 });
 
 // ドットの大きさを変えるレンジ ----------------
@@ -1706,7 +1765,13 @@ dotSizeRange.disabled = true;
 // レンジが動かされたらドットの大きさを変える ----
 dotSizeRange.addEventListener('input', () => {
   dotRadius = mmToPixel(parseFloat(dotSizeRange.value));
-  drawBarDot();
+   // 値をsetし直す
+  barDotObjects.forEach(barDotObject => {
+    barDotObject.set({
+      radius: dotRadius,
+    });
+  });
+  mainCanvas.renderAll();
 });
 
 // バーorドットの位置を変えるレンジ ----------------
@@ -1721,7 +1786,7 @@ barDotLayoutCircleRadiusRange.addEventListener('input', () => {
   drawBarDot();
 });
 
-// レンジの入力可・不可の切り替え ----
+// レンジの入力可・不可の切り替え ----------------
 function switchRange() {
   // 全数字のとき ----
   if (hourLayout === 'all-hour') {
@@ -1770,7 +1835,7 @@ function switchRange() {
   }
 }
 
-//* main hands ----------------------------------------------------------------------------------
+//* 針タブ -------------------------------------------------------------------------------------------
 
 // 変数定義 ----------------------------------------
 
@@ -1782,20 +1847,29 @@ let hourHandBodyObject;
 let minuteHandBodyObject;
 let secondHandBodyObject;
 
-// サイズ・形状・色
+// サイズ・形状・色など
 let handsColor = 'white';
 let handsShape;
-// const defaultHandWidth = mmToPixel(1);
-const defaultHandLength = mmToPixel(10);
+const defaultHandWidth = mmToPixel(1); // 用意したSVGの針太さ
+const defaultHandLength = mmToPixel(10); // 用意したSVGの針長さ
 let hourHandAngle = 300;
 let minuteHandAngle = 60;
 let secondHandAngle = 210;
-let hourHandScaleY;
-let minuteSecondHandsScaleY;
-let hourHandScaleX = 1.2;
-let minuteHandScaleX = 1;
 
-//* 針 ----------------------------------------
+let hourHandScaleY;
+// 時針の長さを調整するための値
+// この値を2にすると文字盤の半径のちょうど半分の長さになるが、それより少し長くしたいので1.8にしている
+const hourHandScaleYAdjustValue = 1.8; // *要検討
+
+let minuteSecondHandsScaleY;
+// 分針秒針の長さを調整するための値
+// 文字盤見切りにぴったりつく長さから、何mm短くするかを表す
+const minuteSecondHandsScaleYAdjustValue = mmToPixel(3);
+
+let hourHandScaleX = 1.2; // 用意したSVGの針太さは 1mm なので、1.2倍の1.2mmが初期値
+let minuteHandScaleX = 1; // 用意したSVGの針太さは 1mm なので、そのまま1mmが初期値
+
+//* main canvas 針 ----------------------------------------
 
 // 針の中心円のクラス ----------------
 class HandCircle extends fabric.Circle {
@@ -1840,7 +1914,7 @@ class HandBody {
       // canvasに描画
       mainCanvas.add(hourHandBodyObject);
       // 重なり順を直す
-      caseStackingOrder();
+      stackingOrder();
     });
   }
   // 分針を描くメソッド ----
@@ -1867,41 +1941,16 @@ class HandBody {
       // canvasに描画
       mainCanvas.add(minuteHandBodyObject);
       // 重なり順を直す
-      caseStackingOrder();
+      stackingOrder();
     });
   }
 }
-
-// 針の形が選択されたら、針たちを描く関数呼び出し ----------------
-handsShapeInputs.forEach(handsShapeInput => {
-  handsShapeInput.addEventListener('input', () => {
-    // 変数に値を代入
-    handsShape = handsShapeInput.value; 
-    // 針の長さを変えるレンジがまだ動かされていない場合は、初期値を変数に代入
-    if (hourHandScaleY === undefined) {
-      // 'dialObject.radius / defaultHandLength' は、文字盤見切りにぴったりつく長さになる倍率を表す
-      // 2で割ると文字盤の半径の半分の長さになるが、それより少し長くしたいので1.8にしている
-      hourHandScaleY = dialObject.radius / defaultHandLength / 1.8;
-    }
-    if (minuteSecondHandsScaleY === undefined) {
-      // 初期値は、文字盤見切りにぴったりつく長さから、3mm短くした長さ
-      minuteSecondHandsScaleY = (dialObject.radius - mmToPixel(3)) / defaultHandLength;
-    }
-    // レンジを入力可にする
-    hourMinuteHandsDirectionRange.disabled = false;
-    secondHandDirectionRange.disabled = false;
-    handsLengthRange.disabled = false;
-    handsWidthRange.disabled = false;
-    // 針たちを描く関数呼び出し
-    drawHands();
-  });
-});
 
 // 針たちを描く関数 ----------------
 function drawHands() {
   // すでにオブジェクトが描かれていたら、針の中心円と秒針本体をcanvasから削除
   mainCanvas.remove(hourHandCircleObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
-  // 針の中心円オブジェクト生成
+  // 針の中心円オブジェクト生成 ----
   hourHandCircleObject = new HandCircle({
     radius: mmToPixel(1.5),
   });
@@ -1911,21 +1960,20 @@ function drawHands() {
   secondHandCircleObject = new HandCircle({
     radius: mmToPixel(1),
   });
-  // 時針と分針のインスタンス生成
-  // hourHandBodyとhourHandBodyObjectは別物
+  // 時針と分針のインスタンス生成 ----
+  // hourHandBodyとhourHandBodyObjectは別物なので混乱しないように
   // hourHandBodyはインスタンスであり、fabricオブジェクトではない
   // hourHandBodyObjectがcanvasに描かれるfabricオブジェクト
-  // 時針分針を描くメソッドは非同期処理である事に注意
-  //* インスタンスの生成は外で？イベント内で？
-  //* 針はインスタンス生成時にhandsShape変数を使っているからイベント内で生成している
+  // 他のオブジェクトはインスタンス生成を{}外でしているが、
+  // 針は、handsShapeをインスタンス生成時に読み込む方法にしたためイベント内で生成している
   const hourHandBody = new HandBody(`./assets/hand-${handsShape}.svg`);
   const minuteHandBody = new HandBody(`./assets/hand-${handsShape}.svg`);
   hourHandBody.drawHourHandBody();
   minuteHandBody.drawMinuteHandBody();
-  // 秒針本体オブジェクト生成
+  // 秒針本体オブジェクト生成 ----
   secondHandBodyObject = new fabric.Rect({
     width: mmToPixel(.2),
-    //レンジで値を変えるときに分針と同じ長さにするためにheightとscaleYで長さを指定している
+    //レンジで値を変えるときに分針と同じ長さにするために、heightとscaleYで長さを指定している
     height: defaultHandLength,
     scaleY: minuteSecondHandsScaleY,
     fill: handsColor,
@@ -1941,12 +1989,39 @@ function drawHands() {
   // 時針分針本体を描く処理の方が先に書かれてはいるが、非同期処理なので、
   // 下記のオブジェクトたちが先にcanvasに描かれることもある
   // 針オブジェクトたちがそろった状態で重なり順を直したいので、
-  // 時針分針が後から描画された時のために、時針分針を描画するメソッド内でも caseStackingOrder を呼び出すし、
-  // 下記のオブジェクトたちが後から描画された時のために、ここでも caseStackingOrder を呼び出す
+  // 時針分針が後から描画された時のために、時針分針を描画するメソッド内でも stackingOrder を呼び出すし、
+  // 下記のオブジェクトたちが後から描画された時のために、ここでも stackingOrder を呼び出す
   mainCanvas.add(hourHandCircleObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
   // 重なり順を直す
-  caseStackingOrder();
+  stackingOrder();
 }
+
+// 針の形状が選択されたらcanvasに描画 ----------------
+handsShapeInputs.forEach(handsShapeInput => {
+  handsShapeInput.addEventListener('input', () => {
+    // 変数に値を入れておく
+    handsShape = handsShapeInput.value; 
+    // 針の長さを変えるレンジがまだ動かされていない場合は、初期値を変数に代入
+    if (hourHandScaleY === undefined) {
+      // 'dialObject.radius / defaultHandLength' は、文字盤見切りにぴったりつく長さになる倍率を表す
+      // 2で割ると文字盤の半径の半分の長さになるが、それより少し長くしたいので初期値は1.8にしてある
+      hourHandScaleY = dialObject.radius / defaultHandLength / hourHandScaleYAdjustValue;
+    }
+    if (minuteSecondHandsScaleY === undefined) {
+      // 初期値は、文字盤見切りにぴったりつく長さから、初期値は3mm短くした長さ
+      minuteSecondHandsScaleY = (dialObject.radius - minuteSecondHandsScaleYAdjustValue) / defaultHandLength;
+    }
+    // レンジを入力可にする
+    hourMinuteHandsDirectionRange.disabled = false;
+    secondHandDirectionRange.disabled = false;
+    handsLengthRange.disabled = false;
+    handsWidthRange.disabled = false;
+    // 針たちを描く関数呼び出し
+    drawHands();
+  });
+});
+
+//* main canvas 針の色 ----------------------------------------
 
 // 色が選択されたら、針に色をつける ----------------
 // 色を変えたいオブジェクトをまとめるための配列を準備
@@ -1970,8 +2045,7 @@ handsColorInputs.forEach(handsColorInput => {
       default:
         handsColor = handsColorInput.value;
     }
-    // まだ針オブジェクトがなければここでリターン
-    // アラートを表示
+    // 針オブジェクトがまだない場合はここでリターン
     if (hourHandBodyObject === undefined) {
       alert('「針の形」を選択すると、選択した色で描かれます');
       return;
@@ -1979,14 +2053,12 @@ handsColorInputs.forEach(handsColorInput => {
     // 色を変えたいオブジェクトをまとめるための配列に値を入れる
     handsColorChangeLists = [hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject];
     // 針に色をつける
-    handsColorChangeLists.forEach(handsColorChangeList => {
-      handsColorChangeList.set({
-        fill: handsColor,
-      });
-    });
+    applyColorToArrayObjects(handsColorChangeLists, handsColor);
     mainCanvas.renderAll();
   });
 });
+
+//* main canvas 針レンジ ----------------------------------------
 
 // 時針分針の向きを変えるレンジ ----------------
 const hourMinuteHandsDirectionRange = document.getElementById('hour-minute-hands-direction-range');
@@ -2032,8 +2104,9 @@ handsLengthRange.addEventListener('input', () => {
   // 'dialObject.radius / defaultHandLength' は、文字盤見切りにぴったりつく長さになる倍率を表す
   // レンジの最大値は、文字盤見切りにぴったりつく長さから、2mm短くした長さ
   handsLengthRange.setAttribute('max', (dialObject.radius - mmToPixel(2)) / defaultHandLength);
-  // 値を保持するため変数に値を代入
-  hourHandScaleY = parseFloat(handsLengthRange.value) / 1.8;
+  // 値を保持するため変数に値を入れておく
+  //* ここで割る値はどうする？
+  hourHandScaleY = parseFloat(handsLengthRange.value) / hourHandScaleYAdjustValue;
   minuteSecondHandsScaleY = parseFloat(handsLengthRange.value);
   // 針の長さを変える
   hourHandBodyObject.set({
@@ -2054,7 +2127,7 @@ const handsWidthRange = document.getElementById('hands-width-range');
 handsWidthRange.disabled = true;
 // レンジが動かされたら針の太さを変える ----
 handsWidthRange.addEventListener('input', () => {
-  // 値を保持するため変数に値を代入
+  // 値を保持するため変数に値を入れておく
   hourHandScaleX = parseFloat(handsWidthRange.value) * 1.2;
   minuteHandScaleX = parseFloat(handsWidthRange.value);
   // 針の太さを変える
@@ -2067,52 +2140,63 @@ handsWidthRange.addEventListener('input', () => {
   mainCanvas.renderAll();
 });
 
-//* case info canvas ------------------------------------------------------------------------------
+//* case info canvas ---------------------------------------------------------------------------------
 
 // fabricインスタンス ----------------------------------------
 
 const caseInfoCanvas = new fabric.StaticCanvas('case-info-canvas');
 
 // 変数定義 ----------------------------------------
-// サイズ ----
+
+// オブジェクト
+const infoLugObjects = [];
+let infoCrownObject;
+let infoColorChangeLists;
+
+// サイズ・形状・色など
 const caseInfoCanvasCenterHeight = 118;
 const caseInfoCanvasHalfWidth = 130;
 const caseInfoCanvasCaseRadius = 45;
 const caseInfoCanvasCaseOpeningRadius = 39;
 const caseInfoCanvasDialOpeningRadius = 36;
 const caseInfoCanvasLugHalfDistance = 26;
-// オブジェクト ----
-const infoLugObjects = [];
-let infoCrownObject;
-let infoColorChangeLists;
-// Node ----
+
+// Node
 const caseInfoComment = document.querySelector('.case-info-comment');
 
 // case info canvas に時計の図を描画 ----------------------------------------
 
-// info ケース ----------------
-const infoCaseObject = new WatchCircle({
+// 円のクラス ----------------------------------------
+// infoCanvasの ケース・ケース見切・文字盤 に使用
+class WatchCircleForInfo extends fabric.Circle {
+  constructor(options) {
+    super(options);
+    this.originX = 'center';
+    this.originY = 'center';
+    this.left = caseInfoCanvasHalfWidth,
+    this.top = caseInfoCanvasCenterHeight,
+    this.stroke = 'black';
+    this.strokeWidth = 1;
+    this.fill = 'white';
+  }
+}
+
+// info canvas ケース ----------------
+const infoCaseObject = new WatchCircleForInfo({
   radius: caseInfoCanvasCaseRadius,
-  left: caseInfoCanvasHalfWidth,
-  top: caseInfoCanvasCenterHeight,
 });
-
-// info 見切り ----------------
-const infoCaseOpeningObject = new WatchCircle({
+// info canvas 見切り ----------------
+const infoCaseOpeningObject = new WatchCircleForInfo({
   radius: caseInfoCanvasCaseOpeningRadius,
-  left: caseInfoCanvasHalfWidth,
-  top: caseInfoCanvasCenterHeight,
 });
-
-// info 文字盤 ----------------
-const infoDialObject = new WatchCircle({
+// info canvas 文字盤 ----------------
+const infoDialObject = new WatchCircleForInfo({
   radius: caseInfoCanvasDialOpeningRadius,
-  left: caseInfoCanvasHalfWidth,
-  top: caseInfoCanvasCenterHeight,
 });
+// canvasに描画
 caseInfoCanvas.add(infoCaseObject, infoCaseOpeningObject, infoDialObject);
 
-// info ラグ ----------------
+// info canvas ラグ ----------------
 for (let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
   fabric.loadSVGFromURL('./assets/lug-round.svg', (objects, options) => {
     infoLugObjects[i] = fabric.util.groupSVGElements(objects, options);
@@ -2456,50 +2540,22 @@ ctx.fillText('ケースの直径を入力', 10, 50);
 
 //* テスト用 -------------------------------------------------------------------------
 
-const centerLine = new fabric.Polyline([
-  {x: 0, y: mainCanvasCenterHeight},
-  {x: 384, y: mainCanvasCenterHeight}], {
-  stroke: 'red',
-});
-mainCanvas.add(centerLine);
+// const centerLine = new fabric.Polyline([
+//   {x: 0, y: mainCanvasCenterHeight},
+//   {x: 384, y: mainCanvasCenterHeight}], {
+//   stroke: 'red',
+// });
+// mainCanvas.add(centerLine);
 
 
-let object;
+// let object;
 
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
-  object = new fabric.Rect({
-    left: 100,
-    top: 100,
-    width: 200,
-    height: 100,
-    originX: 'center',
-    originY: 'center',
-    fill: 'red'
-  });
-  
-  const rotationCenterX = 150; // 回転の中心点X座標
-  const rotationCenterY = 150; // 回転の中心点Y座標
-  
-  // オブジェクトを回転の中心点に移動
-  object.set({
-    left: object.left - rotationCenterX,
-    top: object.top - rotationCenterY
-  });
-  
-  object.set('angle', 45); // 45度回転させる
-  
-  // オブジェクトを元の位置に戻す
-  object.set({
-    left: object.left + rotationCenterX,
-    top: object.top + rotationCenterY
-  });
-  
-  mainCanvas.add(object);
-  mainCanvas.renderAll();
+
   
   
 
@@ -2511,10 +2567,7 @@ testButton1.addEventListener('click', () => {
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
-object.set('angle', 65); // 45度回転させる
-  
-mainCanvas.add(object);
-mainCanvas.renderAll(); // キャンバスを再描画して変更を反映する
+
 
 
 });
