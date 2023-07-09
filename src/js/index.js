@@ -1526,7 +1526,7 @@ hourLayoutInputs.forEach(hourLayoutInput => {
     // そこから内側に少し調整した円の半径
     hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     // レンジの入力可・不可の切り替え
-    switchRange();
+    switchRangeDial();
     // 数字を描く関数呼び出し
     drawHour();
     // すでにバーorドットが描かれている場合は、再描画する
@@ -1563,6 +1563,7 @@ hourFontTypeInputs.forEach(hourFontTypeInput => {
 
 // バーorドットを描く関数 ----------------
 function drawBarDot() {
+  //* まだ数字配置が選択されていないときはどう扱う?結果的に数字無しの扱いに今はなっているぽい
   // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする
   barDotObjects.forEach(barDotObject => {
     mainCanvas.remove(barDotObject);
@@ -1652,7 +1653,7 @@ barDotInputs.forEach(barDotInput => {
     // そのため呼び出し元で計算する
     barDotLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     // レンジの入力可・不可の切り替え
-    switchRange();
+    switchRangeDial();
     // バーorドットを描く関数呼び出し
     drawBarDot();
   });
@@ -1787,51 +1788,50 @@ barDotLayoutCircleRadiusRange.addEventListener('input', () => {
 });
 
 // レンジの入力可・不可の切り替え ----------------
-function switchRange() {
+// 数字とバーorドット
+// hourLayout の値によって分岐
+function switchRangeDial() {
   // 全数字のとき ----
   if (hourLayout === 'all-hour') {
     // 数字
     hourFontSizeRange.disabled = false;
     hourLayoutCircleRadiusRange.disabled = false;
     // バードット
-    barDotLayoutCircleRadiusRange.disabled = true;
     barWidthRange.disabled = true;
     barLengthRange.disabled = true;
     dotSizeRange.disabled = true;
-  }
+    barDotLayoutCircleRadiusRange.disabled = true;
   // 4ポイント or 2ポイントのとき ----
-  if (hourLayout === 'four-point-hour' || hourLayout === 'two-point-hour') {
+  } else if (hourLayout === 'four-point-hour' || hourLayout === 'two-point-hour') {
     // 数字
     hourFontSizeRange.disabled = false;
     hourLayoutCircleRadiusRange.disabled = false;
     // バードット
-    barDotLayoutCircleRadiusRange.disabled = false;
-    if (barOrDot === 'bar') {
-      barWidthRange.disabled = false;
-      barLengthRange.disabled = false;
-      dotSizeRange.disabled = true;
-    } else if (barOrDot === 'dot') {
-      barWidthRange.disabled = true;
-      barLengthRange.disabled = true;
-      dotSizeRange.disabled = false;
-    }
-  }
+    switchRangeBarDot();
   // 数字無しのとき ----
-  if (hourLayout === 'no-hour') {
+  } else if (hourLayout === 'no-hour') {
     // 数字
     hourFontSizeRange.disabled = true;
     hourLayoutCircleRadiusRange.disabled = true;
     // バードット
+    switchRangeBarDot();
+  // hourLayout がまだ選ばれていないとき ----
+  } else {
+    switchRangeBarDot();
+  }
+}
+// バーorドット
+function switchRangeBarDot() {
+  if (barOrDot === 'bar') {
+    barWidthRange.disabled = false;
+    barLengthRange.disabled = false;
+    dotSizeRange.disabled = true;
     barDotLayoutCircleRadiusRange.disabled = false;
-    if (barOrDot === 'bar') {
-      barWidthRange.disabled = false;
-      barLengthRange.disabled = false;
-      dotSizeRange.disabled = true;
-    } else if (barOrDot === 'dot') {
-      barWidthRange.disabled = true;
-      barLengthRange.disabled = true;
-      dotSizeRange.disabled = false;
-    }
+  } else if (barOrDot === 'dot') {
+    barWidthRange.disabled = true;
+    barLengthRange.disabled = true;
+    dotSizeRange.disabled = false;
+    barDotLayoutCircleRadiusRange.disabled = false;
   }
 }
 
@@ -2532,9 +2532,7 @@ mainCanvas.on('mouse:down', function(options) {
 //   mainCanvas.setZoom(canvasRange.value);
 // });
 
-const ctx = document.getElementById('test-canvas').getContext('2d');
-ctx.font = '14px sans-serif';
-ctx.fillText('ケースの直径を入力', 10, 50);
+
 
 
 
