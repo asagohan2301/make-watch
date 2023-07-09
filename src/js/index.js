@@ -41,7 +41,13 @@ import { fabric } from "fabric";
 import opentype from 'opentype.js';
 
 import { downloadSVG } from './download.js';
-downloadSVG();
+//* test
+document.getElementById('dl-btn').addEventListener('click', () => {
+  //* ダウンロードする前にオブジェクトをグループ化したい
+  
+  // canvasの内容をSVGに変換してダウンロードする関数呼び出し
+  downloadSVG();
+});
 
 //* common -------------------------------------------------------------------------------------------
 
@@ -2553,10 +2559,58 @@ testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
-
-  
-  
-
+  // オブジェクトのグループ化 ----------------
+  // ラグ ----
+  // オブジェクトグループ化
+  const lugGroup = new fabric.Group([...lugObjects]);
+  // グループ化前のオブジェクトはcanvasから削除 ----
+  lugObjects.forEach(lugObject => {
+    mainCanvas.remove(lugObject);
+  });
+  // グループ化したオブジェクトをcanvasに描画 ----
+  mainCanvas.add(lugGroup);
+  // ベルト本体 ----
+  const strapGroup = new fabric.Group([upperStrapObject, lowerStrapObject]);
+  mainCanvas.remove(upperStrapObject, lowerStrapObject);
+  mainCanvas.add(strapGroup);
+  // ベルトループ ----
+  const strapLoopGroup = new fabric.Group([fixedStrapLoopObject, moveableStrapLoopObject]);
+  mainCanvas.remove(fixedStrapLoopObject, moveableStrapLoopObject);
+  mainCanvas.add(strapLoopGroup);
+  // ベルトステッチ ----
+  if (strapStitchExist === true) {
+    const strapStitchGroup = new fabric.Group([upperStrapStitchObject, lowerStrapStitchObject, topStitchObject]);
+    mainCanvas.remove(upperStrapStitchObject, lowerStrapStitchObject, topStitchObject);
+    mainCanvas.add(strapStitchGroup);
+  }
+  // ベルト穴 ----
+  const strapHoleGroup = new fabric.Group([...strapHoleObjects]);
+  strapHoleObjects.forEach(strapHoleObject => {
+    mainCanvas.remove(strapHoleObject);
+  });
+  mainCanvas.add(strapHoleGroup);
+  // 文字盤数字 ----
+  if (hourLayout !== 'no-hour') {
+    const hourGroup = new fabric.Group([...hourObjects]);
+    hourObjects.forEach(hourObject => {
+      mainCanvas.remove(hourObject);
+    });
+    mainCanvas.add(hourGroup);
+  }
+  // 文字盤バーorドット ----
+  if (hourLayout !== 'all-hour'){
+    const barDotGroup = new fabric.Group([...barDotObjects]);
+    barDotObjects.forEach(barDotObject => {
+      mainCanvas.remove(barDotObject);
+    });
+    mainCanvas.add(barDotGroup);
+  }
+  // 針 ----
+  const hourHandGroup = new fabric.Group([hourHandBodyObject, hourHandCircleObject]);
+  const minuteHandGroup = new fabric.Group([minuteHandBodyObject, minuteHandCircleObject]);
+  const secondHandGroup = new fabric.Group([secondHandBodyObject, secondHandCircleObject]);
+  mainCanvas.remove(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
+  mainCanvas.add(hourHandGroup, minuteHandGroup, secondHandGroup);
   
   
   // ここまで試しコードを書く ----------------------------
