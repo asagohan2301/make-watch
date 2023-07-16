@@ -41,13 +41,19 @@ import { fabric } from "fabric";
 import opentype from 'opentype.js';
 
 import { downloadSVG } from './download.js';
+
 //* test
+// ダウンロードボタンをクリックしたときの処理 ----------------
 document.getElementById('dl-btn').addEventListener('click', () => {
   // ダウンロードする前に、オブジェクトをグループ化する関数呼び出し
   makeGroup();
   // canvasの内容をSVGに変換してダウンロードする関数呼び出し
   downloadSVG();
-  //* ダウンロード後はグループオブジェクトたちは削除しないと次のオブジェクトがかぶる
+  // ダウンロード後はグループオブジェクトたちは削除して、グループ化前のオブジェクトたちを戻す
+  destroyGroup();
+  // 重なり順を直す
+  stackingOrder();
+  mainCanvas.renderAll();
 });
 
 //* common -------------------------------------------------------------------------------------------
@@ -123,16 +129,26 @@ document.querySelectorAll('input[type="range"]').forEach(range => {
   });
 });
 
-// オブジェクトをグループ化する関数 ----------------
+// オブジェクトのグループ化とグループ解除 ----------------
+// 変数定義
+let lugGroup;
+let strapGroup;
+let strapStitchGroup;
+let strapLoopGroup;
+let strapHoleGroup;
+let hourGroup;
+let barDotGroup;
+let hourHandGroup;
+let minuteHandGroup;
+let secondHandGroup;
+// オブジェクトをグループ化する関数
 function makeGroup() {
   // ラグ ----
   if (lugObjects.length !== 0) {
     // オブジェクトをグループ化
-    const lugGroup = new fabric.Group([...lugObjects]);
+    lugGroup = new fabric.Group([...lugObjects]);
     // グループ化前のオブジェクトはcanvasから削除
-    lugObjects.forEach(lugObject => {
-      mainCanvas.remove(lugObject);
-    });
+    mainCanvas.remove(...lugObjects);
     // グループ化したオブジェクトをcanvasに描画
     mainCanvas.add(lugGroup);
     // ケースの上にラグが重ならないように、重なり順を直す
@@ -140,7 +156,7 @@ function makeGroup() {
   }
   // ベルト本体 ----
   if (upperStrapObject !== undefined && lowerStrapObject !== undefined) {
-    const strapGroup = new fabric.Group([upperStrapObject, lowerStrapObject]);
+    strapGroup = new fabric.Group([upperStrapObject, lowerStrapObject]);
     mainCanvas.remove(upperStrapObject, lowerStrapObject);
     mainCanvas.add(strapGroup);
     // バックルの上にベルト本体が重ならないように、重なり順を直す
@@ -148,47 +164,107 @@ function makeGroup() {
   }
   // ベルトステッチ ----
   if (upperStrapStitchObject !== undefined && lowerStrapStitchObject !== undefined && strapStitchExist === true) {
-    const strapStitchGroup = new fabric.Group([upperStrapStitchObject, lowerStrapStitchObject, topStitchObject]);
+    strapStitchGroup = new fabric.Group([upperStrapStitchObject, lowerStrapStitchObject, topStitchObject]);
     mainCanvas.remove(upperStrapStitchObject, lowerStrapStitchObject, topStitchObject);
     mainCanvas.add(strapStitchGroup);
   }
   // ベルトループ ----
   if (fixedStrapLoopObject !== undefined) {
-    const strapLoopGroup = new fabric.Group([fixedStrapLoopObject, moveableStrapLoopObject]);
+    strapLoopGroup = new fabric.Group([fixedStrapLoopObject, moveableStrapLoopObject]);
     mainCanvas.remove(fixedStrapLoopObject, moveableStrapLoopObject);
     mainCanvas.add(strapLoopGroup);
   }
   // ベルト穴 ----
   if (strapHoleObjects.length !== 0) {
-    const strapHoleGroup = new fabric.Group([...strapHoleObjects]);
-    strapHoleObjects.forEach(strapHoleObject => {
-      mainCanvas.remove(strapHoleObject);
-    });
+    strapHoleGroup = new fabric.Group([...strapHoleObjects]);
+    mainCanvas.remove(...strapHoleObjects);
     mainCanvas.add(strapHoleGroup);
   }
   // 文字盤数字 ----
   if (hourObjects.length !== 0 && hourLayout !== 'no-hour') {
-    const hourGroup = new fabric.Group([...hourObjects]);
-    hourObjects.forEach(hourObject => {
-      mainCanvas.remove(hourObject);
-    });
+    hourGroup = new fabric.Group([...hourObjects]);
+    mainCanvas.remove(...hourObjects);
     mainCanvas.add(hourGroup);
   }
   // 文字盤バーorドット ----
   if (barDotObjects.length !== 0 && hourLayout !== 'all-hour') {
-    const barDotGroup = new fabric.Group([...barDotObjects]);
-    barDotObjects.forEach(barDotObject => {
-      mainCanvas.remove(barDotObject);
-    });
+    barDotGroup = new fabric.Group([...barDotObjects]);
+    mainCanvas.remove(...barDotObjects);
     mainCanvas.add(barDotGroup);
   }
   // 針 ----
   if (hourHandBodyObject !== undefined) {
-    const hourHandGroup = new fabric.Group([hourHandBodyObject, hourHandCircleObject]);
-    const minuteHandGroup = new fabric.Group([minuteHandBodyObject, minuteHandCircleObject]);
-    const secondHandGroup = new fabric.Group([secondHandBodyObject, secondHandCircleObject]);
-    mainCanvas.remove(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandCircleObject, secondHandBodyObject);
+    hourHandGroup = new fabric.Group([hourHandBodyObject, hourHandCircleObject]);
+    minuteHandGroup = new fabric.Group([minuteHandBodyObject, minuteHandCircleObject]);
+    secondHandGroup = new fabric.Group([secondHandBodyObject, secondHandCircleObject]);
+    mainCanvas.remove(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
     mainCanvas.add(hourHandGroup, minuteHandGroup, secondHandGroup);
+  }
+}
+// オブジェクトのグループを解除する関数
+function destroyGroup() {
+  // ラグ ----
+  if (lugGroup !== undefined) {
+    // グループ解除
+    lugGroup.destroy();
+    // destroyメソッドを使うとcanvasからなくなったように見えるが、周りの枠だけ残っている
+    // なのでさらにcanvasからremoveする
+    mainCanvas.remove(lugGroup);
+    // グループ化前のオブジェクトをcanvasに追加
+    lugObjects.forEach(lugObject => {
+      mainCanvas.add(lugObject);
+      lugObject.sendToBack();
+    });
+  }
+  // ベルト本体 ----
+  if (strapGroup !== undefined) {
+    strapGroup.destroy();
+    mainCanvas.remove(strapGroup);
+    mainCanvas.add(upperStrapObject, lowerStrapObject);
+    upperStrapObject.sendToBack();
+    lowerStrapObject.sendToBack();
+  }
+  // ベルトステッチ ----
+  if (strapStitchGroup !== undefined) {
+    strapStitchGroup.destroy();
+    mainCanvas.remove(strapStitchGroup);
+    mainCanvas.add(upperStrapStitchObject, lowerStrapStitchObject, topStitchObject);
+  }
+  // ベルトループ ----
+  if (strapLoopGroup !== undefined) {
+    strapLoopGroup.destroy();
+    mainCanvas.remove(strapLoopGroup);
+    mainCanvas.add(fixedStrapLoopObject, moveableStrapLoopObject);
+  }
+  // ベルト穴 ----
+  if (strapHoleGroup !== undefined) {
+    strapHoleGroup.destroy();
+    mainCanvas.remove(strapHoleGroup);
+    strapHoleObjects.forEach(strapHoleObject => {
+      mainCanvas.add(strapHoleObject);
+    });
+  }
+  // 文字盤数字 ----
+  if (hourGroup !== undefined) {
+    hourGroup.destroy();
+    mainCanvas.remove(hourGroup);
+    hourObjects.forEach(hourObject => {
+      mainCanvas.add(hourObject);
+    });
+  }
+  // 文字盤バーorドット ----
+  if (barDotGroup !== undefined) {
+    barDotGroup.destroy();
+    mainCanvas.remove(barDotGroup);
+    barDotObjects.forEach(barDotObject => {
+      mainCanvas.add(barDotObject);
+    });
+  }
+  // 針 ----
+  if (hourHandGroup !== undefined) {
+    hourHandGroup.destroy();
+    mainCanvas.remove(hourHandGroup);
+    mainCanvas.add(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
   }
 }
 
