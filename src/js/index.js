@@ -426,27 +426,29 @@ const tabs = document.querySelectorAll('.tab');
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
     // ベルトタブをクリックしたときに、まだケース直径とラグ幅が入力されていない場合はここでリターン
+    //* test
+    //* ケースは無くてもラグがあればOKに変更
     if (tab.id === 'strap-tab') {
-      if (caseObject === undefined && lugWidth === undefined) {
-        window.alert('先にケースのページでケース直径とラグ幅を入力してから、ベルトの入力に進んでください');
-        return;
-      }
+      // if (caseObject === undefined && lugWidth === undefined) {
+      //   window.alert('先にケースのページでケース直径とラグ幅を入力してから、ベルトの入力に進んでください');
+      //   return;
+      // }
       if (lugObjects.length === 0) {
-        window.alert('先にケースのページでラグ幅を入力してから、ベルトの入力に進んでください');
+        window.alert('先に「ケース」のページで「ラグを含むケースの全長」と「ラグ幅」を入力してラグを描いてから、ベルトの入力に進んでください');
         return;
       }
     }
     // 文字盤タブをクリックしたときに、まだ文字盤見切り直径が入力されていない場合はここでリターン
     if (tab.id === 'dial-tab') {
       if (dialObject === undefined) {
-        window.alert('先にケースのページで文字盤見切り直径を入力してから、文字盤の入力に進んでください');
+        window.alert('先に「ケース」のページで「文字盤見切り直径」を入力してから、文字盤の入力に進んでください');
         return;
       }
     }
     // 針タブをクリックしたときに、まだ文字盤見切り直径が入力されていない場合はここでリターン
     if (tab.id === 'hands-tab') {
       if (dialObject === undefined) {
-        window.alert('先にケースのページで文字盤見切り直径を入力してから、針の入力に進んでください');
+        window.alert('先に「ケース」のページで「文字盤見切り直径」を入力してから、針の入力に進んでください');
         return;
       }
     }
@@ -1010,7 +1012,10 @@ class WatchUpperStrap {
           originY: 'bottom',
           fill: strapColor,
           left: mainCanvasCenterWidth,
-          top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
+          //* test
+          //* ケースではなくラグを基準に
+          // top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
+          top: mainCanvasCenterHeight - caseTotalSize / 2 + mmToPixel(2.5),
           scaleX: strapWidth / defaultStrapWidth,
           scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
           strokeUniform: true,
@@ -1091,7 +1096,10 @@ class WatchLowerStrap {
           fill: strapColor,
           left: mainCanvasCenterWidth,
           // strapを描く位置(高さ)を、ケースの位置から取得する
-          top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
+          //* test
+          //* ケースではなくラグを基準に
+          // top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
+          top: mainCanvasCenterHeight + caseTotalSize / 2 - mmToPixel(2.5),
           // 入力値にあわせて幅と長さを拡大縮小
           scaleX: strapWidth / defaultStrapWidth,
           scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
@@ -1321,8 +1329,11 @@ class WatchUpperStitch {
           originX: 'center',
           originY: 'bottom',
           left: mainCanvasCenterWidth,
-          // strapを描く位置(高さ)を、ケースの位置から取得する 3mm上に移動する
-          top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
+          //* test
+          //* ケースではなくラグを基準に
+          //* ベルト本体よりも3mm上に
+          top: mainCanvasCenterHeight - caseTotalSize / 2 + mmToPixel(2.5) - mmToPixel(3),
+          // top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
           // 入力値にあわせて幅と長さを拡大縮小
           scaleX: strapWidth / defaultStrapWidth,
           scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
@@ -1403,8 +1414,11 @@ class WatchLowerStitch {
         lowerStrapStitchObject.set({
           originX: 'center',
           left: mainCanvasCenterWidth,
-          // strapを描く位置(高さ)を、ケースの位置から取得する 3mm下に移動する
-          top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
+          //* test
+          //* ケースではなくラグを基準に
+          //* ベルト本体よりも3mm下に
+          top: mainCanvasCenterHeight + caseTotalSize / 2 - mmToPixel(2.5) + mmToPixel(3),
+          // top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
           // 入力値にあわせて幅と長さを拡大縮小
           scaleX: strapWidth / defaultStrapWidth,
           scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
