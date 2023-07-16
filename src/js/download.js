@@ -4,7 +4,7 @@ import { mainCanvas } from './index.js';
 
 // canvasの内容をSVGに変換してダウンロード ----------------
 function downloadSVG() {
-document.getElementById('dl-btn').addEventListener('click', () => {
+// document.getElementById('dl-btn').addEventListener('click', () => {
   // fabric.jsのtoSVGメソッドを使って、canvasの内容をSVG形式のテキストデータに変換
   const svgData = mainCanvas.toSVG(); 
   // SVGをblobに変換
@@ -19,7 +19,7 @@ document.getElementById('dl-btn').addEventListener('click', () => {
   link.click();
   // オブジェクト URL を解放
   URL.revokeObjectURL(link.href);
-});
+// });
 }
 
 export { downloadSVG };

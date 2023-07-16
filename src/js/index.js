@@ -41,7 +41,20 @@ import { fabric } from "fabric";
 import opentype from 'opentype.js';
 
 import { downloadSVG } from './download.js';
-downloadSVG();
+
+//* test
+// ダウンロードボタンをクリックしたときの処理 ----------------
+document.getElementById('dl-btn').addEventListener('click', () => {
+  // ダウンロードする前に、オブジェクトをグループ化する関数呼び出し
+  makeGroup();
+  // canvasの内容をSVGに変換してダウンロードする関数呼び出し
+  downloadSVG();
+  // ダウンロード後はグループオブジェクトたちは削除して、グループ化前のオブジェクトたちを戻す
+  destroyGroup();
+  // 重なり順を直す
+  stackingOrder();
+  mainCanvas.renderAll();
+});
 
 //* common -------------------------------------------------------------------------------------------
 
@@ -115,6 +128,145 @@ document.querySelectorAll('input[type="range"]').forEach(range => {
     }
   });
 });
+
+// オブジェクトのグループ化とグループ解除 ----------------
+// 変数定義
+let lugGroup;
+let strapGroup;
+let strapStitchGroup;
+let strapLoopGroup;
+let strapHoleGroup;
+let hourGroup;
+let barDotGroup;
+let hourHandGroup;
+let minuteHandGroup;
+let secondHandGroup;
+// オブジェクトをグループ化する関数
+function makeGroup() {
+  // ラグ ----
+  if (lugObjects.length !== 0) {
+    // オブジェクトをグループ化
+    lugGroup = new fabric.Group([...lugObjects]);
+    // グループ化前のオブジェクトはcanvasから削除
+    mainCanvas.remove(...lugObjects);
+    // グループ化したオブジェクトをcanvasに描画
+    mainCanvas.add(lugGroup);
+    // ケースの上にラグが重ならないように、重なり順を直す
+    lugGroup.sendToBack();
+  }
+  // ベルト本体 ----
+  if (upperStrapObject !== undefined && lowerStrapObject !== undefined) {
+    strapGroup = new fabric.Group([upperStrapObject, lowerStrapObject]);
+    mainCanvas.remove(upperStrapObject, lowerStrapObject);
+    mainCanvas.add(strapGroup);
+    // バックルの上にベルト本体が重ならないように、重なり順を直す
+    strapGroup.sendToBack();
+  }
+  // ベルトステッチ ----
+  if (upperStrapStitchObject !== undefined && lowerStrapStitchObject !== undefined && strapStitchExist === true) {
+    strapStitchGroup = new fabric.Group([upperStrapStitchObject, lowerStrapStitchObject, topStitchObject]);
+    mainCanvas.remove(upperStrapStitchObject, lowerStrapStitchObject, topStitchObject);
+    mainCanvas.add(strapStitchGroup);
+  }
+  // ベルトループ ----
+  if (fixedStrapLoopObject !== undefined) {
+    strapLoopGroup = new fabric.Group([fixedStrapLoopObject, moveableStrapLoopObject]);
+    mainCanvas.remove(fixedStrapLoopObject, moveableStrapLoopObject);
+    mainCanvas.add(strapLoopGroup);
+  }
+  // ベルト穴 ----
+  if (strapHoleObjects.length !== 0) {
+    strapHoleGroup = new fabric.Group([...strapHoleObjects]);
+    mainCanvas.remove(...strapHoleObjects);
+    mainCanvas.add(strapHoleGroup);
+  }
+  // 文字盤数字 ----
+  if (hourObjects.length !== 0 && hourLayout !== 'no-hour') {
+    hourGroup = new fabric.Group([...hourObjects]);
+    mainCanvas.remove(...hourObjects);
+    mainCanvas.add(hourGroup);
+  }
+  // 文字盤バーorドット ----
+  if (barDotObjects.length !== 0 && hourLayout !== 'all-hour') {
+    barDotGroup = new fabric.Group([...barDotObjects]);
+    mainCanvas.remove(...barDotObjects);
+    mainCanvas.add(barDotGroup);
+  }
+  // 針 ----
+  if (hourHandBodyObject !== undefined) {
+    hourHandGroup = new fabric.Group([hourHandBodyObject, hourHandCircleObject]);
+    minuteHandGroup = new fabric.Group([minuteHandBodyObject, minuteHandCircleObject]);
+    secondHandGroup = new fabric.Group([secondHandBodyObject, secondHandCircleObject]);
+    mainCanvas.remove(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
+    mainCanvas.add(hourHandGroup, minuteHandGroup, secondHandGroup);
+  }
+}
+// オブジェクトのグループを解除する関数
+function destroyGroup() {
+  // ラグ ----
+  if (lugGroup !== undefined) {
+    // グループ解除
+    lugGroup.destroy();
+    // destroyメソッドを使うとcanvasからなくなったように見えるが、周りの枠だけ残っている
+    // なのでさらにcanvasからremoveする
+    mainCanvas.remove(lugGroup);
+    // グループ化前のオブジェクトをcanvasに追加
+    lugObjects.forEach(lugObject => {
+      mainCanvas.add(lugObject);
+      lugObject.sendToBack();
+    });
+  }
+  // ベルト本体 ----
+  if (strapGroup !== undefined) {
+    strapGroup.destroy();
+    mainCanvas.remove(strapGroup);
+    mainCanvas.add(upperStrapObject, lowerStrapObject);
+    upperStrapObject.sendToBack();
+    lowerStrapObject.sendToBack();
+  }
+  // ベルトステッチ ----
+  if (strapStitchGroup !== undefined) {
+    strapStitchGroup.destroy();
+    mainCanvas.remove(strapStitchGroup);
+    mainCanvas.add(upperStrapStitchObject, lowerStrapStitchObject, topStitchObject);
+  }
+  // ベルトループ ----
+  if (strapLoopGroup !== undefined) {
+    strapLoopGroup.destroy();
+    mainCanvas.remove(strapLoopGroup);
+    mainCanvas.add(fixedStrapLoopObject, moveableStrapLoopObject);
+  }
+  // ベルト穴 ----
+  if (strapHoleGroup !== undefined) {
+    strapHoleGroup.destroy();
+    mainCanvas.remove(strapHoleGroup);
+    strapHoleObjects.forEach(strapHoleObject => {
+      mainCanvas.add(strapHoleObject);
+    });
+  }
+  // 文字盤数字 ----
+  if (hourGroup !== undefined) {
+    hourGroup.destroy();
+    mainCanvas.remove(hourGroup);
+    hourObjects.forEach(hourObject => {
+      mainCanvas.add(hourObject);
+    });
+  }
+  // 文字盤バーorドット ----
+  if (barDotGroup !== undefined) {
+    barDotGroup.destroy();
+    mainCanvas.remove(barDotGroup);
+    barDotObjects.forEach(barDotObject => {
+      mainCanvas.add(barDotObject);
+    });
+  }
+  // 針 ----
+  if (hourHandGroup !== undefined) {
+    hourHandGroup.destroy();
+    mainCanvas.remove(hourHandGroup);
+    mainCanvas.add(hourHandBodyObject, hourHandCircleObject, minuteHandBodyObject, minuteHandCircleObject, secondHandBodyObject, secondHandCircleObject);
+  }
+}
 
 //* カラーピッカー ----------------------------------------
 
@@ -1526,7 +1678,7 @@ hourLayoutInputs.forEach(hourLayoutInput => {
     // そこから内側に少し調整した円の半径
     hourLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     // レンジの入力可・不可の切り替え
-    switchRange();
+    switchRangeDial();
     // 数字を描く関数呼び出し
     drawHour();
     // すでにバーorドットが描かれている場合は、再描画する
@@ -1563,6 +1715,7 @@ hourFontTypeInputs.forEach(hourFontTypeInput => {
 
 // バーorドットを描く関数 ----------------
 function drawBarDot() {
+  //* まだ数字配置が選択されていないときはどう扱う?結果的に数字無しの扱いに今はなっているぽい
   // すでにオブジェクトが描かれていたらcanvasから削除し、配列も空にする
   barDotObjects.forEach(barDotObject => {
     mainCanvas.remove(barDotObject);
@@ -1652,7 +1805,7 @@ barDotInputs.forEach(barDotInput => {
     // そのため呼び出し元で計算する
     barDotLayoutCircleRadius = dialObject.radius - hourFontSize / 2 - hourFontSize / 4;
     // レンジの入力可・不可の切り替え
-    switchRange();
+    switchRangeDial();
     // バーorドットを描く関数呼び出し
     drawBarDot();
   });
@@ -1787,51 +1940,50 @@ barDotLayoutCircleRadiusRange.addEventListener('input', () => {
 });
 
 // レンジの入力可・不可の切り替え ----------------
-function switchRange() {
+// 数字とバーorドット
+// hourLayout の値によって分岐
+function switchRangeDial() {
   // 全数字のとき ----
   if (hourLayout === 'all-hour') {
     // 数字
     hourFontSizeRange.disabled = false;
     hourLayoutCircleRadiusRange.disabled = false;
     // バードット
-    barDotLayoutCircleRadiusRange.disabled = true;
     barWidthRange.disabled = true;
     barLengthRange.disabled = true;
     dotSizeRange.disabled = true;
-  }
+    barDotLayoutCircleRadiusRange.disabled = true;
   // 4ポイント or 2ポイントのとき ----
-  if (hourLayout === 'four-point-hour' || hourLayout === 'two-point-hour') {
+  } else if (hourLayout === 'four-point-hour' || hourLayout === 'two-point-hour') {
     // 数字
     hourFontSizeRange.disabled = false;
     hourLayoutCircleRadiusRange.disabled = false;
     // バードット
-    barDotLayoutCircleRadiusRange.disabled = false;
-    if (barOrDot === 'bar') {
-      barWidthRange.disabled = false;
-      barLengthRange.disabled = false;
-      dotSizeRange.disabled = true;
-    } else if (barOrDot === 'dot') {
-      barWidthRange.disabled = true;
-      barLengthRange.disabled = true;
-      dotSizeRange.disabled = false;
-    }
-  }
+    switchRangeBarDot();
   // 数字無しのとき ----
-  if (hourLayout === 'no-hour') {
+  } else if (hourLayout === 'no-hour') {
     // 数字
     hourFontSizeRange.disabled = true;
     hourLayoutCircleRadiusRange.disabled = true;
     // バードット
+    switchRangeBarDot();
+  // hourLayout がまだ選ばれていないとき ----
+  } else {
+    switchRangeBarDot();
+  }
+}
+// バーorドット
+function switchRangeBarDot() {
+  if (barOrDot === 'bar') {
+    barWidthRange.disabled = false;
+    barLengthRange.disabled = false;
+    dotSizeRange.disabled = true;
     barDotLayoutCircleRadiusRange.disabled = false;
-    if (barOrDot === 'bar') {
-      barWidthRange.disabled = false;
-      barLengthRange.disabled = false;
-      dotSizeRange.disabled = true;
-    } else if (barOrDot === 'dot') {
-      barWidthRange.disabled = true;
-      barLengthRange.disabled = true;
-      dotSizeRange.disabled = false;
-    }
+  } else if (barOrDot === 'dot') {
+    barWidthRange.disabled = true;
+    barLengthRange.disabled = true;
+    dotSizeRange.disabled = false;
+    barDotLayoutCircleRadiusRange.disabled = false;
   }
 }
 
@@ -2532,9 +2684,7 @@ mainCanvas.on('mouse:down', function(options) {
 //   mainCanvas.setZoom(canvasRange.value);
 // });
 
-const ctx = document.getElementById('test-canvas').getContext('2d');
-ctx.font = '14px sans-serif';
-ctx.fillText('ケースの直径を入力', 10, 50);
+
 
 
 
@@ -2555,10 +2705,8 @@ testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
   
-
-  
-  
-
+console.log(upperStrapStitchObject);
+console.log(barDotObjects);
   
   
   // ここまで試しコードを書く ----------------------------
