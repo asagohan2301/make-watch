@@ -428,25 +428,25 @@ tabs.forEach(tab => {
     // ベルトタブをクリックしたときに、まだケース直径とラグ幅が入力されていない場合はここでリターン
     if (tab.id === 'strap-tab') {
       if (caseObject === undefined && lugWidth === undefined) {
-        window.alert('先にこのページでケース直径とラグ幅を入力してから、ベルトの入力に進んでください');
+        window.alert('先にケースのページでケース直径とラグ幅を入力してから、ベルトの入力に進んでください');
         return;
       }
       if (lugObjects.length === 0) {
-        window.alert('先にこのページでラグ幅を入力してから、ベルトの入力に進んでください');
+        window.alert('先にケースのページでラグ幅を入力してから、ベルトの入力に進んでください');
         return;
       }
     }
     // 文字盤タブをクリックしたときに、まだ文字盤見切り直径が入力されていない場合はここでリターン
     if (tab.id === 'dial-tab') {
       if (dialObject === undefined) {
-        window.alert('先にこのページで文字盤見切り直径を入力してから、文字盤の入力に進んでください');
+        window.alert('先にケースのページで文字盤見切り直径を入力してから、文字盤の入力に進んでください');
         return;
       }
     }
     // 針タブをクリックしたときに、まだ文字盤見切り直径が入力されていない場合はここでリターン
     if (tab.id === 'hands-tab') {
       if (dialObject === undefined) {
-        window.alert('先にこのページで文字盤見切り直径を入力してから、文字盤の入力に進んでください');
+        window.alert('先にケースのページで文字盤見切り直径を入力してから、針の入力に進んでください');
         return;
       }
     }
