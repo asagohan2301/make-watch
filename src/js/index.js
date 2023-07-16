@@ -577,7 +577,7 @@ caseOpeningSizeInput.addEventListener('input', () => {
   // ケース見切りオブジェクト生成
   caseOpeningObject = new WatchCircleForMain({
     radius: mmToPixel(caseOpeningSizeInput.value) / 2,
-    fill: 'white',
+    fill: '#FAFAFA',
   });
   // canvasに描画
   mainCanvas.add(caseOpeningObject);
