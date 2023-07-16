@@ -503,30 +503,15 @@ let lugWidth;
 let lugShape = 'round';
 const defaultLugThickness = mmToPixel(2);
 const defaultLugLength = mmToPixel(8);
-//* test
 let caseTotalSize;
-const caseTotalSizeInput = document.getElementById('case-total-size');
-//* test
-// ケース+ラグ全長が入力されたらcanvasに描画? ----------------
-caseTotalSizeInput.addEventListener('input', () => {
-  // 変数に値を入れておく
-  caseTotalSize = mmToPixel(caseTotalSizeInput.value);
-  // ラグ幅を入力可にする
-  lugWidthInput.disabled = false;
-  // ラグ幅がまだ入力されていない場合はここでリターン
-  if (lugWidth === undefined) {
-    window.alert('ラグ幅を入力するとラグが描かれます');
-    return;
-  }
-  // ラグを描く関数 を呼び出す関数 を呼び出し
-  callDrawLug();
-});
 
 // Node
 const caseSizeInput = document.getElementById('case-size');
 const caseOpeningSizeInput = document.getElementById('case-opening-size');
 const dialSizeInput = document.getElementById('dial-size');
 const lugWidthInput = document.getElementById('lug-width');
+const caseTotalSizeInput = document.getElementById('case-total-size');
+
 
 // 円のクラス ----------------------------------------
 // mainCanvasの ケース・ケース見切・文字盤 に使用
@@ -731,6 +716,31 @@ function callDrawLug() {
       break;
   }
 }
+
+// ラグを含むケースの全長が入力されたらcanvasに描画 ----------------
+caseTotalSizeInput.addEventListener('input', () => {
+  // 変数に値を入れておく
+  caseTotalSize = mmToPixel(caseTotalSizeInput.value);
+  // ラグ幅を入力可にする
+  lugWidthInput.disabled = false;
+  // ラグ幅がまだ入力されていない場合はここでリターン
+  if (lugWidth === undefined) {
+    window.alert('ラグ幅を入力するとラグが描かれます');
+    return;
+  }
+  // ラグを描く関数を呼び出す関数 callDrawLug を呼び出す ----
+  callDrawLug();
+  //* test
+  // ベルト再描画 ----
+  // ラグ幅が変更されたらベルトの幅も変わるので再描画する
+  // すでにベルトが描かれているなら再描画、描かれていないなら何もしない
+  if (upperStrapObject !== undefined) {
+    callDrawUpperStrap();
+  }
+  if (lowerStrapObject !== undefined) {
+    callDrawLowerStrap();
+  }
+});
 
 // ラグ幅が入力されたらcanvasに描画 ----------------
 lugWidthInput.addEventListener('input', () => {
