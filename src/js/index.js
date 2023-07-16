@@ -106,6 +106,13 @@ function stackingOrder() {
     secondHandBodyObject.moveTo(36);
     secondHandCircleObject.moveTo(37);
   }
+  //* test
+  if (upperStrapObject !== undefined) {
+    upperStrapObject.sendToBack();
+  }
+  if (lowerStrapObject !== undefined) {
+    lowerStrapObject.sendToBack();
+  }
 }
 
 // 配列に入ったオブジェクトたちに色をつける関数 ----------------
@@ -558,15 +565,17 @@ caseSizeInput.addEventListener('input', () => {
   if (crownShape !== undefined) {
     callDrawCrown();
   }
+  //* test
+  //* ケースのサイズでベルトの位置は変わらないので無しに
   // ベルト再描画 ----
   // すでにベルトが描かれていたら、再描画する
   // まだベルトが描かれていないなら、何もしない
-  if (upperStrapObject !== undefined) {
-    callDrawUpperStrap();
-  }
-  if (lowerStrapObject !== undefined) {
-    callDrawLowerStrap();
-  }
+  // if (upperStrapObject !== undefined) {
+  //   callDrawUpperStrap();
+  // }
+  // if (lowerStrapObject !== undefined) {
+  //   callDrawLowerStrap();
+  // }
   // 重なり順を直す
   stackingOrder();
   // ラグ幅を入力可にする
@@ -1032,6 +1041,9 @@ class WatchUpperStrap {
         });
         // canvasに描画
         mainCanvas.add(upperStrapObject);
+        //* test
+        //* ケースより上にならないように並び順を変える
+        upperStrapObject.sendToBack();
         // ステッチ再描画 ----
         if (strapStitchExist === true) {
           switch (strapShape) {
@@ -1118,6 +1130,9 @@ class WatchLowerStrap {
         });
         // canvasに描画
         mainCanvas.add(lowerStrapObject);
+        //* test
+        //* ケースより上にならないように並び順を変える
+        lowerStrapObject.sendToBack();
         // ステッチ再描画
         if (strapStitchExist === true) {
           switch (strapShape) {
