@@ -39,22 +39,7 @@
 import '../css/style.css';
 import { fabric } from "fabric";
 import opentype from 'opentype.js';
-
 import { downloadSVG } from './download.js';
-
-//* test
-// ダウンロードボタンをクリックしたときの処理 ----------------
-document.getElementById('dl-btn').addEventListener('click', () => {
-  // ダウンロードする前に、オブジェクトをグループ化する関数呼び出し
-  makeGroup();
-  // canvasの内容をSVGに変換してダウンロードする関数呼び出し
-  downloadSVG();
-  // ダウンロード後はグループオブジェクトたちは削除して、グループ化前のオブジェクトたちを戻す
-  destroyGroup();
-  // 重なり順を直す
-  stackingOrder();
-  mainCanvas.renderAll();
-});
 
 //* common -------------------------------------------------------------------------------------------
 
@@ -106,7 +91,6 @@ function stackingOrder() {
     secondHandBodyObject.moveTo(36);
     secondHandCircleObject.moveTo(37);
   }
-  //* test
   if (upperStrapObject !== undefined) {
     upperStrapObject.sendToBack();
   }
@@ -275,6 +259,19 @@ function destroyGroup() {
   }
 }
 
+// ダウンロードボタンをクリックしたときの処理 ----------------
+document.getElementById('dl-btn').addEventListener('click', () => {
+  // ダウンロードする前に、オブジェクトをグループ化する関数呼び出し
+  makeGroup();
+  // canvasの内容をSVGに変換してダウンロードする関数呼び出し
+  downloadSVG();
+  // ダウンロード後はグループオブジェクトたちは削除して、グループ化前のオブジェクトたちを戻す
+  destroyGroup();
+  // 重なり順を直す
+  stackingOrder();
+  mainCanvas.renderAll();
+});
+
 //* カラーピッカー ----------------------------------------
 
 // カラーピッカーで色を選択したときの処理 ----------------
@@ -432,14 +429,8 @@ document.querySelector('.component:first-child .workspace').classList.add('appea
 const tabs = document.querySelectorAll('.tab');
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
-    // ベルトタブをクリックしたときに、まだケース直径とラグ幅が入力されていない場合はここでリターン
-    //* test
-    //* ケースは無くてもラグがあればOKに変更
+    // ベルトタブをクリックしたときに、まだラグオブジェクトがない場合はここでリターン
     if (tab.id === 'strap-tab') {
-      // if (caseObject === undefined && lugWidth === undefined) {
-      //   window.alert('先にケースのページでケース直径とラグ幅を入力してから、ベルトの入力に進んでください');
-      //   return;
-      // }
       if (lugObjects.length === 0) {
         window.alert('先に「ケース」のページで「ラグを含むケースの全長」と「ラグ幅」を入力してラグを描いてから、ベルトの入力に進んでください');
         return;
@@ -549,14 +540,6 @@ caseSizeInput.addEventListener('input', () => {
   });
   // canvasに描画
   mainCanvas.add(caseObject);
-  // ラグ再描画 ----
-  // すでにラグが描かれていたら、再描画する
-  // まだラグが描かれていないなら、何もしない
-  // ただしラグ幅さえ入力されていれば、ラグ形状がまだ選択されていなくても初期値の round で描画する
-  if (lugObjects.length !== 0) {
-    // ラグを描く関数 drawLug を呼び出す関数 callDrawLug を呼び出す
-    callDrawLug();
-  }
   // リュウズ再描画 ----
   // すでにリュウズが描かれていたら、再描画する
   // リュウズがまだ描かれていなくても、すでにリュウズ形状が選択されているなら描画する
@@ -565,21 +548,8 @@ caseSizeInput.addEventListener('input', () => {
   if (crownShape !== undefined) {
     callDrawCrown();
   }
-  //* test
-  //* ケースのサイズでベルトの位置は変わらないので無しに
-  // ベルト再描画 ----
-  // すでにベルトが描かれていたら、再描画する
-  // まだベルトが描かれていないなら、何もしない
-  // if (upperStrapObject !== undefined) {
-  //   callDrawUpperStrap();
-  // }
-  // if (lowerStrapObject !== undefined) {
-  //   callDrawLowerStrap();
-  // }
   // 重なり順を直す
   stackingOrder();
-  // ラグ幅を入力可にする
-  // lugWidthInput.disabled = false;
 });
 
 //* main canvas ケース見切り ----------------------------------------
@@ -671,8 +641,6 @@ class WatchLug {
           lugObject.set({
             originX: 'center',
             left: mainCanvasCenterWidth - lugWidth / 2 - defaultLugThickness / 2,
-            //* test
-            // top: mainCanvasCenterHeight - caseObject.height / lugPositionAdjustValue,
             top: mainCanvasCenterHeight - caseTotalSize / 2,
             fill: caseColor,
           });
@@ -684,8 +652,6 @@ class WatchLug {
           if (i === 2 || i === 3) {
             lugObject.set({
               flipY: true,
-              //* test
-              // top: mainCanvasCenterHeight + caseObject.height / lugPositionAdjustValue - defaultLugLength,
               top: mainCanvasCenterHeight + caseTotalSize / 2 - defaultLugLength,
             });
           }
@@ -739,9 +705,8 @@ caseTotalSizeInput.addEventListener('input', () => {
   }
   // ラグを描く関数を呼び出す関数 callDrawLug を呼び出す ----
   callDrawLug();
-  //* test
   // ベルト再描画 ----
-  // ラグ幅が変更されたらベルトの幅も変わるので再描画する
+  // ラグを含むケースの全長が変更されたらベルトの位置も変わるので再描画する
   // すでにベルトが描かれているなら再描画、描かれていないなら何もしない
   if (upperStrapObject !== undefined) {
     callDrawUpperStrap();
@@ -773,14 +738,9 @@ lugShapeInputs.forEach(lugShapeInput => {
   lugShapeInput.addEventListener('input', () => {
     // 変数に値を入れておく
     lugShape = lugShapeInput.value;
-    // ケースオブジェクトがまだなく、ラグ幅もまだ入力されていない場合はここでリターン
-    if (caseObject === undefined && lugWidth === undefined) {
-      window.alert('ケース直径とラグ幅を入力するとラグが描かれます');
-      return;
-    }
-    // ラグ幅がまだ入力されていない場合はここでリターン
-    if (lugWidth === undefined) {
-      window.alert('ラグ幅を入力するとラグが描かれます');
+    // ラグオブジェクトがまだない場合はここでリターン
+    if (lugObjects.length === 0) {
+      window.alert('「ラグを含むケースの全長」「ラグを含むケースの全長」を入力するとラグが描かれます');
       return;
     }
     // ラグを描く関数 を呼び出す関数 を呼び出し
@@ -793,15 +753,12 @@ lugShapeInputs.forEach(lugShapeInput => {
 lugWidthInput.disabled = true;
 // ラグ幅の入力部分をクリックしたときの処理
 lugWidthInput.parentElement.addEventListener('click', () => {
-  //* test
-  //// すでにケースが描かれていたら、何もしない
-  // すでにケース+ラグ全長が入力されていたら何もしない
+  // すでにラグを含むケースの全長が入力されていたら何もしない
   if (caseTotalSize !== undefined) {
     return;
   }
-  //// ケースオブジェクトがまだない場合はアラートを表示
-  // ケース+ラグ全長がまだ入力されていない場合はアラートを表示
-  window.alert('先にケース+ラグ全長を入力してから、ラグ幅を入力してください');
+  // ラグを含むケースの全長がまだ入力されていない場合はアラートを表示
+  window.alert('先に「ラグを含むケースの全長」を入力してから、ラグ幅を入力してください');
 });
 
 //* main canvas リュウズ ----------------------------------------
@@ -1031,9 +988,6 @@ class WatchUpperStrap {
           originY: 'bottom',
           fill: strapColor,
           left: mainCanvasCenterWidth,
-          //* test
-          //* ケースではなくラグを基準に
-          // top: caseObject.top - caseObject.height / 2 - mmToPixel(1),
           top: mainCanvasCenterHeight - caseTotalSize / 2 + mmToPixel(2.5),
           scaleX: strapWidth / defaultStrapWidth,
           scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
@@ -1041,8 +995,7 @@ class WatchUpperStrap {
         });
         // canvasに描画
         mainCanvas.add(upperStrapObject);
-        //* test
-        //* ケースより上にならないように並び順を変える
+        // ケースより上にならないように並び順を変える
         upperStrapObject.sendToBack();
         // ステッチ再描画 ----
         if (strapStitchExist === true) {
@@ -1117,10 +1070,6 @@ class WatchLowerStrap {
           originX: 'center',
           fill: strapColor,
           left: mainCanvasCenterWidth,
-          // strapを描く位置(高さ)を、ケースの位置から取得する
-          //* test
-          //* ケースではなくラグを基準に
-          // top: caseObject.top + caseObject.height / 2 + mmToPixel(1),
           top: mainCanvasCenterHeight + caseTotalSize / 2 - mmToPixel(2.5),
           // 入力値にあわせて幅と長さを拡大縮小
           scaleX: strapWidth / defaultStrapWidth,
@@ -1130,8 +1079,7 @@ class WatchLowerStrap {
         });
         // canvasに描画
         mainCanvas.add(lowerStrapObject);
-        //* test
-        //* ケースより上にならないように並び順を変える
+        // ケースより上にならないように並び順を変える
         lowerStrapObject.sendToBack();
         // ステッチ再描画
         if (strapStitchExist === true) {
@@ -1354,11 +1302,8 @@ class WatchUpperStitch {
           originX: 'center',
           originY: 'bottom',
           left: mainCanvasCenterWidth,
-          //* test
-          //* ケースではなくラグを基準に
-          //* ベルト本体よりも3mm上に
+          // ベルト本体よりも3mm上に
           top: mainCanvasCenterHeight - caseTotalSize / 2 + mmToPixel(2.5) - mmToPixel(3),
-          // top: caseObject.top - caseObject.height / 2 - mmToPixel(1) - mmToPixel(3),
           // 入力値にあわせて幅と長さを拡大縮小
           scaleX: strapWidth / defaultStrapWidth,
           scaleY: mmToPixel(upperStrapLengthInput.value) / defaultUpperStrapLength,
@@ -1439,11 +1384,8 @@ class WatchLowerStitch {
         lowerStrapStitchObject.set({
           originX: 'center',
           left: mainCanvasCenterWidth,
-          //* test
-          //* ケースではなくラグを基準に
-          //* ベルト本体よりも3mm下に
+          // ベルト本体よりも3mm下に
           top: mainCanvasCenterHeight + caseTotalSize / 2 - mmToPixel(2.5) + mmToPixel(3),
-          // top: caseObject.top + caseObject.height / 2 + mmToPixel(1) + mmToPixel(3),
           // 入力値にあわせて幅と長さを拡大縮小
           scaleX: strapWidth / defaultStrapWidth,
           scaleY: mmToPixel(lowerStrapLengthInput.value) / defaultLowerStrapLength,
