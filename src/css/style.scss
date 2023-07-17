@@ -247,6 +247,11 @@ main {
               &:hover label.radio-label {
                 background: $active-color;
               }
+              //* test
+              label.range-label {
+                display: flex;
+                flex-direction: column;
+              }
               img,
               div {
                 position: absolute;
@@ -280,6 +285,10 @@ main {
                 text-align: center;
                 font-size: 11px;
                 pointer-events: none;
+              }
+              // test
+              input[type="range"] {
+                width: 100px;
               }
             }
           }

@@ -231,6 +231,10 @@ main .component-list .component .workspace .design-list ul li label.radio-label 
 main .component-list .component .workspace .design-list ul li:hover label.radio-label {
   background: #e2e2e2;
 }
+main .component-list .component .workspace .design-list ul li label.range-label {
+  display: flex;
+  flex-direction: column;
+}
 main .component-list .component .workspace .design-list ul li img,
 main .component-list .component .workspace .design-list ul li div {
   position: absolute;
@@ -269,6 +273,9 @@ main .component-list .component .workspace .design-list ul li p {
   text-align: center;
   font-size: 11px;
   pointer-events: none;
+}
+main .component-list .component .workspace .design-list ul li input[type=range] {
+  width: 100px;
 }
 
 /* ----- colors ----- */

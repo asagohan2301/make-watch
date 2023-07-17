@@ -452,16 +452,17 @@
                 </li>
               </ul>
             </div>
+            <!---------- dial range ---------->
             <div class="design-list design-list-hour-range">
               <h3>数字の調整:</h3>
               <ul>
                 <li>
-                  <label>数字のサイズ
+                  <label class="range-label">数字のサイズ
                     <input type="range" name="hour-font-size" id="hour-font-size-range" min="4" max="32" step="1">
                   </label>
                 </li>
                 <li>
-                  <label>数字の位置
+                  <label class="range-label">数字の位置
                     <input type="range" name="hour-layout-circle-radius" id="hour-layout-circle-radius-range" min="-20"
                       max="0" step="1">
                   </label>
@@ -472,22 +473,22 @@
               <h3>バードットの調整:</h3>
               <ul>
                 <li>
-                  <label>バーの幅
+                  <label class="range-label">バーの幅
                     <input type="range" name="bar-width" id="bar-width-range" min=".1" max="5" step=".1">
                   </label>
                 </li>
                 <li>
-                  <label>バーの長さ
+                  <label class="range-label">バーの長さ
                     <input type="range" name="bar-length" id="bar-length-range" min="1" max="10" step=".1">
                   </label>
                 </li>
                 <li>
-                  <label>ドットのサイズ
+                  <label class="range-label">ドットのサイズ
                     <input type="range" name="dot-size" id="dot-size-range" min=".4" max="3" step=".1">
                   </label>
                 </li>
                 <li>
-                  <label>バーorドットの位置
+                  <label class="range-label">バーorドットの位置
                     <input type="range" name="bardot-layout-circle-radius" id="bardot-layout-circle-radius-range"
                       min="-20" max="0" step="1">
                   </label>
@@ -572,21 +573,31 @@
             </div>
             <div class="design-list design-list-hands-range">
               <h3>針の調整:</h3>
-              <label>時針と分針の向き
-                <input type="range" name="hour-minute-hands-direction" id="hour-minute-hands-direction-range" min="0"
-                  max="4320" step="6">
-              </label>
-              <label>秒針の向き
-                <input type="range" name="second-hand-direction" id="second-hand-direction-range" min="0" max="360"
-                  step="6">
-              </label>
-              <label>針の長さ
-                <!-- maxはindex.jsで指定 -->
-                <input type="range" name="hands-length" id="hands-length-range" min=".1" step=".1">
-              </label>
-              <label>針の太さ
-                <input type="range" name="hands-width" id="hands-width-range" min=".8" max="1.8" step=".2">
-              </label>
+              <ul>
+                <li>
+                  <label class="range-label">時針と分針の向き
+                    <input type="range" name="hour-minute-hands-direction" id="hour-minute-hands-direction-range"
+                      min="0" max="4320" step="6">
+                  </label>
+                </li>
+                <li>
+                  <label class="range-label">秒針の向き
+                    <input type="range" name="second-hand-direction" id="second-hand-direction-range" min="0" max="360"
+                      step="6">
+                  </label>
+                </li>
+                <li>
+                  <label class="range-label">針の長さ
+                    <!-- maxはindex.jsで指定 -->
+                    <input type="range" name="hands-length" id="hands-length-range" min=".1" step=".1">
+                  </label>
+                </li>
+                <li>
+                  <label class="range-label">針の太さ
+                    <input type="range" name="hands-width" id="hands-width-range" min=".8" max="1.8" step=".2">
+                  </label>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
