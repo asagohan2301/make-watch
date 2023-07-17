@@ -2312,7 +2312,7 @@ let infoCrownObject;
 let infoColorChangeLists;
 
 // サイズ・形状・色など
-const caseInfoCanvasCenterHeight = 118;
+const caseInfoCanvasCenterHeight = 136;
 const caseInfoCanvasHalfWidth = 130;
 const caseInfoCanvasCaseRadius = 45;
 const caseInfoCanvasCaseOpeningRadius = 39;
