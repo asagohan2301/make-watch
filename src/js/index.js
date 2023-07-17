@@ -2318,6 +2318,8 @@ const caseInfoCanvasCaseRadius = 45;
 const caseInfoCanvasCaseOpeningRadius = 39;
 const caseInfoCanvasDialOpeningRadius = 36;
 const caseInfoCanvasLugHalfDistance = 26;
+//* test
+const caseInfoCanvasCaseTotalSize = 112;
 
 // Node
 const caseInfoComment = document.querySelector('.case-info-comment');
@@ -2359,10 +2361,12 @@ for (let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
   fabric.loadSVGFromURL('./assets/lug-round.svg', (objects, options) => {
     infoLugObjects[i] = fabric.util.groupSVGElements(objects, options);
     infoLugObjects[i].set({
+      // originX: 'center',
       originX: 'center',
-      originY: 'center',
+      originY: 'top',
       left: caseInfoCanvasHalfWidth - caseInfoCanvasLugHalfDistance,
-      top: caseInfoCanvasCenterHeight - 44,
+      // top: caseInfoCanvasCenterHeight - 44,
+      top: caseInfoCanvasCenterHeight - caseInfoCanvasCaseTotalSize / 2,
     });
     if (i === 1 || i === 3) {
       infoLugObjects[i].set({
@@ -2372,7 +2376,8 @@ for (let i = 0; i < 4; i++) { // i= 0, 1, 2, 3
     if (i === 2 || i === 3) {
       infoLugObjects[i].set({
         flipY: true,
-        top: caseInfoCanvasCenterHeight + 44,
+        // top: caseInfoCanvasCenterHeight + 44,
+        top: caseInfoCanvasCenterHeight + caseInfoCanvasCaseTotalSize / 2 - defaultLugLength,
       });
     }
     caseInfoCanvas.add(infoLugObjects[i]);
@@ -2435,6 +2440,7 @@ const openingArrow = new Arrow(caseInfoCanvasCaseOpeningRadius);
 const dialArrow = new Arrow(caseInfoCanvasDialOpeningRadius);
 const lugArrow = new Arrow(caseInfoCanvasLugHalfDistance - defaultLugThickness / 2);
 
+
 // case info canvas に説明を表示 ----------------------------------------
 
 // 表示するコメントの配列を準備 ----------------
@@ -2447,6 +2453,7 @@ const comment = {
   lugShape: 'ラグの形状を選択してください',
   crownShape: 'りゅうずの形状を選択してください',
   caseColor: 'ケース、ラグ、りゅうずにつける色を選択してください',
+  caseTotalSize: 'ケースとラグをあわせた全長を入力してください',
 }
 
 // ケース・ケース見切り・文字盤見切りの info を表示するための配列を準備 ----------------
@@ -2525,6 +2532,49 @@ lugWidthInput.addEventListener('blur', () => {
 lugWidthInput.addEventListener('input', () => {
   // 矢印を取り除く
   lugArrow.removeArrow();
+  // コメントを戻す
+  fadeOutComment();
+});
+
+//* test
+let caseTotalLine, caseTotalTipTop, caseTotalTipBottom;
+// ケース全長の info を表示・非表示 ----------------
+caseTotalSizeInput.addEventListener('focus', () => {
+  //* test
+  caseTotalLine = new fabric.Polyline([
+    { x: caseInfoCanvasHalfWidth - 35, y: caseInfoCanvasCenterHeight + caseInfoCanvasCaseTotalSize / 2 },
+    { x: caseInfoCanvasHalfWidth - 35, y: caseInfoCanvasCenterHeight - caseInfoCanvasCaseTotalSize / 2 },], {
+    stroke: 'red',
+  });
+  caseTotalTipTop = new fabric.Polyline([
+    { x: caseInfoCanvasHalfWidth - 35 - 6, y: caseInfoCanvasCenterHeight + caseInfoCanvasCaseTotalSize / 2 - 16 },
+    { x: caseInfoCanvasHalfWidth - 35, y: caseInfoCanvasCenterHeight + caseInfoCanvasCaseTotalSize / 2 },
+    { x: caseInfoCanvasHalfWidth - 35 + 6, y: caseInfoCanvasCenterHeight + caseInfoCanvasCaseTotalSize / 2 - 16 }], {
+    stroke: 'red',
+    fill: 'transparent',
+  });
+  caseTotalTipBottom = new fabric.Polyline([
+    { x: caseInfoCanvasHalfWidth - 35 - 6, y: caseInfoCanvasCenterHeight - caseInfoCanvasCaseTotalSize / 2 + 16 },
+    { x: caseInfoCanvasHalfWidth - 35, y: caseInfoCanvasCenterHeight - caseInfoCanvasCaseTotalSize / 2 },
+    { x: caseInfoCanvasHalfWidth - 35 + 6, y: caseInfoCanvasCenterHeight - caseInfoCanvasCaseTotalSize / 2 + 16 }], {
+    stroke: 'red',
+    fill: 'transparent',
+  });
+  caseInfoCanvas.add(caseTotalLine, caseTotalTipTop,caseTotalTipBottom);
+  // コメントを表示
+  fadeInComment(comment.caseTotalSize);
+});
+// blur(focusが外れた時) ----
+caseTotalSizeInput.addEventListener('blur', () => {
+  // 矢印を取り除く
+  caseInfoCanvas.remove(caseTotalLine, caseTotalTipTop, caseTotalTipBottom);
+  // コメントを戻す
+  fadeOutComment();
+});
+// input ----
+caseTotalSizeInput.addEventListener('input', () => {
+  // 矢印を取り除く
+  caseInfoCanvas.remove(caseTotalLine, caseTotalTipTop, caseTotalTipBottom);
   // コメントを戻す
   fadeOutComment();
 });
