@@ -1498,8 +1498,14 @@ class WatchBuckle {
         // 幅と長さを拡大縮小
         //* 調整必要
         scaleX: strapWidth / defaultStrapWidth,
-        scaleY: strapWidth / defaultStrapWidth,
+        // scaleY: strapWidth / defaultStrapWidth,
       });
+      //* test
+      if (strapShape === 'taper') {
+        buckleObject.set({
+          scaleX: (strapWidth - mmToPixel(2)) / defaultStrapWidth,
+        });
+      }
       // fabric.util.groupSVGElementsは、複数のSVGパスをグループ化して1つのオブジェクトとして作成する
       // この場合、fillなどの属性は直接設定できないが、
       // グループオブジェクト内の各パスには、_objectsというプロパティでアクセスできる
@@ -1518,8 +1524,10 @@ class WatchBuckle {
 }
 
 // バックルインスタンス生成 ----------------
-const roundBuckle = new WatchBuckle('./assets/buckle-round.svg');
-const squareBuckle = new WatchBuckle('./assets/buckle-square.svg');
+// const roundBuckle = new WatchBuckle('./assets/buckle-round.svg');
+// const squareBuckle = new WatchBuckle('./assets/buckle-square.svg');
+const roundBuckle = new WatchBuckle('./assets/buckle-round_re.svg');
+const squareBuckle = new WatchBuckle('./assets/buckle-square_re.svg');
 
 // バックルの形状が選択されたらcanvasに描画 ----------------
 buckleShapeInputs.forEach(buckleShapeInput => {
