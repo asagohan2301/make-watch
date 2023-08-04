@@ -138,13 +138,12 @@ main .component-list .component .workspace .workspace-top-container {
 }
 main .component-list .component .workspace .workspace-top-container .text-labels-container {
   padding: 24px 32px;
-  border-right: 1px dashed #333;
 }
 main .component-list .component .workspace .workspace-top-container .text-labels-container .text-label-container {
   display: flex;
 }
 main .component-list .component .workspace .workspace-top-container .text-labels-container .text-label-container label {
-  width: 120px;
+  width: 160px;
 }
 main .component-list .component .workspace .workspace-top-container .text-labels-container .text-label-container span {
   margin-left: 8px;
@@ -185,6 +184,7 @@ main .component-list .component .workspace .workspace-top-container .option-cont
 }
 main .component-list .component .workspace .workspace-top-container .info {
   position: relative;
+  border-left: 1px dashed #333;
 }
 main .component-list .component .workspace .workspace-top-container .info .info-comment {
   width: -moz-fit-content;
@@ -231,6 +231,10 @@ main .component-list .component .workspace .design-list ul li label.radio-label 
 main .component-list .component .workspace .design-list ul li:hover label.radio-label {
   background: #e2e2e2;
 }
+main .component-list .component .workspace .design-list ul li label.range-label {
+  display: flex;
+  flex-direction: column;
+}
 main .component-list .component .workspace .design-list ul li img,
 main .component-list .component .workspace .design-list ul li div {
   position: absolute;
@@ -269,6 +273,9 @@ main .component-list .component .workspace .design-list ul li p {
   text-align: center;
   font-size: 11px;
   pointer-events: none;
+}
+main .component-list .component .workspace .design-list ul li input[type=range] {
+  width: 100px;
 }
 
 /* ----- colors ----- */
@@ -410,4 +417,18 @@ label.active {
   position: absolute;
   top: 670px;
   left: 380px;
+}
+
+#test-message {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  background: #e2e2e2;
+  width: -moz-fit-content;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 11px;
 }/*# sourceMappingURL=style.css.map */

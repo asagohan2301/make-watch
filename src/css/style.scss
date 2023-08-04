@@ -5,8 +5,8 @@ $text-color: #333;
 $active-color: #e2e2e2;
 $border: 1px solid $text-color;
 $dashedBorder: 1px dashed $text-color;
-$case-info-canvas-half-width: 130px;
-$case-info-canvas-half-height: 102px;
+// $case-info-canvas-half-width: 130px;
+// $case-info-canvas-half-height: 102px;
 @mixin box-center {
   position: absolute;
   left: 0;
@@ -150,11 +150,11 @@ main {
           /* ----- text label ----- */
           .text-labels-container {
             padding: 24px 32px;
-            border-right: $dashedBorder;
+            // border-right: $dashedBorder;
             .text-label-container {
               display: flex;
               label {
-                width: 120px;
+                width: 160px;
               }
               span {
                 margin-left: 8px;
@@ -199,6 +199,7 @@ main {
           /* ----- info ----- */
           .info {
             position: relative;
+            border-left: $dashedBorder; 
             .info-comment {
               width: fit-content;
               max-width: 240px;
@@ -246,6 +247,11 @@ main {
               &:hover label.radio-label {
                 background: $active-color;
               }
+              //* test
+              label.range-label {
+                display: flex;
+                flex-direction: column;
+              }
               img,
               div {
                 position: absolute;
@@ -279,6 +285,10 @@ main {
                 text-align: center;
                 font-size: 11px;
                 pointer-events: none;
+              }
+              // test
+              input[type="range"] {
+                width: 100px;
               }
             }
           }
@@ -409,7 +419,3 @@ label.active {
   top: 670px;
   left: 380px;
 }
-
-
-
-

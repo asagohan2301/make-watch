@@ -1,6 +1,7 @@
 <!-- MITライセンスの記載 -->
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,8 +9,11 @@
   <title>Watch Design Maker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Kanit:wght@500&family=Manrope&family=Prompt:wght@600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Kanit:wght@500&family=Manrope&family=Prompt:wght@600&display=swap"
+    rel="stylesheet">
 </head>
+
 <body>
   <!---------- header ---------->
   <header>
@@ -48,14 +52,19 @@
                 <span>mm</span>
               </div>
               <div class="text-label-container">
-                <label for="lug-width">ラグ幅:</label>
+                <label for="lug-width">ラグを含むケースの全長:</label>
+                <input type="text" id="case-total-size" size="4">
+                <span>mm</span>
+              </div>
+              <div class="text-label-container">
+                <label for="lug-width">ラグ間の距離(=ベルト幅):</label>
                 <input type="text" id="lug-width" size="4">
                 <span>mm</span>
               </div>
             </div>
             <!---------- case info canvas ---------->
             <div class="info">
-              <canvas id="case-info-canvas" width="260" height="204"></canvas>
+              <canvas id="case-info-canvas" width="260" height="249"></canvas>
               <p class="case-info-comment info-comment">入力するパーツの説明が表示されます</p>
             </div>
           </div>
@@ -192,10 +201,10 @@
               </div>
             </div>
             <!---------- strap info canvas ---------->
-            <div class="info">
+            <!-- <div class="info">
               <canvas id="strap-info-canvas" width="260" height="204"></canvas>
               <p class="strap-info-comment info-comment">入力するパーツの説明が表示されます</p>
-            </div>
+            </div> -->
           </div>
           <!---------- strap design ---------->
           <div>
@@ -259,14 +268,14 @@
                   <label class="radio-label">
                     <input type="radio" name="buckle-shape" value="round">
                   </label>
-                  <img src="./assets/buckle-round.svg" alt="丸い形状のバックル" width="48" height="42">
+                  <img src="./assets/buckle-round_re.svg" alt="丸い形状のバックル" width="48" height="42">
                   <p>丸型</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="buckle-shape" value="square">
                   </label>
-                  <img src="./assets/buckle-square.svg" alt="四角い形状のバックル" width="48" height="42">
+                  <img src="./assets/buckle-square_re.svg" alt="四角い形状のバックル" width="48" height="42">
                   <p>角型</p>
                 </li>
               </ul>
@@ -342,26 +351,26 @@
                   <label class="radio-label">
                     <input type="radio" name="hour-layout" value="no-hour">
                   </label>
-                  <img src="./assets/two-point-hour.svg" alt="数字なし" width="54" height="54">
+                  <img src="./assets/no-hour.svg" alt="数字なし" width="54" height="54">
                   <p>数字なし</p>
                 </li>
               </ul>
             </div>
             <div class="design-list design-list-bardot">
-              <h3>数字がない場所のデザイン:</h3>
+              <h3>数字を配置しない位置のデザイン:</h3>
               <ul>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="bar-dot" value="bar">
                   </label>
-                  <img src="./assets/all-hour.svg" alt="バー" width="54" height="54">
+                  <img src="./assets/bar.svg" alt="バー" width="54" height="54">
                   <p>バー</p>
                 </li>
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="bar-dot" value="dot">
                   </label>
-                  <img src="./assets/four-point-hour.svg" alt="ドット" width="54" height="54">
+                  <img src="./assets/dot.svg" alt="ドット" width="54" height="54">
                   <p>ドット</p>
                 </li>
               </ul>
@@ -371,21 +380,24 @@
               <ul>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="hour-font" value="'Kanit', sans-serif" data-path="./assets/Kanit-Medium.ttf">
+                    <input type="radio" name="hour-font" value="'Kanit', sans-serif"
+                      data-path="./assets/Kanit-Medium.ttf">
                   </label>
                   <div class="hour-font-sample">2</div>
                   <p>Kanit</p>
                 </li>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="hour-font" value="'Abril Fatface', cursive" data-path="./assets/AbrilFatface-Regular.ttf">
+                    <input type="radio" name="hour-font" value="'Abril Fatface', cursive"
+                      data-path="./assets/AbrilFatface-Regular.ttf">
                   </label>
                   <div class="hour-font-sample">2</div>
                   <p>Abril Fatface</p>
                 </li>
                 <li>
                   <label class="radio-label">
-                    <input type="radio" name="hour-font" value="'Manrope', sans-serif" data-path="./assets/Manrope-Regular.ttf">
+                    <input type="radio" name="hour-font" value="'Manrope', sans-serif"
+                      data-path="./assets/Manrope-Regular.ttf">
                   </label>
                   <div class="hour-font-sample">2</div>
                   <p>Manrope</p>
@@ -423,13 +435,6 @@
                   <div class="black-color color-box"></div>
                   <p>黒</p>
                 </li>
-                <!-- <li>
-                  <label class="radio-label">
-                    <input type="radio" name="hour-color" value="white">
-                  </label>
-                  <div class="white-color color-box"></div>
-                  <p>白</p>
-                </li> -->
                 <li>
                   <label class="radio-label">
                     <input type="radio" name="hour-color" value="custom-color">
@@ -440,29 +445,48 @@
                 </li>
               </ul>
             </div>
+            <!---------- dial range ---------->
             <div class="design-list design-list-hour-range">
               <h3>数字の調整:</h3>
-              <label>数字のサイズ
-                <input type="range" name="hour-font-size" id="hour-font-size-range" min="4" max="32" step="1">
-              </label>
-              <label>数字の位置
-                <input type="range" name="hour-layout-circle-radius" id="hour-layout-circle-radius-range" min="-20" max="0" step="1">
-              </label>
+              <ul>
+                <li>
+                  <label class="range-label">数字のサイズ
+                    <input type="range" name="hour-font-size" id="hour-font-size-range" min="4" max="32" step="1">
+                  </label>
+                </li>
+                <li>
+                  <label class="range-label">数字の位置
+                    <input type="range" name="hour-layout-circle-radius" id="hour-layout-circle-radius-range" min="-20"
+                      max="0" step="1">
+                  </label>
+                </li>
+              </ul>
             </div>
             <div class="design-list design-list-bardot-range">
               <h3>バードットの調整:</h3>
-              <label>バーの幅
-                <input type="range" name="bar-width" id="bar-width-range" min=".1" max="5" step=".1">
-              </label>
-              <label>バーの長さ
-                <input type="range" name="bar-length" id="bar-length-range" min="1" max="10" step=".1">
-              </label>
-              <label>ドットのサイズ
-                <input type="range" name="dot-size" id="dot-size-range" min=".4" max="3" step=".1">
-              </label>
-              <label>バーorドットの位置
-                <input type="range" name="bardot-layout-circle-radius" id="bardot-layout-circle-radius-range" min="-20" max="0" step="1">
-              </label>
+              <ul>
+                <li>
+                  <label class="range-label">バーの幅
+                    <input type="range" name="bar-width" id="bar-width-range" min=".1" max="5" step=".1">
+                  </label>
+                </li>
+                <li>
+                  <label class="range-label">バーの長さ
+                    <input type="range" name="bar-length" id="bar-length-range" min="1" max="10" step=".1">
+                  </label>
+                </li>
+                <li>
+                  <label class="range-label">ドットのサイズ
+                    <input type="range" name="dot-size" id="dot-size-range" min=".4" max="3" step=".1">
+                  </label>
+                </li>
+                <li>
+                  <label class="range-label">バーorドットの位置
+                    <input type="range" name="bardot-layout-circle-radius" id="bardot-layout-circle-radius-range"
+                      min="-20" max="0" step="1">
+                  </label>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -542,28 +566,41 @@
             </div>
             <div class="design-list design-list-hands-range">
               <h3>針の調整:</h3>
-              <label>時針と分針の向き
-                <input type="range" name="hour-minute-hands-direction" id="hour-minute-hands-direction-range" min="0" max="4320" step="6">
-              </label>
-              <label>秒針の向き
-                <input type="range" name="second-hand-direction" id="second-hand-direction-range" min="0" max="360" step="6">
-              </label>
-              <label>針の長さ
-                <!-- maxはindex.jsで指定 -->
-                <input type="range" name="hands-length" id="hands-length-range" min=".1" step=".1">
-              </label>
-              <label>針の太さ
-                <input type="range" name="hands-width" id="hands-width-range" min=".8" max="1.8" step=".2">
-              </label>
+              <ul>
+                <li>
+                  <label class="range-label">時針と分針の向き
+                    <input type="range" name="hour-minute-hands-direction" id="hour-minute-hands-direction-range"
+                      min="0" max="4320" step="6">
+                  </label>
+                </li>
+                <li>
+                  <label class="range-label">秒針の向き
+                    <input type="range" name="second-hand-direction" id="second-hand-direction-range" min="0" max="360"
+                      step="6">
+                  </label>
+                </li>
+                <li>
+                  <label class="range-label">針の長さ
+                    <!-- maxはindex.jsで指定 -->
+                    <input type="range" name="hands-length" id="hands-length-range" min=".1" step=".1">
+                  </label>
+                </li>
+                <li>
+                  <label class="range-label">針の太さ
+                    <input type="range" name="hands-width" id="hands-width-range" min=".8" max="1.8" step=".2">
+                  </label>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
       </li>
     </ul>
   </main>
-    <!-- test ----------------------------------------->
-    <button id="button-for-test">test</button>
-    <button id="button-for-test2">test2</button>
+  <!-- test ----------------------------------------->
+  <!-- <button id="button-for-test">test</button> -->
+  <!-- <button id="button-for-test2">test2</button> -->
   <script type="module" src="./bundle.js"></script>
 </body>
+
 </html>
