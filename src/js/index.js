@@ -531,6 +531,14 @@ class WatchCircleForMain extends fabric.Circle {
 
 // ケースサイズが入力されたらcanvasに描画 ----------------
 caseSizeInput.addEventListener('input', () => {
+
+  // const inputValueNum = Number(caseSizeInput.value);
+  // if (Number.isNaN(inputValueNum) || inputValueNum === 0) {
+  //   window.alert('1以上の数字を半角で入力してね');
+  //   caseSizeInput.value = '';
+  //   return;
+  // }
+
   // すでにオブジェクトが描かれていたらcanvasから削除
   mainCanvas.remove(caseObject);
   // ケースオブジェクト生成
@@ -1500,7 +1508,6 @@ class WatchBuckle {
         scaleX: strapWidth / defaultStrapWidth,
         // scaleY: strapWidth / defaultStrapWidth,
       });
-      //* test
       if (strapShape === 'taper') {
         buckleObject.set({
           scaleX: (strapWidth - mmToPixel(2)) / defaultStrapWidth,
@@ -1650,7 +1657,7 @@ function drawHour() {
         top: rotatedPoint.y,
         left: rotatedPoint.x,
         fill: hourColor,
-        stroke: 'rgb(118,99,4)',
+        stroke: 'black',
         strokeWidth: .5,
       });
       // 配列に入れる
@@ -2326,7 +2333,6 @@ const caseInfoCanvasCaseRadius = 45;
 const caseInfoCanvasCaseOpeningRadius = 39;
 const caseInfoCanvasDialOpeningRadius = 36;
 const caseInfoCanvasLugHalfDistance = 26;
-//* test
 const caseInfoCanvasCaseTotalSize = 112;
 
 // Node
@@ -2544,11 +2550,9 @@ lugWidthInput.addEventListener('input', () => {
   fadeOutComment();
 });
 
-//* test
 let caseTotalLine, caseTotalTipTop, caseTotalTipBottom;
 // ケース全長の info を表示・非表示 ----------------
 caseTotalSizeInput.addEventListener('focus', () => {
-  //* test
   caseTotalLine = new fabric.Polyline([
     { x: caseInfoCanvasHalfWidth - 35, y: caseInfoCanvasCenterHeight + caseInfoCanvasCaseTotalSize / 2 },
     { x: caseInfoCanvasHalfWidth - 35, y: caseInfoCanvasCenterHeight - caseInfoCanvasCaseTotalSize / 2 },], {
@@ -2568,7 +2572,7 @@ caseTotalSizeInput.addEventListener('focus', () => {
     stroke: 'red',
     fill: 'transparent',
   });
-  caseInfoCanvas.add(caseTotalLine, caseTotalTipTop,caseTotalTipBottom);
+  caseInfoCanvas.add(caseTotalLine, caseTotalTipTop, caseTotalTipBottom);
   // コメントを表示
   fadeInComment(comment.caseTotalSize);
 });
@@ -2691,87 +2695,17 @@ function fadeOutComment() {
 
 //* 確認用コード ----------------------------------------------------------------------------------
 
-// canvasの(ページの？)座標をconsoleに表示する ----------------
-const headerHeight = 62;
-mainCanvas.on('mouse:down', function (options) {
-});
-
-//* test -----------------------------------------------------------------------------------------
-
-// const text = new fabric.Text('hello', {
-//   left: 100,
-//   top: 100,
-//   originX: 'center',
-//   originY: 'center',
-//   fill: 'red',
-//   fontFamily: 'cursive',
-//   stroke: 'black',
+// document.body.addEventListener('click', (e) => {
+//   console.log(`ビューポート内の座標: x=${e.clientX}, y=${e.clientY}`);
+//   console.log(`ページ全体の座標: x=${e.pageX}, y=${e.pageY}`);
 // });
-// mainCanvas.add(text);
-
-
-// const circle = new fabric.Circle({
-//   radius: 50,
-//   left: 200,
-//   top: 300,
-//   fill: 'blue',
-// });
-// mainCanvas.add(circle);
-
-// const group = new fabric.Group([ text, circle ], {
-//   left: 200,
-//   top: 200,
-//   originX: 'center',
-//   originY: 'center',
-// });
-// mainCanvas.add(group);
-
-
-
-
-// var textPath = new fabric.Text('Text on a path', {
-//   top: 150,
-//   left: 150,
-//   textAlign: 'center',
-//   charSpacing: -50,
-//   path: new fabric.Path('M 0 0 C 50 -100 150 -100 200 0', {
-//       strokeWidth: 1,
-//       visible: false
-//   }),
-//   pathSide: 'left',
-//   pathStartOffset: 0
-// });
-// mainCanvas.add(textPath);
-
-// const canvasRange = document.getElementById('canvas-range');
-// canvasRange.addEventListener('input', () => {
-//   mainCanvas.setZoom(canvasRange.value);
-// });
-
-
-
-
 
 //* テスト用 -------------------------------------------------------------------------
-
-// const centerLine = new fabric.Polyline([
-//   {x: 0, y: mainCanvasCenterHeight},
-//   {x: 384, y: mainCanvasCenterHeight}], {
-//   stroke: 'red',
-// });
-// mainCanvas.add(centerLine);
-
-
-// let object;
 
 const testButton1 = document.getElementById('button-for-test');
 testButton1.addEventListener('click', () => {
 
   // ここから試しコードを書く ----------------------------
-
-  console.log(upperStrapStitchObject);
-  console.log(barDotObjects);
-
 
   // ここまで試しコードを書く ----------------------------
 
@@ -2779,14 +2713,11 @@ testButton1.addEventListener('click', () => {
 
 document.getElementById('button-for-test2').addEventListener('click', () => {
 
+  // ここから試しコードを書く ----------------------------
 
-
+  // ここまで試しコードを書く ----------------------------
 
 });
-
-//* テスト用 -------------------------------------------------------------------------
-
-
 
 //* export ---------------------------------------------------------------------------------------
 

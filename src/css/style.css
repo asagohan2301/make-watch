@@ -417,4 +417,18 @@ label.active {
   position: absolute;
   top: 670px;
   left: 380px;
+}
+
+#test-message {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  background: #e2e2e2;
+  width: -moz-fit-content;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 11px;
 }/*# sourceMappingURL=style.css.map */
